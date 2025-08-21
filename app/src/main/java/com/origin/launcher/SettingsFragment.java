@@ -46,6 +46,7 @@ public class SettingsFragment extends Fragment implements DiscordManager.Discord
     private LinearLayout commitsContainer;
     private LinearLayout githubButton;
     private LinearLayout discordButton;
+    private LinearLayout themesButton; // Added themes button reference
     
     // Discord components
     private com.google.android.material.button.MaterialButton discordLoginButton;
@@ -83,6 +84,9 @@ public class SettingsFragment extends Fragment implements DiscordManager.Discord
         // Initialize social media buttons
         githubButton = view.findViewById(R.id.github_button);
         discordButton = view.findViewById(R.id.discord_button);
+        
+        // Initialize themes button
+        themesButton = view.findViewById(R.id.themes_button);
         
         // Initialize Discord components
         discordLoginButton = view.findViewById(R.id.discord_login_button);
@@ -145,6 +149,22 @@ public class SettingsFragment extends Fragment implements DiscordManager.Discord
     private void setupButtonListeners() {
         githubButton.setOnClickListener(v -> openUrl(GITHUB_URL, "GitHub"));
         discordButton.setOnClickListener(v -> openUrl(DISCORD_URL, "Discord"));
+        
+        // Add themes button listener - simple fragment replacement
+        themesButton.setOnClickListener(v -> {
+            try {
+                requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(android.R.id.content, new ThemesFragment())
+                    .addToBackStack(null)
+                    .commit();
+                
+                Log.d(TAG, "Opening themes fragment");
+            } catch (Exception e) {
+                Log.e(TAG, "Error opening themes", e);
+                Toast.makeText(getContext(), "Unable to open themes", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     
     private void setupDiscordButton() {
