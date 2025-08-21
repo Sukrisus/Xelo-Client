@@ -133,9 +133,4 @@ See the [LICENSE](LICENSE) file or visit [https://www.gnu.org/licenses/gpl-3.0.h
 ## 👥 Credits
 
 Huge thanks to all contributors, developers, testers, and supporters who make Xelo Client better every day.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Xelo-Client/Xelo/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width="80">
-</p>
-
 <h4 align="center">Built with ❤️ by the Minecraft Bedrock community.</h4>
