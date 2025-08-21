@@ -97,7 +97,7 @@ public class HomeFragment extends Fragment {
             String logText = listener.getText().toString();
             
             // Create a temporary file
-            File logFile = new File(requireContext().getCacheDir(), "oclatestlog.txt");
+            File logFile = new File(requireContext().getCacheDir(), "latestlog.txt");
             FileWriter writer = new FileWriter(logFile);
             writer.write(logText);
             writer.close();
@@ -114,8 +114,8 @@ public class HomeFragment extends Fragment {
             );
             
             shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Origin Client Logs");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "Origin Client Latest Logs");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Logs");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client Latest Logs");
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             
             // Start the sharing activity
