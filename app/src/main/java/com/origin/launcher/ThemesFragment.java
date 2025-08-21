@@ -5,22 +5,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,9 +32,11 @@ public class ThemesFragment extends Fragment {
     private static final String PREF_SELECTED_THEME = "selected_theme";
     private static final String DEFAULT_THEME = "default";
     
+    private ImageView backButton;
     private LinearLayout themesContainer;
-    private MaterialButton importThemeButton;
+    private LinearLayout noThemesContainer;
     private TextView noThemesText;
+    private FloatingActionButton importThemeFab;
     private List<ThemeItem> themesList;
     private String selectedTheme;
     private File themesDirectory;
@@ -75,11 +76,21 @@ public class ThemesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_themes, container, false);
         
+        backButton = view.findViewById(R.id.back_button);
         themesContainer = view.findViewById(R.id.themes_container);
-        importThemeButton = view.findViewById(R.id.import_theme_button);
+        noThemesContainer = view.findViewById(R.id.no_themes_container);
         noThemesText = view.findViewById(R.id.no_themes_text);
+        importThemeFab = view.findViewById(R.id.import_theme_fab);
         
-        importThemeButton.setOnClickListener(v -> openFilePicker());
+        // Set up back button
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+        });
+        
+        // Set up FAB
+        importThemeFab.setOnClickListener(v -> openFilePicker());
         
         loadThemes();
         
@@ -126,7 +137,7 @@ public class ThemesFragment extends Fragment {
             inputStream.close();
             outputStream.close();
             
-            Toast.makeText(getContext(), "Theme imported successfully: " + fileName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Theme imported: " + fileName, Toast.LENGTH_SHORT).show();
             loadThemes(); // Refresh the list
             
         } catch (Exception e) {
@@ -186,63 +197,134 @@ public class ThemesFragment extends Fragment {
     private void displayThemes() {
         themesContainer.removeAllViews();
         
-        if (themesList.isEmpty() || (themesList.size() == 1 && themesList.get(0).isDefault)) {
-            noThemesText.setVisibility(View.VISIBLE);
-        } else {
-            noThemesText.setVisibility(View.GONE);
-        }
+        // Check if we only have the default theme
+        boolean hasCustomThemes = themesList.size() > 1;
         
-        for (int i = 0; i < themesList.size(); i++) {
-            ThemeItem theme = themesList.get(i);
-            createThemeCard(theme, i);
+        if (!hasCustomThemes) {
+            noThemesContainer.setVisibility(View.VISIBLE);
+            // Still show the default theme
+            for (ThemeItem theme : themesList) {
+                createThemeCard(theme, 0);
+            }
+        } else {
+            noThemesContainer.setVisibility(View.GONE);
+            for (int i = 0; i < themesList.size(); i++) {
+                ThemeItem theme = themesList.get(i);
+                createThemeCard(theme, i);
+                
+                // Add spacing between cards
+                if (i < themesList.size() - 1) {
+                    View spacer = new View(getContext());
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, 
+                        (int) (12 * getResources().getDisplayMetrics().density)
+                    );
+                    spacer.setLayoutParams(params);
+                    themesContainer.addView(spacer);
+                }
+            }
         }
     }
     
     private void createThemeCard(ThemeItem theme, int position) {
-        View themeCard = LayoutInflater.from(getContext()).inflate(R.layout.item_theme, themesContainer, false);
+        // Create card layout
+        MaterialCardView card = new MaterialCardView(requireContext());
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        card.setLayoutParams(cardParams);
+        card.setRadius(12 * getResources().getDisplayMetrics().density);
+        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+        card.setClickable(true);
+        card.setFocusable(true);
         
-        MaterialCardView cardView = themeCard.findViewById(R.id.theme_card);
-        TextView themeName = themeCard.findViewById(R.id.theme_name);
-        TextView themeDescription = themeCard.findViewById(R.id.theme_description);
-        MaterialRadioButton radioButton = themeCard.findViewById(R.id.theme_radio_button);
-        MaterialButton deleteButton = themeCard.findViewById(R.id.delete_theme_button);
+        // Main container
+        LinearLayout mainLayout = new LinearLayout(requireContext());
+        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+        mainLayout.setPadding(
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
+        );
+        mainLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
         
-        themeName.setText(theme.name);
-        themeDescription.setText(theme.description);
+        // Radio button
+        MaterialRadioButton radioButton = new MaterialRadioButton(requireContext());
+        LinearLayout.LayoutParams radioParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        radioParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
+        radioButton.setLayoutParams(radioParams);
         radioButton.setChecked(theme.key.equals(selectedTheme));
+        radioButton.setClickable(false);
+        radioButton.setFocusable(false);
         
-        // Hide delete button for default theme
-        if (theme.isDefault) {
-            deleteButton.setVisibility(View.GONE);
-        } else {
-            deleteButton.setVisibility(View.VISIBLE);
+        // Text container
+        LinearLayout textLayout = new LinearLayout(requireContext());
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+            0, 
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            1.0f
+        );
+        textLayout.setLayoutParams(textParams);
+        
+        // Theme name
+        TextView nameText = new TextView(requireContext());
+        nameText.setText(theme.name);
+        nameText.setTextSize(16);
+        nameText.setTypeface(null, android.graphics.Typeface.BOLD);
+        
+        // Theme description
+        TextView descText = new TextView(requireContext());
+        descText.setText(theme.description);
+        descText.setTextSize(14);
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        descText.setLayoutParams(descParams);
+        
+        textLayout.addView(nameText);
+        textLayout.addView(descText);
+        
+        // Delete button (if not default theme)
+        if (!theme.isDefault) {
+            MaterialButton deleteButton = new MaterialButton(requireContext());
+            LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
+                (int) (36 * getResources().getDisplayMetrics().density),
+                (int) (36 * getResources().getDisplayMetrics().density)
+            );
+            deleteParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));
+            deleteButton.setLayoutParams(deleteParams);
+            deleteButton.setInsetTop(0);
+            deleteButton.setInsetBottom(0);
+            deleteButton.setContentDescription("Delete theme");
             deleteButton.setOnClickListener(v -> showDeleteConfirmation(theme, position));
+            
+            mainLayout.addView(deleteButton);
         }
         
-        // Set up card click listener
-        View.OnClickListener selectTheme = v -> {
+        mainLayout.addView(radioButton);
+        mainLayout.addView(textLayout);
+        
+        card.addView(mainLayout);
+        
+        // Set card click listener
+        card.setOnClickListener(v -> {
             if (!theme.key.equals(selectedTheme)) {
                 selectedTheme = theme.key;
                 saveSelectedTheme();
                 displayThemes(); // Refresh to update radio buttons
                 Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
             }
-        };
+        });
         
-        cardView.setOnClickListener(selectTheme);
-        radioButton.setOnClickListener(selectTheme);
-        
-        themesContainer.addView(themeCard);
-        
-        // Add margin between cards
-        if (position < themesList.size() - 1) {
-            View spacer = new View(getContext());
-            spacer.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
-                (int) (8 * getResources().getDisplayMetrics().density)
-            ));
-            themesContainer.addView(spacer);
-        }
+        themesContainer.addView(card);
     }
     
     private void showDeleteConfirmation(ThemeItem theme, int position) {
