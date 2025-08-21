@@ -52,7 +52,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tab_section"
+        android:layout_below="@id/header_divider"
         android:fillViewport="true">
 
         <LinearLayout
