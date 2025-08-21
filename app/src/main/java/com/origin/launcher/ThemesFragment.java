@@ -176,9 +176,6 @@ public class ThemesFragment extends Fragment {
     private void loadThemes() {
         themesList = new ArrayList<>();
         
-        // Add default theme
-        themesList.add(new ThemeItem("Default", "Built-in default theme", DEFAULT_THEME, true));
-        
         // Load themes from directory
         if (themesDirectory.exists() && themesDirectory.isDirectory()) {
             File[] themeFiles = themesDirectory.listFiles((dir, name) -> name.endsWith(".xtheme"));

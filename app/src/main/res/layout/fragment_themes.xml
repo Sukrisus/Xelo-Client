@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
-
+ 
     <!-- Header -->
     <LinearLayout
         android:id="@+id/header"
@@ -14,12 +14,12 @@
         android:orientation="horizontal"
         android:padding="16dp"
         android:gravity="center_vertical"
-        android:background="@color/surface">
+        android:background="@android:color/transparent">
 
         <ImageView
             android:id="@+id/back_button"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:src="@drawable/ic_arrow_back"
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -29,13 +29,14 @@
             android:tint="@color/onSurface" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Themes"
-            android:textSize="20sp"
-            android:textColor="@color/onSurface"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Themes"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@color/onBackground"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="sans-serif-light" />
 
     </LinearLayout>
 
@@ -46,28 +47,6 @@
         android:layout_height="1dp"
         android:layout_below="@id/header"
         android:background="@color/outline" />
-
-    <!-- Tab Section -->
-    <LinearLayout
-        android:id="@+id/tab_section"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/header_divider"
-        android:orientation="vertical"
-        android:background="@color/surface">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Installed"
-            android:textSize="16sp"
-            android:textColor="@color/onSurface"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
-            android:layout_gravity="center"
-            android:padding="16dp" />
-
-    </LinearLayout>
 
     <!-- Themes Content -->
     <ScrollView
