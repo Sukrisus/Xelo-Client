@@ -320,11 +320,20 @@ public class ThemesFragment extends Fragment {
     infoButton.setLayoutParams(infoParams);
     infoButton.setImageResource(android.R.drawable.ic_dialog_info); // You can replace with your own icon
     infoButton.setColorFilter(getResources().getColor(R.color.onSurfaceVariant, null));
-    infoButton.setBackground(android.graphics.drawable.RippleDrawable.createFromXml(
-        getResources(), 
-        getResources().getXml(android.R.xml.create_circle_background), 
-        null
-    ));
+    
+    // Create circle ripple background for info button
+    android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
+    circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+    circle.setColor(android.graphics.Color.TRANSPARENT);
+    
+    android.graphics.drawable.RippleDrawable infoRipple = new android.graphics.drawable.RippleDrawable(
+        android.content.res.ColorStateList.valueOf(
+            getResources().getColor(R.color.onSurfaceVariant, null) & 0x1AFFFFFF
+        ),
+        null,
+        circle
+    );
+    infoButton.setBackground(infoRipple);
     infoButton.setClickable(true);
     infoButton.setFocusable(true);
     
@@ -366,11 +375,20 @@ public class ThemesFragment extends Fragment {
         deleteButton.setLayoutParams(deleteParams);
         deleteButton.setImageResource(android.R.drawable.ic_menu_delete); // You can replace with your own icon
         deleteButton.setColorFilter(getResources().getColor(R.color.error, null)); // Red color for delete
-        deleteButton.setBackground(android.graphics.drawable.RippleDrawable.createFromXml(
-            getResources(), 
-            getResources().getXml(android.R.xml.create_circle_background), 
-            null
-        ));
+        
+        // Create circle ripple background for delete button
+        android.graphics.drawable.GradientDrawable deleteCircle = new android.graphics.drawable.GradientDrawable();
+        deleteCircle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        deleteCircle.setColor(android.graphics.Color.TRANSPARENT);
+        
+        android.graphics.drawable.RippleDrawable deleteRipple = new android.graphics.drawable.RippleDrawable(
+            android.content.res.ColorStateList.valueOf(
+                getResources().getColor(R.color.error, null) & 0x1AFFFFFF
+            ),
+            null,
+            deleteCircle
+        );
+        deleteButton.setBackground(deleteRipple);
         deleteButton.setClickable(true);
         deleteButton.setFocusable(true);
         deleteButton.setContentDescription("Delete theme");
