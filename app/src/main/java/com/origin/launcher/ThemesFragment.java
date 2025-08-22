@@ -36,7 +36,7 @@ public class ThemesFragment extends Fragment {
     private LinearLayout themesContainer;
     private LinearLayout noThemesContainer;
     private TextView noThemesText;
-    private FloatingActionButton importThemeFab;
+    private MaterialButton importThemeFab;
     private List<ThemeItem> themesList;
     private String selectedTheme;
     private File themesDirectory;
@@ -80,7 +80,7 @@ public class ThemesFragment extends Fragment {
         themesContainer = view.findViewById(R.id.themes_container);
         noThemesContainer = view.findViewById(R.id.no_themes_container);
         noThemesText = view.findViewById(R.id.no_themes_text);
-        importThemeFab = view.findViewById(R.id.import_theme_fab);
+        importThemeFab = view.findViewById(R.id.new_theme_button);
         
         // Set up back button
         backButton.setOnClickListener(v -> {
@@ -483,12 +483,14 @@ public class ThemesFragment extends Fragment {
         String description;
         String key;
         boolean isDefault;
+        String author;
         
         ThemeItem(String name, String description, String key, boolean isDefault) {
             this.name = name;
             this.description = description;
             this.key = key;
             this.isDefault = isDefault;
+            this.author = null; // Default to null for imported themes
         }
     }
 }
