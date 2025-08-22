@@ -11,7 +11,7 @@
     "onBackground": "#FFFFFF",
     "onSurface": "#FFFFFF",
     "onSurfaceVariant": "#BBBBBB",
-    "onPrimary": "#000000",
+    "onPrimary": "#FFFFFF",
     "outline": "#444444",
     "error": "#FF5555"
   }

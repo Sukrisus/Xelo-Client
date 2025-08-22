@@ -112,7 +112,7 @@ public class ThemeManager {
             case "onBackground": return Color.parseColor("#FFFFFF");
             case "onSurface": return Color.parseColor("#FFFFFF");
             case "onSurfaceVariant": return Color.parseColor("#BBBBBB");
-            case "onPrimary": return Color.parseColor("#000000");
+            case "onPrimary": return Color.parseColor("#FFFFFF");
             case "outline": return Color.parseColor("#444444");
             case "error": return Color.parseColor("#FF5555");
             default: return Color.parseColor("#FFFFFF");
