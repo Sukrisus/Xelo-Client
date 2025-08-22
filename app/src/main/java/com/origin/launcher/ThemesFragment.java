@@ -26,6 +26,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import org.json.JSONObject;
 
 public class ThemesFragment extends BaseThemedFragment {
     private static final String TAG = "ThemesFragment";
@@ -129,20 +132,12 @@ public class ThemesFragment extends BaseThemedFragment {
                 return;
             }
             
-            // Copy file to themes directory
+            // Extract and validate the .xtheme file (ZIP archive)
             InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
-            File destinationFile = new File(themesDirectory, fileName);
-            
-            FileOutputStream outputStream = new FileOutputStream(destinationFile);
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
+            if (!extractAndValidateXTheme(inputStream, fileName)) {
+                Toast.makeText(getContext(), "Invalid .xtheme file format", Toast.LENGTH_SHORT).show();
+                return;
             }
-            
-            inputStream.close();
-            outputStream.close();
             
             Toast.makeText(getContext(), "Theme imported: " + fileName, Toast.LENGTH_SHORT).show();
             loadThemes(); // Refresh the list
@@ -150,6 +145,106 @@ public class ThemesFragment extends BaseThemedFragment {
         } catch (Exception e) {
             Log.e(TAG, "Error importing theme file", e);
             Toast.makeText(getContext(), "Error importing theme: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private boolean extractAndValidateXTheme(InputStream inputStream, String fileName) {
+        try {
+            String themeKey = fileName.replace(".xtheme", "");
+            File themeDir = new File(themesDirectory, themeKey);
+            
+            // Create theme directory
+            if (!themeDir.exists()) {
+                themeDir.mkdirs();
+            }
+            
+            // Extract ZIP contents
+            ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+            ZipEntry entry;
+            boolean foundColorsJson = false;
+            
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                if (entry.isDirectory()) {
+                    // Create directory
+                    File dir = new File(themeDir, entry.getName());
+                    dir.mkdirs();
+                } else {
+                    // Extract file
+                    File file = new File(themeDir, entry.getName());
+                    file.getParentFile().mkdirs();
+                    
+                    FileOutputStream outputStream = new FileOutputStream(file);
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    
+                    while ((bytesRead = zipInputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
+                    }
+                    outputStream.close();
+                    
+                    // Check if this is the colors.json file
+                    if (entry.getName().equals("colors/colors.json")) {
+                        foundColorsJson = true;
+                    }
+                }
+                zipInputStream.closeEntry();
+            }
+            
+            zipInputStream.close();
+            inputStream.close();
+            
+            if (!foundColorsJson) {
+                // Clean up extracted files if invalid
+                deleteDirectory(themeDir);
+                Log.e(TAG, "No colors/colors.json found in .xtheme file");
+                return false;
+            }
+            
+            return true;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error extracting .xtheme file", e);
+            return false;
+        }
+    }
+    
+    private void deleteDirectory(File dir) {
+        if (dir.exists()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+            dir.delete();
+        }
+    }
+    
+    private ThemeItem getXThemeMetadata(File colorsJsonFile, String themeKey) {
+        try {
+            // Read the colors.json file
+            InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            
+            String jsonString = new String(buffer, "UTF-8");
+            JSONObject themeJson = new JSONObject(jsonString);
+            
+            String name = themeJson.optString("name", themeKey);
+            String author = themeJson.optString("author", null);
+            String description = themeJson.optString("description", "Custom theme");
+            
+            return new ThemeItem(name, description, themeKey, false, author);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading .xtheme metadata: " + themeKey, e);
+            // Return a basic theme item if we can't read metadata
+            return new ThemeItem(themeKey, "Custom theme", themeKey, false, null);
         }
     }
     
@@ -193,14 +288,22 @@ public class ThemesFragment extends BaseThemedFragment {
             themesList.add(new ThemeItem(metadata.name, metadata.description, metadata.key, false, metadata.author));
         }
         
-        // Load custom themes from directory
+        // Load custom themes from directory (extracted .xtheme folders)
         if (themesDirectory.exists() && themesDirectory.isDirectory()) {
-            File[] themeFiles = themesDirectory.listFiles((dir, name) -> name.endsWith(".xtheme"));
-            if (themeFiles != null) {
-                for (File themeFile : themeFiles) {
-                    String themeName = themeFile.getName().replace(".xtheme", "");
-                    String themeKey = themeFile.getName();
-                    themesList.add(new ThemeItem(themeName, "Custom theme", themeKey, false, null));
+            File[] themeFolders = themesDirectory.listFiles(File::isDirectory);
+            if (themeFolders != null) {
+                for (File themeFolder : themeFolders) {
+                    // Check if this folder contains a colors/colors.json file
+                    File colorsJson = new File(themeFolder, "colors/colors.json");
+                    if (colorsJson.exists()) {
+                        String themeKey = themeFolder.getName();
+                        
+                        // Try to get theme metadata from colors.json
+                        ThemeItem themeItem = getXThemeMetadata(colorsJson, themeKey);
+                        if (themeItem != null) {
+                            themesList.add(themeItem);
+                        }
+                    }
                 }
             }
         }
@@ -366,8 +469,8 @@ public class ThemesFragment extends BaseThemedFragment {
     rightContainer.addView(infoButton);
     rightContainer.addView(radioButton);
     
-    // Delete button (if not default theme)
-    if (!theme.isDefault) {
+    // Delete button (only for custom .xtheme themes, not built-in themes)
+    if (!isBuiltInTheme(theme.key)) {
         ImageView deleteButton = new ImageView(requireContext());
         LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
             (int) (24 * getResources().getDisplayMetrics().density),
@@ -440,8 +543,17 @@ public class ThemesFragment extends BaseThemedFragment {
     
     private void deleteTheme(ThemeItem theme, int position) {
         try {
-            File themeFile = new File(themesDirectory, theme.key);
-            if (themeFile.exists() && themeFile.delete()) {
+            // Check if it's a built-in theme (can't delete)
+            if (isBuiltInTheme(theme.key)) {
+                Toast.makeText(getContext(), "Cannot delete built-in themes", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Delete the theme folder (extracted .xtheme)
+            File themeDir = new File(themesDirectory, theme.key);
+            if (themeDir.exists() && themeDir.isDirectory()) {
+                deleteDirectory(themeDir);
+                
                 // If this was the selected theme, revert to default
                 if (theme.key.equals(selectedTheme)) {
                     selectedTheme = DEFAULT_THEME;
@@ -458,11 +570,22 @@ public class ThemesFragment extends BaseThemedFragment {
                 displayThemes();
                 Toast.makeText(getContext(), "Theme deleted: " + theme.name, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getContext(), "Failed to delete theme file", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Failed to delete theme", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error deleting theme", e);
             Toast.makeText(getContext(), "Error deleting theme: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private boolean isBuiltInTheme(String themeKey) {
+        // Check if theme exists in assets (built-in themes)
+        try {
+            String jsonPath = "themes/" + themeKey + ".json";
+            requireContext().getAssets().open(jsonPath).close();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
     

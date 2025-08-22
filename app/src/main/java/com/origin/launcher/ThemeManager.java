@@ -47,13 +47,54 @@ public class ThemeManager {
     }
     
     /**
-     * Load theme from JSON file in assets/themes/
+     * Load theme from JSON file in assets/themes/ or from extracted .xtheme
      */
     public boolean loadTheme(String themeName) {
+        // First try to load from assets (built-in themes)
+        if (loadThemeFromAssets(themeName)) {
+            return true;
+        }
+        
+        // Then try to load from extracted .xtheme files
+        return loadThemeFromXTheme(themeName);
+    }
+    
+    private boolean loadThemeFromAssets(String themeName) {
         try {
             String jsonPath = "themes/" + themeName + ".json";
             InputStream inputStream = context.getAssets().open(jsonPath);
             
+            return loadThemeFromInputStream(inputStream, themeName);
+            
+        } catch (IOException e) {
+            Log.d(TAG, "Theme not found in assets: " + themeName);
+            return false;
+        }
+    }
+    
+    private boolean loadThemeFromXTheme(String themeName) {
+        try {
+            // Look for extracted .xtheme theme
+            File themesDir = new File(context.getExternalFilesDir(null), "themes");
+            File themeDir = new File(themesDir, themeName);
+            File colorsJsonFile = new File(themeDir, "colors/colors.json");
+            
+            if (!colorsJsonFile.exists()) {
+                Log.d(TAG, "Theme not found in .xtheme: " + themeName);
+                return false;
+            }
+            
+            InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
+            return loadThemeFromInputStream(inputStream, themeName);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading .xtheme: " + themeName, e);
+            return false;
+        }
+    }
+    
+    private boolean loadThemeFromInputStream(InputStream inputStream, String themeName) {
+        try {
             byte[] buffer = new byte[inputStream.available()];
             inputStream.read(buffer);
             inputStream.close();
@@ -88,7 +129,7 @@ public class ThemeManager {
             return true;
             
         } catch (IOException | JSONException e) {
-            Log.e(TAG, "Error loading theme: " + themeName, e);
+            Log.e(TAG, "Error parsing theme: " + themeName, e);
             return false;
         }
     }
@@ -123,6 +164,7 @@ public class ThemeManager {
      * Get theme metadata from JSON
      */
     public ThemeMetadata getThemeMetadata(String themeName) {
+        // First try to get metadata from assets (built-in themes)
         try {
             String jsonPath = "themes/" + themeName + ".json";
             InputStream inputStream = context.getAssets().open(jsonPath);
@@ -141,9 +183,37 @@ public class ThemeManager {
             return new ThemeMetadata(name, author, description, themeName);
             
         } catch (IOException | JSONException e) {
-            Log.e(TAG, "Error loading theme metadata: " + themeName, e);
-            return new ThemeMetadata(themeName, null, "Custom theme", themeName);
+            Log.d(TAG, "Theme metadata not found in assets: " + themeName);
         }
+        
+        // Then try to get metadata from .xtheme files
+        try {
+            File themesDir = new File(context.getExternalFilesDir(null), "themes");
+            File themeDir = new File(themesDir, themeName);
+            File colorsJsonFile = new File(themeDir, "colors/colors.json");
+            
+            if (colorsJsonFile.exists()) {
+                InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+                inputStream.close();
+                
+                String jsonString = new String(buffer, "UTF-8");
+                JSONObject themeJson = new JSONObject(jsonString);
+                
+                String name = themeJson.optString("name", themeName);
+                String author = themeJson.optString("author", null);
+                String description = themeJson.optString("description", "Custom theme");
+                
+                return new ThemeMetadata(name, author, description, themeName);
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading .xtheme metadata: " + themeName, e);
+        }
+        
+        // Fallback
+        return new ThemeMetadata(themeName, null, "Custom theme", themeName);
     }
     
     /**
