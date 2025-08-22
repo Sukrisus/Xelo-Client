@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -116,6 +117,42 @@ public class ThemeUtils {
     public static void applyThemeToRootView(View rootView) {
         ThemeManager themeManager = ThemeManager.getInstance();
         rootView.setBackgroundColor(themeManager.getColor("background"));
+        
+        // Recursively apply themes to common view types
+        applyThemeToViewHierarchy(rootView);
+    }
+    
+    /**
+     * Recursively apply theme to all views in the hierarchy
+     */
+    private static void applyThemeToViewHierarchy(View view) {
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup viewGroup = (android.view.ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                applyThemeToViewHierarchy(child);
+            }
+        }
+        
+        // Apply theme to specific view types
+        if (view instanceof MaterialCardView) {
+            applyThemeToCard((MaterialCardView) view, view.getContext());
+        } else if (view instanceof MaterialButton) {
+            applyThemeToButton((MaterialButton) view, view.getContext());
+        } else if (view instanceof MaterialRadioButton) {
+            applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
+        } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
+            applyThemeToBottomNavigation(view);
+        } else if (view instanceof TextView) {
+            // Apply default text color for TextViews
+            applyThemeToTextView((TextView) view, "onSurface");
+        } else if (view instanceof ImageView) {
+            // Apply tint to ImageViews that might be icons
+            ImageView imageView = (ImageView) view;
+            if (imageView.getColorFilter() != null) {
+                imageView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+            }
+        }
     }
     
     /**

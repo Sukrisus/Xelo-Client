@@ -3,15 +3,15 @@
   "author": "Xelo Team",
   "description": "Default dark theme",
   "colors": {
-    "primary": "#00FFCC",
-    "primaryDark": "#008877",
+    "primary": "#ffffff",
+    "primaryDark": "#ffffff",
     "accent": "#FF0077",
     "background": "#121212",
     "surface": "#1E1E1E",
     "onBackground": "#FFFFFF",
     "onSurface": "#FFFFFF",
     "onSurfaceVariant": "#BBBBBB",
-    "onPrimary": "#FFFFFF",
+    "onPrimary": "#000000",
     "outline": "#444444",
     "error": "#FF5555"
   }

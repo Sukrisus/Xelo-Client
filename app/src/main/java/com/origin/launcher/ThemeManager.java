@@ -146,15 +146,15 @@ public class ThemeManager {
         
         // Fallback to default colors if not found
         switch (colorName) {
-            case "primary": return Color.parseColor("#00FFCC");
-            case "primaryDark": return Color.parseColor("#008877");
+            case "primary": return Color.parseColor("#ffffff");
+            case "primaryDark": return Color.parseColor("#ffffff");
             case "accent": return Color.parseColor("#FF0077");
             case "background": return Color.parseColor("#121212");
             case "surface": return Color.parseColor("#1E1E1E");
             case "onBackground": return Color.parseColor("#FFFFFF");
             case "onSurface": return Color.parseColor("#FFFFFF");
             case "onSurfaceVariant": return Color.parseColor("#BBBBBB");
-            case "onPrimary": return Color.parseColor("#FFFFFF");
+            case "onPrimary": return Color.parseColor("#000000");
             case "outline": return Color.parseColor("#444444");
             case "error": return Color.parseColor("#FF5555");
             default: return Color.parseColor("#FFFFFF");

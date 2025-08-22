@@ -258,8 +258,7 @@ public class DashboardFragment extends BaseThemedFragment {
     moduleCard.setCardElevation(2f);
     moduleCard.setStrokeWidth(1);
     
-    moduleCard.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.surface));
-    moduleCard.setStrokeColor(ContextCompat.getColor(getContext(), R.color.outline));
+    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
     
     LinearLayout mainLayout = new LinearLayout(getContext());
     mainLayout.setOrientation(LinearLayout.VERTICAL);
@@ -283,12 +282,12 @@ public class DashboardFragment extends BaseThemedFragment {
     );
     iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));
     iconView.setLayoutParams(iconParams);
-    iconView.setColorFilter(ContextCompat.getColor(getContext(), R.color.onSurface));
+    iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
     
     TextView moduleNameText = new TextView(getContext());
     moduleNameText.setText(module.getName());
     moduleNameText.setTextSize(17f);
-    moduleNameText.setTextColor(ContextCompat.getColor(getContext(), R.color.onSurface));
+    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
     moduleNameText.setTypeface(null, Typeface.BOLD);
     moduleNameText.setLayoutParams(new LinearLayout.LayoutParams(
         0,
@@ -315,7 +314,7 @@ public class DashboardFragment extends BaseThemedFragment {
     TextView moduleDescriptionText = new TextView(getContext());
     moduleDescriptionText.setText(module.getDescription());
     moduleDescriptionText.setTextSize(14f);
-    moduleDescriptionText.setTextColor(ContextCompat.getColor(getContext(), R.color.onSurfaceVariant));
+    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
     moduleDescriptionText.setAlpha(0.7f);
     moduleDescriptionText.setMaxLines(1);
     moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);

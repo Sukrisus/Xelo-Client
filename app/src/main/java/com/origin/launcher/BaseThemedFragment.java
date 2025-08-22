@@ -5,6 +5,8 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 
 public abstract class BaseThemedFragment extends Fragment {
     
@@ -29,8 +31,43 @@ public abstract class BaseThemedFragment extends Fragment {
         if (rootView != null) {
             ThemeUtils.applyThemeToRootView(rootView);
             
+            // Apply themes to common Material components that might not be caught by hierarchy walk
+            applyThemeToCommonViews(rootView);
+            
             // Allow subclasses to apply additional theming
             onApplyTheme();
+        }
+    }
+    
+    /**
+     * Apply themes to common Material Design components
+     */
+    private void applyThemeToCommonViews(View rootView) {
+        // Find and theme common components by ID patterns
+        applyThemeToViewById(rootView, "card", MaterialCardView.class);
+        applyThemeToViewById(rootView, "button", MaterialButton.class);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private <T extends View> void applyThemeToViewById(View rootView, String idPattern, Class<T> viewClass) {
+        if (rootView instanceof android.view.ViewGroup) {
+            android.view.ViewGroup viewGroup = (android.view.ViewGroup) rootView;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                
+                // Check if this view matches our criteria
+                if (viewClass.isInstance(child)) {
+                    // Apply appropriate theme
+                    if (child instanceof MaterialCardView) {
+                        ThemeUtils.applyThemeToCard((MaterialCardView) child, requireContext());
+                    } else if (child instanceof MaterialButton) {
+                        ThemeUtils.applyThemeToButton((MaterialButton) child, requireContext());
+                    }
+                }
+                
+                // Recursively check children
+                applyThemeToViewById(child, idPattern, viewClass);
+            }
         }
     }
     
