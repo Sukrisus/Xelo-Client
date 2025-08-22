@@ -56,7 +56,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class DashboardFragment extends Fragment {
+public class DashboardFragment extends BaseThemedFragment {
     private File currentRootDir = null; // Store the found root directory
     private static final int IMPORT_REQUEST_CODE = 1002;
     private static final int EXPORT_REQUEST_CODE = 1003;

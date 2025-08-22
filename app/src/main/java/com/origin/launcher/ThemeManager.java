@@ -26,7 +26,10 @@ public class ThemeManager {
     private ThemeManager(Context context) {
         this.context = context.getApplicationContext();
         this.currentColors = new HashMap<>();
+        
+        Log.d(TAG, "Initializing ThemeManager");
         loadCurrentTheme();
+        Log.d(TAG, "ThemeManager initialized with theme: " + currentThemeName);
     }
     
     public static synchronized ThemeManager getInstance(Context context) {
@@ -179,8 +182,11 @@ public class ThemeManager {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String themeName = prefs.getString(PREF_CURRENT_THEME, DEFAULT_THEME);
         
+        Log.d(TAG, "Loading current theme: " + themeName);
+        
         if (!loadTheme(themeName)) {
             // Fallback to default theme
+            Log.w(TAG, "Failed to load theme " + themeName + ", falling back to default");
             loadTheme(DEFAULT_THEME);
         }
     }
@@ -191,6 +197,10 @@ public class ThemeManager {
     }
     
     public String getCurrentThemeName() {
+        if (currentThemeName == null) {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            currentThemeName = prefs.getString(PREF_CURRENT_THEME, DEFAULT_THEME);
+        }
         return currentThemeName;
     }
     

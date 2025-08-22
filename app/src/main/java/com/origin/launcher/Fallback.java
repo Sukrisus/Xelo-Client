@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Fallback extends AppCompatActivity {
+public class Fallback extends BaseThemedActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

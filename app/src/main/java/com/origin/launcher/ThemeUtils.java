@@ -117,4 +117,19 @@ public class ThemeUtils {
         ThemeManager themeManager = ThemeManager.getInstance();
         rootView.setBackgroundColor(themeManager.getColor("background"));
     }
+    
+    /**
+     * Apply theme colors to BottomNavigationView
+     */
+    public static void applyThemeToBottomNavigation(View bottomNavView) {
+        if (bottomNavView instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
+            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+                (com.google.android.material.bottomnavigation.BottomNavigationView) bottomNavView;
+            
+            ThemeManager themeManager = ThemeManager.getInstance();
+            bottomNav.setBackgroundColor(themeManager.getColor("surface"));
+            bottomNav.setItemTextColor(getThemedColorStateList("primary", "onSurfaceVariant"));
+            bottomNav.setItemIconTintList(getThemedColorStateList("primary", "onSurfaceVariant"));
+        }
+    }
 }

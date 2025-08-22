@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ThemesFragment extends Fragment {
+public class ThemesFragment extends BaseThemedFragment {
     private static final String TAG = "ThemesFragment";
     private static final String PREF_SELECTED_THEME = "selected_theme";
     private static final String DEFAULT_THEME = "default";
@@ -70,9 +70,13 @@ public class ThemesFragment extends Fragment {
         // Initialize ThemeManager and get current theme
         ThemeManager themeManager = ThemeManager.getInstance(requireContext());
         selectedTheme = themeManager.getCurrentThemeName();
-        if (selectedTheme == null) {
+        if (selectedTheme == null || selectedTheme.isEmpty()) {
             selectedTheme = DEFAULT_THEME;
+            // Load default theme to ensure it's properly initialized
+            themeManager.loadTheme(DEFAULT_THEME);
         }
+        
+        Log.d(TAG, "Current selected theme: " + selectedTheme);
     }
     
     @Override
@@ -96,9 +100,6 @@ public class ThemesFragment extends Fragment {
         importThemeFab.setOnClickListener(v -> openFilePicker());
         
         loadThemes();
-        
-        // Apply current theme
-        applyCurrentTheme();
         
         return view;
     }
@@ -203,6 +204,9 @@ public class ThemesFragment extends Fragment {
                 }
             }
         }
+        
+        // Sync selectedTheme with ThemeManager after loading themes
+        selectedTheme = ThemeManager.getInstance().getCurrentThemeName();
         
         displayThemes();
     }
@@ -396,18 +400,22 @@ public class ThemesFragment extends Fragment {
     // Set card click listener with ripple effect
     card.setOnClickListener(v -> {
         if (!theme.key.equals(selectedTheme)) {
-            selectedTheme = theme.key;
-            
             // Apply theme using ThemeManager
             ThemeManager themeManager = ThemeManager.getInstance();
             boolean success = themeManager.loadTheme(theme.key);
             
             if (success) {
+                selectedTheme = theme.key; // Update selectedTheme after successful load
                 displayThemes(); // Refresh to update radio buttons
                 Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
                 
                 // Refresh the current view with new theme
-                applyCurrentTheme();
+                refreshTheme();
+                
+                // Also refresh the parent activity if it's a BaseThemedActivity
+                if (getActivity() instanceof BaseThemedActivity) {
+                    ((BaseThemedActivity) getActivity()).refreshTheme();
+                }
             } else {
                 Toast.makeText(getContext(), "Failed to apply theme", Toast.LENGTH_SHORT).show();
             }
@@ -438,7 +446,12 @@ public class ThemesFragment extends Fragment {
                 if (theme.key.equals(selectedTheme)) {
                     selectedTheme = DEFAULT_THEME;
                     ThemeManager.getInstance().loadTheme(DEFAULT_THEME);
-                    applyCurrentTheme();
+                    refreshTheme();
+                    
+                    // Also refresh the parent activity
+                    if (getActivity() instanceof BaseThemedActivity) {
+                        ((BaseThemedActivity) getActivity()).refreshTheme();
+                    }
                 }
                 
                 themesList.remove(position);
@@ -453,18 +466,15 @@ public class ThemesFragment extends Fragment {
         }
     }
     
-    private void applyCurrentTheme() {
-        View rootView = getView();
-        if (rootView != null) {
-            // Apply theme to root view
-            ThemeUtils.applyThemeToRootView(rootView);
-            
-            // Apply theme to the import button
+    @Override
+    protected void onApplyTheme() {
+        // Apply theme to the import button
+        if (importThemeFab != null) {
             ThemeUtils.applyThemeToButton(importThemeFab, requireContext());
-            
-            // Refresh the themes display to apply theme colors
-            displayThemes();
         }
+        
+        // Refresh the themes display to apply theme colors
+        displayThemes();
     }
     
     @Override

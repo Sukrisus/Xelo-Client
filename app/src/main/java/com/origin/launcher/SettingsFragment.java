@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 import android.os.Handler;
 import android.os.Looper;
 
-public class SettingsFragment extends Fragment implements DiscordManager.DiscordLoginCallback {
+public class SettingsFragment extends BaseThemedFragment implements DiscordManager.DiscordLoginCallback {
 
     private EditText packageNameEdit;
     private TextView deviceModelText;

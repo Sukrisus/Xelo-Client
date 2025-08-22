@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseThemedActivity {
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "app_preferences";
     private static final String KEY_FIRST_LAUNCH = "first_launch";
@@ -20,13 +20,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Initialize ThemeManager
-        ThemeManager.getInstance(this);
-        
         setContentView(R.layout.activity_main);
-        
-        // Apply current theme to the root view
-        ThemeUtils.applyThemeToRootView(findViewById(android.R.id.content));
 
         // Check if this is the first launch
         checkFirstLaunch();
@@ -136,11 +130,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         
-        // Apply theme when activity resumes (in case theme was changed)
-        ThemeManager.getInstance().applyTheme(this);
-        ThemeUtils.applyThemeToRootView(findViewById(android.R.id.content));
         // Update presence when app comes to foreground
         DiscordRPCHelper.getInstance().updatePresence("Using Xelo Client", "Using the best MCPE Client");
+    }
+    
+    @Override
+    protected void onApplyTheme() {
+        // Apply theme to bottom navigation
+        View bottomNav = findViewById(R.id.bottom_navigation);
+        if (bottomNav != null) {
+            ThemeUtils.applyThemeToBottomNavigation(bottomNav);
+        }
     }
 
     @Override
