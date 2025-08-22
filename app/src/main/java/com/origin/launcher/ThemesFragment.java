@@ -224,105 +224,188 @@ public class ThemesFragment extends Fragment {
     }
     
     private void createThemeCard(ThemeItem theme, int position) {
-        // Create card layout
-        MaterialCardView card = new MaterialCardView(requireContext());
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        card.setLayoutParams(cardParams);
-        card.setRadius(12 * getResources().getDisplayMetrics().density);
-        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-        card.setClickable(true);
-        card.setFocusable(true);
-        
-        // Main container
-        LinearLayout mainLayout = new LinearLayout(requireContext());
-        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density)
-        );
-        mainLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        
-        // Radio button
-        MaterialRadioButton radioButton = new MaterialRadioButton(requireContext());
-        LinearLayout.LayoutParams radioParams = new LinearLayout.LayoutParams(
+    // Create card layout
+    MaterialCardView card = new MaterialCardView(requireContext());
+    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, 
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    card.setLayoutParams(cardParams);
+    card.setRadius(12 * getResources().getDisplayMetrics().density);
+    card.setCardElevation(0); // Remove elevation for flat design
+    card.setClickable(true);
+    card.setFocusable(true);
+    
+    // Set card background and stroke using your colors
+    card.setCardBackgroundColor(getResources().getColor(R.color.surface, null));
+    card.setStrokeColor(getResources().getColor(R.color.outline, null));
+    card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+    
+    // Main container
+    LinearLayout mainLayout = new LinearLayout(requireContext());
+    mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+    mainLayout.setPadding(
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density)
+    );
+    mainLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+    
+    // Text container (moved before radio button for better layout)
+    LinearLayout textLayout = new LinearLayout(requireContext());
+    textLayout.setOrientation(LinearLayout.VERTICAL);
+    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+        0, 
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        1.0f
+    );
+    textLayout.setLayoutParams(textParams);
+    
+    // Theme name
+    TextView nameText = new TextView(requireContext());
+    nameText.setText(theme.name);
+    nameText.setTextSize(16);
+    nameText.setTypeface(null, android.graphics.Typeface.BOLD);
+    nameText.setTextColor(getResources().getColor(R.color.onSurface, null)); // High contrast white
+    
+    // Author text (if available)
+    if (theme.author != null && !theme.author.isEmpty()) {
+        TextView authorText = new TextView(requireContext());
+        authorText.setText("by " + theme.author);
+        authorText.setTextSize(14);
+        authorText.setTextColor(getResources().getColor(R.color.onSurfaceVariant, null));
+        LinearLayout.LayoutParams authorParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        radioParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
-        radioButton.setLayoutParams(radioParams);
-        radioButton.setChecked(theme.key.equals(selectedTheme));
-        radioButton.setClickable(false);
-        radioButton.setFocusable(false);
-        
-        // Text container
-        LinearLayout textLayout = new LinearLayout(requireContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-            0, 
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            1.0f
-        );
-        textLayout.setLayoutParams(textParams);
-        
-        // Theme name
-        TextView nameText = new TextView(requireContext());
-        nameText.setText(theme.name);
-        nameText.setTextSize(16);
-        nameText.setTypeface(null, android.graphics.Typeface.BOLD);
-        
-        // Theme description
-        TextView descText = new TextView(requireContext());
-        descText.setText(theme.description);
-        descText.setTextSize(14);
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
-        descText.setLayoutParams(descParams);
-        
-        textLayout.addView(nameText);
-        textLayout.addView(descText);
-        
-        // Delete button (if not default theme)
-        if (!theme.isDefault) {
-            MaterialButton deleteButton = new MaterialButton(requireContext());
-            LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
-                (int) (36 * getResources().getDisplayMetrics().density),
-                (int) (36 * getResources().getDisplayMetrics().density)
-            );
-            deleteParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));
-            deleteButton.setLayoutParams(deleteParams);
-            deleteButton.setInsetTop(0);
-            deleteButton.setInsetBottom(0);
-            deleteButton.setContentDescription("Delete theme");
-            deleteButton.setOnClickListener(v -> showDeleteConfirmation(theme, position));
-            
-            mainLayout.addView(deleteButton);
-        }
-        
-        mainLayout.addView(radioButton);
-        mainLayout.addView(textLayout);
-        
-        card.addView(mainLayout);
-        
-        // Set card click listener
-        card.setOnClickListener(v -> {
-            if (!theme.key.equals(selectedTheme)) {
-                selectedTheme = theme.key;
-                saveSelectedTheme();
-                displayThemes(); // Refresh to update radio buttons
-                Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
-            }
-        });
-        
-        themesContainer.addView(card);
+        authorParams.topMargin = (int) (2 * getResources().getDisplayMetrics().density);
+        authorText.setLayoutParams(authorParams);
+        textLayout.addView(authorText);
     }
+    
+    // Theme description
+    TextView descText = new TextView(requireContext());
+    descText.setText(theme.description);
+    descText.setTextSize(14);
+    descText.setTextColor(getResources().getColor(R.color.onSurfaceVariant, null)); // Lighter gray
+    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+    descText.setLayoutParams(descParams);
+    
+    textLayout.addView(nameText);
+    textLayout.addView(descText);
+    
+    // Right side container for buttons
+    LinearLayout rightContainer = new LinearLayout(requireContext());
+    rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+    rightContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
+    LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+    rightContainer.setLayoutParams(rightParams);
+    
+    // Info button (optional - you can add this if needed)
+    ImageView infoButton = new ImageView(requireContext());
+    LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(
+        (int) (24 * getResources().getDisplayMetrics().density),
+        (int) (24 * getResources().getDisplayMetrics().density)
+    );
+    infoParams.setMarginEnd((int) (8 * getResources().getDisplayMetrics().density));
+    infoButton.setLayoutParams(infoParams);
+    infoButton.setImageResource(android.R.drawable.ic_dialog_info); // You can replace with your own icon
+    infoButton.setColorFilter(getResources().getColor(R.color.onSurfaceVariant, null));
+    infoButton.setBackground(android.graphics.drawable.RippleDrawable.createFromXml(
+        getResources(), 
+        getResources().getXml(android.R.xml.create_circle_background), 
+        null
+    ));
+    infoButton.setClickable(true);
+    infoButton.setFocusable(true);
+    
+    // Radio button / Selection indicator
+    MaterialRadioButton radioButton = new MaterialRadioButton(requireContext());
+    LinearLayout.LayoutParams radioParams = new LinearLayout.LayoutParams(
+        (int) (24 * getResources().getDisplayMetrics().density),
+        (int) (24 * getResources().getDisplayMetrics().density)
+    );
+    radioButton.setLayoutParams(radioParams);
+    radioButton.setChecked(theme.key.equals(selectedTheme));
+    radioButton.setClickable(false);
+    radioButton.setFocusable(false);
+    
+    // Style the radio button with your colors
+    android.content.res.ColorStateList colorStateList = new android.content.res.ColorStateList(
+        new int[][]{
+            new int[]{android.R.attr.state_checked},
+            new int[]{-android.R.attr.state_checked}
+        },
+        new int[]{
+            getResources().getColor(R.color.primary, null), // White when selected
+            getResources().getColor(R.color.onSurfaceVariant, null) // Gray when unselected
+        }
+    );
+    radioButton.setButtonTintList(colorStateList);
+    
+    rightContainer.addView(infoButton);
+    rightContainer.addView(radioButton);
+    
+    // Delete button (if not default theme)
+    if (!theme.isDefault) {
+        ImageView deleteButton = new ImageView(requireContext());
+        LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
+        );
+        deleteParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));
+        deleteButton.setLayoutParams(deleteParams);
+        deleteButton.setImageResource(android.R.drawable.ic_menu_delete); // You can replace with your own icon
+        deleteButton.setColorFilter(getResources().getColor(R.color.error, null)); // Red color for delete
+        deleteButton.setBackground(android.graphics.drawable.RippleDrawable.createFromXml(
+            getResources(), 
+            getResources().getXml(android.R.xml.create_circle_background), 
+            null
+        ));
+        deleteButton.setClickable(true);
+        deleteButton.setFocusable(true);
+        deleteButton.setContentDescription("Delete theme");
+        deleteButton.setOnClickListener(v -> showDeleteConfirmation(theme, position));
+        
+        rightContainer.addView(deleteButton);
+    }
+    
+    mainLayout.addView(textLayout);
+    mainLayout.addView(rightContainer);
+    
+    card.addView(mainLayout);
+    
+    // Set card click listener with ripple effect
+    card.setOnClickListener(v -> {
+        if (!theme.key.equals(selectedTheme)) {
+            selectedTheme = theme.key;
+            saveSelectedTheme();
+            displayThemes(); // Refresh to update radio buttons
+            Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
+        }
+    });
+    
+    // Add ripple effect to card
+    android.graphics.drawable.RippleDrawable ripple = new android.graphics.drawable.RippleDrawable(
+        android.content.res.ColorStateList.valueOf(
+            getResources().getColor(R.color.onSurface, null) & 0x1AFFFFFF // 10% opacity
+        ),
+        null,
+        null
+    );
+    card.setForeground(ripple);
+    
+    themesContainer.addView(card);
+}
     
     private void showDeleteConfirmation(ThemeItem theme, int position) {
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
