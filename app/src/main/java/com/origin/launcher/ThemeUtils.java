@@ -128,8 +128,8 @@ public class ThemeUtils {
             
             ThemeManager themeManager = ThemeManager.getInstance();
             bottomNav.setBackgroundColor(themeManager.getColor("surface"));
-            bottomNav.setItemTextColor(getThemedColorStateList("primary", "onSurfaceVariant"));
-            bottomNav.setItemIconTintList(getThemedColorStateList("primary", "onSurfaceVariant"));
+            bottomNav.setItemTextColor(getThemedColorStateList("onSurface", "onSurfaceVariant"));
+            bottomNav.setItemIconTintList(getThemedColorStateList("onSurface", "onSurfaceVariant"));
         }
     }
 }

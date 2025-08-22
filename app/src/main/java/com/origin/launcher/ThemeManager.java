@@ -187,7 +187,9 @@ public class ThemeManager {
         if (!loadTheme(themeName)) {
             // Fallback to default theme
             Log.w(TAG, "Failed to load theme " + themeName + ", falling back to default");
-            loadTheme(DEFAULT_THEME);
+            if (!loadTheme(DEFAULT_THEME)) {
+                Log.e(TAG, "Failed to load default theme, using hardcoded fallbacks");
+            }
         }
     }
     
