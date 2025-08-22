@@ -67,9 +67,12 @@ public class ThemesFragment extends Fragment {
         }
         themesDirectory = dataDir;
         
-        // Load selected theme preference
-        SharedPreferences prefs = requireContext().getSharedPreferences("settings", 0);
-        selectedTheme = prefs.getString(PREF_SELECTED_THEME, DEFAULT_THEME);
+        // Initialize ThemeManager and get current theme
+        ThemeManager themeManager = ThemeManager.getInstance(requireContext());
+        selectedTheme = themeManager.getCurrentThemeName();
+        if (selectedTheme == null) {
+            selectedTheme = DEFAULT_THEME;
+        }
     }
     
     @Override
@@ -93,6 +96,9 @@ public class ThemesFragment extends Fragment {
         importThemeFab.setOnClickListener(v -> openFilePicker());
         
         loadThemes();
+        
+        // Apply current theme
+        applyCurrentTheme();
         
         return view;
     }
@@ -176,14 +182,24 @@ public class ThemesFragment extends Fragment {
     private void loadThemes() {
         themesList = new ArrayList<>();
         
-        // Load themes from directory
+        // Initialize ThemeManager
+        ThemeManager themeManager = ThemeManager.getInstance(requireContext());
+        
+        // Load built-in themes from assets
+        String[] availableThemes = themeManager.getAvailableThemes();
+        for (String themeName : availableThemes) {
+            ThemeManager.ThemeMetadata metadata = themeManager.getThemeMetadata(themeName);
+            themesList.add(new ThemeItem(metadata.name, metadata.description, metadata.key, false, metadata.author));
+        }
+        
+        // Load custom themes from directory
         if (themesDirectory.exists() && themesDirectory.isDirectory()) {
             File[] themeFiles = themesDirectory.listFiles((dir, name) -> name.endsWith(".xtheme"));
             if (themeFiles != null) {
                 for (File themeFile : themeFiles) {
                     String themeName = themeFile.getName().replace(".xtheme", "");
                     String themeKey = themeFile.getName();
-                    themesList.add(new ThemeItem(themeName, "Custom theme", themeKey, false));
+                    themesList.add(new ThemeItem(themeName, "Custom theme", themeKey, false, null));
                 }
             }
         }
@@ -236,9 +252,8 @@ public class ThemesFragment extends Fragment {
     card.setClickable(true);
     card.setFocusable(true);
     
-    // Set card background and stroke using your colors
-    card.setCardBackgroundColor(getResources().getColor(R.color.surface, null));
-    card.setStrokeColor(getResources().getColor(R.color.outline, null));
+    // Apply theme colors to card
+    ThemeUtils.applyThemeToCard(card, requireContext());
     card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
     
     // Main container
@@ -267,14 +282,14 @@ public class ThemesFragment extends Fragment {
     nameText.setText(theme.name);
     nameText.setTextSize(16);
     nameText.setTypeface(null, android.graphics.Typeface.BOLD);
-    nameText.setTextColor(getResources().getColor(R.color.onSurface, null)); // High contrast white
+    ThemeUtils.applyThemeToTextView(nameText, "onSurface");
     
     // Author text (if available)
     if (theme.author != null && !theme.author.isEmpty()) {
         TextView authorText = new TextView(requireContext());
         authorText.setText("by " + theme.author);
         authorText.setTextSize(14);
-        authorText.setTextColor(getResources().getColor(R.color.onSurfaceVariant, null));
+        ThemeUtils.applyThemeToTextView(authorText, "onSurfaceVariant");
         LinearLayout.LayoutParams authorParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -288,7 +303,7 @@ public class ThemesFragment extends Fragment {
     TextView descText = new TextView(requireContext());
     descText.setText(theme.description);
     descText.setTextSize(14);
-    descText.setTextColor(getResources().getColor(R.color.onSurfaceVariant, null)); // Lighter gray
+    ThemeUtils.applyThemeToTextView(descText, "onSurfaceVariant");
     LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.WRAP_CONTENT, 
         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -319,21 +334,14 @@ public class ThemesFragment extends Fragment {
     infoParams.setMarginEnd((int) (8 * getResources().getDisplayMetrics().density));
     infoButton.setLayoutParams(infoParams);
     infoButton.setImageResource(android.R.drawable.ic_dialog_info); // You can replace with your own icon
-    infoButton.setColorFilter(getResources().getColor(R.color.onSurfaceVariant, null));
+    infoButton.setColorFilter(ThemeManager.getInstance().getColor("onSurfaceVariant"));
     
     // Create circle ripple background for info button
     android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
     circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
     circle.setColor(android.graphics.Color.TRANSPARENT);
     
-    android.graphics.drawable.RippleDrawable infoRipple = new android.graphics.drawable.RippleDrawable(
-        android.content.res.ColorStateList.valueOf(
-            getResources().getColor(R.color.onSurfaceVariant, null) & 0x1AFFFFFF
-        ),
-        null,
-        circle
-    );
-    infoButton.setBackground(infoRipple);
+    infoButton.setBackground(ThemeUtils.createCircularRipple("onSurfaceVariant"));
     infoButton.setClickable(true);
     infoButton.setFocusable(true);
     
@@ -348,18 +356,8 @@ public class ThemesFragment extends Fragment {
     radioButton.setClickable(false);
     radioButton.setFocusable(false);
     
-    // Style the radio button with your colors
-    android.content.res.ColorStateList colorStateList = new android.content.res.ColorStateList(
-        new int[][]{
-            new int[]{android.R.attr.state_checked},
-            new int[]{-android.R.attr.state_checked}
-        },
-        new int[]{
-            getResources().getColor(R.color.primary, null), // White when selected
-            getResources().getColor(R.color.onSurfaceVariant, null) // Gray when unselected
-        }
-    );
-    radioButton.setButtonTintList(colorStateList);
+    // Apply theme colors to radio button
+    ThemeUtils.applyThemeToRadioButton(radioButton, requireContext());
     
     rightContainer.addView(infoButton);
     rightContainer.addView(radioButton);
@@ -374,21 +372,14 @@ public class ThemesFragment extends Fragment {
         deleteParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));
         deleteButton.setLayoutParams(deleteParams);
         deleteButton.setImageResource(android.R.drawable.ic_menu_delete); // You can replace with your own icon
-        deleteButton.setColorFilter(getResources().getColor(R.color.error, null)); // Red color for delete
+        deleteButton.setColorFilter(ThemeManager.getInstance().getColor("error"));
         
         // Create circle ripple background for delete button
         android.graphics.drawable.GradientDrawable deleteCircle = new android.graphics.drawable.GradientDrawable();
         deleteCircle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
         deleteCircle.setColor(android.graphics.Color.TRANSPARENT);
         
-        android.graphics.drawable.RippleDrawable deleteRipple = new android.graphics.drawable.RippleDrawable(
-            android.content.res.ColorStateList.valueOf(
-                getResources().getColor(R.color.error, null) & 0x1AFFFFFF
-            ),
-            null,
-            deleteCircle
-        );
-        deleteButton.setBackground(deleteRipple);
+        deleteButton.setBackground(ThemeUtils.createCircularRipple("error"));
         deleteButton.setClickable(true);
         deleteButton.setFocusable(true);
         deleteButton.setContentDescription("Delete theme");
@@ -406,21 +397,24 @@ public class ThemesFragment extends Fragment {
     card.setOnClickListener(v -> {
         if (!theme.key.equals(selectedTheme)) {
             selectedTheme = theme.key;
-            saveSelectedTheme();
-            displayThemes(); // Refresh to update radio buttons
-            Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
+            
+            // Apply theme using ThemeManager
+            ThemeManager themeManager = ThemeManager.getInstance();
+            boolean success = themeManager.loadTheme(theme.key);
+            
+            if (success) {
+                displayThemes(); // Refresh to update radio buttons
+                Toast.makeText(getContext(), "Theme applied: " + theme.name, Toast.LENGTH_SHORT).show();
+                
+                // Refresh the current view with new theme
+                applyCurrentTheme();
+            } else {
+                Toast.makeText(getContext(), "Failed to apply theme", Toast.LENGTH_SHORT).show();
+            }
         }
     });
     
-    // Add ripple effect to card
-    android.graphics.drawable.RippleDrawable ripple = new android.graphics.drawable.RippleDrawable(
-        android.content.res.ColorStateList.valueOf(
-            getResources().getColor(R.color.onSurface, null) & 0x1AFFFFFF // 10% opacity
-        ),
-        null,
-        null
-    );
-    card.setForeground(ripple);
+    // Ripple effect is already applied by ThemeUtils.applyThemeToCard()
     
     themesContainer.addView(card);
 }
@@ -443,7 +437,8 @@ public class ThemesFragment extends Fragment {
                 // If this was the selected theme, revert to default
                 if (theme.key.equals(selectedTheme)) {
                     selectedTheme = DEFAULT_THEME;
-                    saveSelectedTheme();
+                    ThemeManager.getInstance().loadTheme(DEFAULT_THEME);
+                    applyCurrentTheme();
                 }
                 
                 themesList.remove(position);
@@ -458,9 +453,18 @@ public class ThemesFragment extends Fragment {
         }
     }
     
-    private void saveSelectedTheme() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("settings", 0);
-        prefs.edit().putString(PREF_SELECTED_THEME, selectedTheme).apply();
+    private void applyCurrentTheme() {
+        View rootView = getView();
+        if (rootView != null) {
+            // Apply theme to root view
+            ThemeUtils.applyThemeToRootView(rootView);
+            
+            // Apply theme to the import button
+            ThemeUtils.applyThemeToButton(importThemeFab, requireContext());
+            
+            // Refresh the themes display to apply theme colors
+            displayThemes();
+        }
     }
     
     @Override
@@ -485,12 +489,12 @@ public class ThemesFragment extends Fragment {
         boolean isDefault;
         String author;
         
-        ThemeItem(String name, String description, String key, boolean isDefault) {
+        ThemeItem(String name, String description, String key, boolean isDefault, String author) {
             this.name = name;
             this.description = description;
             this.key = key;
             this.isDefault = isDefault;
-            this.author = null; // Default to null for imported themes
+            this.author = author;
         }
     }
 }

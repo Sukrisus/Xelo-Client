@@ -19,7 +19,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Initialize ThemeManager
+        ThemeManager.getInstance(this);
+        
         setContentView(R.layout.activity_main);
+        
+        // Apply current theme to the root view
+        ThemeUtils.applyThemeToRootView(findViewById(android.R.id.content));
 
         // Check if this is the first launch
         checkFirstLaunch();
@@ -128,6 +135,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        
+        // Apply theme when activity resumes (in case theme was changed)
+        ThemeManager.getInstance().applyTheme(this);
+        ThemeUtils.applyThemeToRootView(findViewById(android.R.id.content));
         // Update presence when app comes to foreground
         DiscordRPCHelper.getInstance().updatePresence("Using Xelo Client", "Using the best MCPE Client");
     }

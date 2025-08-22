@@ -1,0 +1,213 @@
+package com.origin.launcher;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.util.Log;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ThemeManager {
+    private static final String TAG = "ThemeManager";
+    private static final String PREF_NAME = "theme_preferences";
+    private static final String PREF_CURRENT_THEME = "current_theme";
+    private static final String DEFAULT_THEME = "default";
+    
+    private static ThemeManager instance;
+    private Context context;
+    private Map<String, Integer> currentColors;
+    private String currentThemeName;
+    
+    private ThemeManager(Context context) {
+        this.context = context.getApplicationContext();
+        this.currentColors = new HashMap<>();
+        loadCurrentTheme();
+    }
+    
+    public static synchronized ThemeManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new ThemeManager(context);
+        }
+        return instance;
+    }
+    
+    public static ThemeManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("ThemeManager not initialized. Call getInstance(Context) first.");
+        }
+        return instance;
+    }
+    
+    /**
+     * Load theme from JSON file in assets/themes/
+     */
+    public boolean loadTheme(String themeName) {
+        try {
+            String jsonPath = "themes/" + themeName + ".json";
+            InputStream inputStream = context.getAssets().open(jsonPath);
+            
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            
+            String jsonString = new String(buffer, "UTF-8");
+            JSONObject themeJson = new JSONObject(jsonString);
+            JSONObject colors = themeJson.getJSONObject("colors");
+            
+            // Parse colors from JSON
+            Map<String, Integer> newColors = new HashMap<>();
+            String[] colorKeys = {"primary", "primaryDark", "accent", "background", "surface", 
+                                "onBackground", "onSurface", "onSurfaceVariant", "onPrimary", 
+                                "outline", "error"};
+            
+            for (String key : colorKeys) {
+                if (colors.has(key)) {
+                    String colorHex = colors.getString(key);
+                    int color = Color.parseColor(colorHex);
+                    newColors.put(key, color);
+                }
+            }
+            
+            // Update current colors
+            currentColors.clear();
+            currentColors.putAll(newColors);
+            currentThemeName = themeName;
+            
+            // Save to preferences
+            saveCurrentTheme(themeName);
+            
+            Log.d(TAG, "Theme loaded successfully: " + themeName);
+            return true;
+            
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Error loading theme: " + themeName, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Get color by name
+     */
+    public int getColor(String colorName) {
+        Integer color = currentColors.get(colorName);
+        if (color != null) {
+            return color;
+        }
+        
+        // Fallback to default colors if not found
+        switch (colorName) {
+            case "primary": return Color.parseColor("#00FFCC");
+            case "primaryDark": return Color.parseColor("#008877");
+            case "accent": return Color.parseColor("#FF0077");
+            case "background": return Color.parseColor("#121212");
+            case "surface": return Color.parseColor("#1E1E1E");
+            case "onBackground": return Color.parseColor("#FFFFFF");
+            case "onSurface": return Color.parseColor("#FFFFFF");
+            case "onSurfaceVariant": return Color.parseColor("#BBBBBB");
+            case "onPrimary": return Color.parseColor("#000000");
+            case "outline": return Color.parseColor("#444444");
+            case "error": return Color.parseColor("#FF5555");
+            default: return Color.parseColor("#FFFFFF");
+        }
+    }
+    
+    /**
+     * Get theme metadata from JSON
+     */
+    public ThemeMetadata getThemeMetadata(String themeName) {
+        try {
+            String jsonPath = "themes/" + themeName + ".json";
+            InputStream inputStream = context.getAssets().open(jsonPath);
+            
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            
+            String jsonString = new String(buffer, "UTF-8");
+            JSONObject themeJson = new JSONObject(jsonString);
+            
+            String name = themeJson.optString("name", themeName);
+            String author = themeJson.optString("author", null);
+            String description = themeJson.optString("description", "Custom theme");
+            
+            return new ThemeMetadata(name, author, description, themeName);
+            
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Error loading theme metadata: " + themeName, e);
+            return new ThemeMetadata(themeName, null, "Custom theme", themeName);
+        }
+    }
+    
+    /**
+     * Get list of available themes from assets
+     */
+    public String[] getAvailableThemes() {
+        try {
+            String[] themeFiles = context.getAssets().list("themes");
+            if (themeFiles == null) return new String[0];
+            
+            String[] themeNames = new String[themeFiles.length];
+            for (int i = 0; i < themeFiles.length; i++) {
+                // Remove .json extension
+                themeNames[i] = themeFiles[i].replace(".json", "");
+            }
+            return themeNames;
+            
+        } catch (IOException e) {
+            Log.e(TAG, "Error listing themes", e);
+            return new String[0];
+        }
+    }
+    
+    /**
+     * Apply theme to the current activity (call this in onCreate/onResume)
+     */
+    public void applyTheme(Context activityContext) {
+        // This method can be extended to apply theme to specific views
+        // For now, it ensures the theme is loaded
+        if (currentColors.isEmpty()) {
+            loadCurrentTheme();
+        }
+    }
+    
+    private void loadCurrentTheme() {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String themeName = prefs.getString(PREF_CURRENT_THEME, DEFAULT_THEME);
+        
+        if (!loadTheme(themeName)) {
+            // Fallback to default theme
+            loadTheme(DEFAULT_THEME);
+        }
+    }
+    
+    private void saveCurrentTheme(String themeName) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(PREF_CURRENT_THEME, themeName).apply();
+    }
+    
+    public String getCurrentThemeName() {
+        return currentThemeName;
+    }
+    
+    /**
+     * Theme metadata class
+     */
+    public static class ThemeMetadata {
+        public final String name;
+        public final String author;
+        public final String description;
+        public final String key;
+        
+        public ThemeMetadata(String name, String author, String description, String key) {
+            this.name = name;
+            this.author = author;
+            this.description = description;
+            this.key = key;
+        }
+    }
+}

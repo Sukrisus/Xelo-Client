@@ -1,0 +1,18 @@
+{
+  "name": "Dark Blue",
+  "author": "Xelo Team",
+  "description": "Cool dark blue theme",
+  "colors": {
+    "primary": "#2196F3",
+    "primaryDark": "#1976D2",
+    "accent": "#FF4081",
+    "background": "#0D1117",
+    "surface": "#161B22",
+    "onBackground": "#FFFFFF",
+    "onSurface": "#FFFFFF",
+    "onSurfaceVariant": "#8B949E",
+    "onPrimary": "#FFFFFF",
+    "outline": "#30363D",
+    "error": "#F85149"
+  }
+}
