@@ -433,11 +433,8 @@ public class ThemeUtils {
                 materialSwitch.setTrackTintList(trackColorStateList);
                 materialSwitch.setThumbTintList(thumbColorStateList);
                 
-                // Add ripple effect if toggle colors are available
-                if (themeManager.hasToggleColors()) {
-                    int rippleColor = themeManager.getToggleColor("ripple");
-                    materialSwitch.setRippleColor(ColorStateList.valueOf(createLightRippleColor(rippleColor)));
-                }
+                // Note: MaterialSwitch doesn't support setRippleColor, so we skip that
+                // The ripple effect is handled internally by the MaterialSwitch component
             } else {
                 // Fallback to default colors if theme not ready
                 materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#2A2A2A")));
