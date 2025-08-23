@@ -149,32 +149,32 @@ public class ThemeManager {
         
         // Fallback to default colors if not found
         switch (colorName) {
-            case "background": return Color.parseColor("#0A0A0A");
+            case "background": return Color.parseColor("#121212");
             case "onBackground": return Color.parseColor("#FFFFFF");
-            case "surface": return Color.parseColor("#141414");
+            case "surface": return Color.parseColor("#1E1E1E");
             case "onSurface": return Color.parseColor("#FFFFFF");
-            case "surfaceVariant": return Color.parseColor("#1F1F1F");
+            case "surfaceVariant": return Color.parseColor("#2D2D2D");
             case "onSurfaceVariant": return Color.parseColor("#CCCCCC");
-            case "outline": return Color.parseColor("#505050");
-            case "primary": return Color.parseColor("#FFFFFF");
+            case "outline": return Color.parseColor("#737373");
+            case "primary": return Color.parseColor("#BB86FC");
             case "onPrimary": return Color.parseColor("#000000");
-            case "primaryContainer": return Color.parseColor("#1F1F1F");
+            case "primaryContainer": return Color.parseColor("#3700B3");
             case "onPrimaryContainer": return Color.parseColor("#FFFFFF");
-            case "secondary": return Color.parseColor("#FFFFFF");
+            case "secondary": return Color.parseColor("#03DAC6");
             case "onSecondary": return Color.parseColor("#000000");
-            case "secondaryContainer": return Color.parseColor("#2A2A2A");
+            case "secondaryContainer": return Color.parseColor("#018786");
             case "onSecondaryContainer": return Color.parseColor("#FFFFFF");
-            case "tertiary": return Color.parseColor("#F5F5F5");
+            case "tertiary": return Color.parseColor("#FFFFFF");
             case "onTertiary": return Color.parseColor("#000000");
-            case "tertiaryContainer": return Color.parseColor("#3A3A3A");
+            case "tertiaryContainer": return Color.parseColor("#444444");
             case "onTertiaryContainer": return Color.parseColor("#FFFFFF");
-            case "error": return Color.parseColor("#FF6659");
+            case "error": return Color.parseColor("#CF6679");
             case "onError": return Color.parseColor("#FFFFFF");
             case "errorContainer": return Color.parseColor("#B00020");
             case "onErrorContainer": return Color.parseColor("#FFFFFF");
-            case "success": return Color.parseColor("#00E676");
-            case "info": return Color.parseColor("#64B5F6");
-            case "warning": return Color.parseColor("#FFC107");
+            case "success": return Color.parseColor("#00C853");
+            case "info": return Color.parseColor("#2196F3");
+            case "warning": return Color.parseColor("#FF9800");
             default: return Color.parseColor("#FFFFFF");
         }
     }

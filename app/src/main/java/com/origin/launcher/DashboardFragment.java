@@ -196,6 +196,15 @@ public class DashboardFragment extends BaseThemedFragment {
 
         return view;
     }
+    
+    @Override
+    protected void onApplyTheme() {
+        // Apply theme to the root view background
+        View rootView = getView();
+        if (rootView != null) {
+            rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+        }
+    }
 
     private void initializeModules(View view) {
         // Initialize config file path

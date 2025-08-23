@@ -24,6 +24,9 @@ public class ThemeUtils {
         
         card.setCardBackgroundColor(themeManager.getColor("surface"));
         card.setStrokeColor(themeManager.getColor("outline"));
+        card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density)); // 1dp stroke
+        card.setCardElevation(0f); // Remove elevation for flat design
+        card.setRadius(12 * context.getResources().getDisplayMetrics().density); // 12dp radius
         
         // Create ripple effect with theme colors
         RippleDrawable ripple = new RippleDrawable(
@@ -137,11 +140,23 @@ public class ThemeUtils {
             }
         }
         
-        // Apply theme to specific view types
+        // Apply theme to specific view types more selectively
         if (view instanceof MaterialCardView) {
-            applyThemeToCard((MaterialCardView) view, view.getContext());
+            MaterialCardView card = (MaterialCardView) view;
+            // Always update colors, but preserve stroke width if already set
+            ThemeManager themeManager = ThemeManager.getInstance();
+            card.setCardBackgroundColor(themeManager.getColor("surface"));
+            card.setStrokeColor(themeManager.getColor("outline"));
+            // Only set stroke width if it's currently 0 (not manually set)
+            if (card.getStrokeWidth() == 0) {
+                card.setStrokeWidth((int) (1 * view.getContext().getResources().getDisplayMetrics().density));
+            }
         } else if (view instanceof MaterialButton) {
-            applyThemeToButton((MaterialButton) view, view.getContext());
+            // Only theme buttons that don't have custom background tints
+            MaterialButton button = (MaterialButton) view;
+            if (button.getBackgroundTintList() == null) {
+                applyThemeToButton(button, view.getContext());
+            }
         } else if (view instanceof MaterialRadioButton) {
             applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
         } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
@@ -149,17 +164,13 @@ public class ThemeUtils {
         } else if (view instanceof TextInputLayout) {
             applyThemeToTextInputLayout((TextInputLayout) view);
         } else if (view instanceof EditText && !(view instanceof TextInputEditText)) {
-            applyThemeToEditText((EditText) view);
-        } else if (view instanceof TextView) {
-            // Apply default text color for TextViews
-            applyThemeToTextView((TextView) view, "onSurface");
-        } else if (view instanceof ImageView) {
-            // Apply tint to ImageViews that might be icons
-            ImageView imageView = (ImageView) view;
-            if (imageView.getColorFilter() != null) {
-                imageView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+            // Only theme EditTexts that don't have custom styling
+            EditText editText = (EditText) view;
+            if (editText.getBackground() == null || editText.getCurrentTextColor() == android.graphics.Color.BLACK) {
+                applyThemeToEditText(editText);
             }
         }
+        // Removed automatic TextView and ImageView theming to preserve custom styling
     }
     
     /**

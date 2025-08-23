@@ -26,6 +26,15 @@ public abstract class BaseThemedFragment extends Fragment {
         applyTheme();
     }
     
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser && getView() != null) {
+            // Reapply theme when fragment becomes visible
+            applyTheme();
+        }
+    }
+    
     private void applyTheme() {
         View rootView = getView();
         if (rootView != null) {
