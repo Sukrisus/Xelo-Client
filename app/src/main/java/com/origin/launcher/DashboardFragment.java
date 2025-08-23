@@ -55,10 +55,8 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import android.util.Log;
 
-public class DashboardFragment extends BaseThemedFragment implements ThemeManager.ThemeChangeListener {
-    private static final String TAG = "DashboardFragment";
+public class DashboardFragment extends BaseThemedFragment {
     private File currentRootDir = null; // Store the found root directory
     private static final int IMPORT_REQUEST_CODE = 1002;
     private static final int EXPORT_REQUEST_CODE = 1003;
@@ -201,344 +199,26 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     @Override
     protected void onApplyTheme() {
-        super.onApplyTheme();
-        
-        // Refresh background colors
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null && themeManager.isThemeLoaded()) {
-                // Refresh root view background
-                View rootView = getView();
-                if (rootView != null) {
-                    rootView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                // Refresh ScrollView background
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                // Refresh modules container background
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
-                }
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
+        // Apply theme to the root view background
+        View rootView = getView();
+        if (rootView != null) {
+            rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
         }
         
-        // Refresh theme colors for existing module cards
-        refreshModuleCardsTheme();
-    }
-    
-    @Override
-    public void onResume() {
-        super.onResume();
-        
-        // Refresh theme colors for existing module cards when fragment resumes
-        if (modulesContainer != null) {
-            refreshModuleCardsTheme();
-        }
-        
-        // Also refresh the background
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null && themeManager.isThemeLoaded()) {
-                View rootView = getView();
-                if (rootView != null) {
-                    rootView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
-                }
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
-    }
-    
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser && getView() != null) {
-            // Check if we need to initialize modules
-            // checkAndInitializeModules(); // Removed
-            
-            // Refresh theme colors when fragment becomes visible
-            refreshModuleCardsTheme();
-            
-            // Also refresh the background
-            try {
-                ThemeManager themeManager = ThemeManager.getInstance();
-                if (themeManager != null && themeManager.isThemeLoaded()) {
-                    View rootView = getView();
-                    if (rootView != null) {
-                        rootView.setBackgroundColor(themeManager.getColor("background"));
-                    }
-                    
-                    if (modulesScrollView != null) {
-                        modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
-                    }
-                    
-                    if (modulesContainer != null) {
-                        modulesContainer.setBackgroundColor(themeManager.getColor("background"));
-                    }
-                }
-            } catch (Exception e) {
-                // Handle error gracefully
-            }
-        }
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        
-        // Register as theme change listener
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null) {
-                themeManager.addThemeChangeListener(this);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to register theme change listener", e);
-        }
-        
-        // Initialize modules
-        initializeModules(view);
-        
-        // Initialize options editor
-        initializeOptionsEditor(view);
-        
-        // Set up config buttons
-        setupConfigButtons(view);
-        
-        // Apply initial theme
-        applyInitialTheme();
-    }
-    
-    /**
-     * Apply initial theme when fragment is created
-     */
-    private void applyInitialTheme() {
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null && themeManager.isThemeLoaded()) {
-                // Apply background colors
-                View rootView = getView();
-                if (rootView != null) {
-                    rootView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
-                }
-                
-                // Refresh module cards theme
-                refreshModuleCardsTheme();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error applying initial theme", e);
-        }
-    }
-    
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        
-        // Unregister theme change listener
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null) {
-                themeManager.removeThemeChangeListener(this);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to unregister theme change listener", e);
-        }
-    }
-    
-    @Override
-    public void onThemeChanged(String themeName) {
-        // Handle theme change
-        Log.d(TAG, "Theme changed to: " + themeName);
-        
-        // Refresh theme colors on the main thread
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                try {
-                    // Force refresh all themes and module cards
-                    forceRefreshThemes();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error refreshing themes after change", e);
-                }
-            });
-        }
-    }
-
-    /**
-     * Refresh theme colors for all existing module cards
-     */
-    private void refreshModuleCardsTheme() {
-        if (modulesContainer != null) {
-            for (int i = 0; i < modulesContainer.getChildCount(); i++) {
-                View child = modulesContainer.getChildAt(i);
-                if (child instanceof MaterialCardView) {
-                    MaterialCardView card = (MaterialCardView) child;
-                    ThemeUtils.applyThemeToCard(card, requireContext());
-                    
-                    // Also refresh all elements inside the card
-                    refreshCardContentTheme(card);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Refresh theme colors for all content inside a module card
-     */
-    private void refreshCardContentTheme(MaterialCardView card) {
-        if (card.getChildCount() > 0) {
-            View mainLayout = card.getChildAt(0);
-            if (mainLayout instanceof LinearLayout) {
-                LinearLayout layout = (LinearLayout) mainLayout;
-                for (int i = 0; i < layout.getChildCount(); i++) {
-                    View child = layout.getChildAt(i);
-                    
-                    // Refresh icon colors
-                    if (child instanceof ImageView) {
-                        ImageView iconView = (ImageView) child;
-                        try {
-                            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-                        } catch (Exception e) {
-                            iconView.setColorFilter(0xFFFFFFFF);
-                        }
-                    }
-                    
-                    // Refresh text colors
-                    if (child instanceof LinearLayout) {
-                        LinearLayout textLayout = (LinearLayout) child;
-                        for (int j = 0; j < textLayout.getChildCount(); j++) {
-                            View textView = textLayout.getChildAt(j);
-                            if (textView instanceof TextView) {
-                                TextView tv = (TextView) textView;
-                                if (j == 0) {
-                                    // Module name
-                                    ThemeUtils.applyThemeToTextView(tv, "onSurface");
-                                } else {
-                                    // Module description
-                                    ThemeUtils.applyThemeToTextView(tv, "onSurfaceVariant");
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Refresh switch colors
-                    if (child instanceof LinearLayout) {
-                        LinearLayout rightContainer = (LinearLayout) child;
-                        for (int j = 0; j < rightContainer.getChildCount(); j++) {
-                            View switchView = rightContainer.getChildAt(j);
-                            if (switchView instanceof com.google.android.material.materialswitch.MaterialSwitch) {
-                                ThemeUtils.applyThemeToSwitch(
-                                    (com.google.android.material.materialswitch.MaterialSwitch) switchView, 
-                                    requireContext()
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Refresh theme colors for the switch inside a module card
-     */
-    private void refreshCardSwitchTheme(MaterialCardView card) {
-        if (card.getChildCount() > 0) {
-            View mainLayout = card.getChildAt(0);
-            if (mainLayout instanceof LinearLayout) {
-                LinearLayout layout = (LinearLayout) mainLayout;
-                for (int i = 0; i < layout.getChildCount(); i++) {
-                    View child = layout.getChildAt(i);
-                    
-                    // Refresh icon colors
-                    if (child instanceof ImageView) {
-                        ImageView iconView = (ImageView) child;
-                        try {
-                            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-                        } catch (Exception e) {
-                            iconView.setColorFilter(0xFFFFFFFF);
-                        }
-                    }
-                    
-                    // Refresh switch colors
-                    if (child instanceof LinearLayout) {
-                        LinearLayout rightContainer = (LinearLayout) child;
-                        for (int j = 0; j < rightContainer.getChildCount(); j++) {
-                            View switchView = rightContainer.getChildAt(j);
-                            if (switchView instanceof com.google.android.material.materialswitch.MaterialSwitch) {
-                                ThemeUtils.applyThemeToSwitch(
-                                    (com.google.android.material.materialswitch.MaterialSwitch) switchView, 
-                                    requireContext()
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Apply theme to ScrollView and modules container background
+        refreshScrollViewBackground();
     }
 
     private void initializeModules(View view) {
         // Initialize config file path
-        configFile = new File(currentRootDir, "config.txt");
+        configFile = new File(getContext().getExternalFilesDir(null), "origin_mods/config.json");
         
-        // Initialize modules container
+        // Get ScrollView and container - UPDATED
         modulesScrollView = view.findViewById(R.id.modulesScrollView);
         modulesContainer = view.findViewById(R.id.modulesContainer);
         
-        // Apply theme background to both ScrollView and container
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null && themeManager.isThemeLoaded()) {
-                int backgroundColor = themeManager.getColor("background");
-                
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(backgroundColor);
-                }
-                
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(backgroundColor);
-                }
-            } else {
-                // Fallback to default background
-                int fallbackColor = 0xFF0A0A0A;
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(fallbackColor);
-                }
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(fallbackColor);
-                }
-            }
-        } catch (Exception e) {
-            // Fallback to default background
-            int fallbackColor = 0xFF0A0A0A;
-            if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(fallbackColor);
-            }
-            if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(fallbackColor);
-            }
-        }
+        // Apply theme background to ScrollView and container
+        refreshScrollViewBackground();
         
         if (modulesContainer != null) {
             // Initialize module items
@@ -566,164 +246,132 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     // NEW METHOD: Populate modules in ScrollView
     private void populateModules() {
-        if (modulesContainer == null || moduleItems == null) return;
+        if (modulesContainer == null) return;
         
-        // Clear existing views
+        // Clear existing modules
         modulesContainer.removeAllViews();
         
-        // Create and add module cards
+        // Add each module as a card view
         for (ModuleItem module : moduleItems) {
             View moduleView = createModuleView(module);
             modulesContainer.addView(moduleView);
         }
-        
-        // Refresh theme colors after populating modules
-        refreshModuleCardsTheme();
-        
-        // Also refresh the background
-        try {
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null && themeManager.isThemeLoaded()) {
-                if (modulesScrollView != null) {
-                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
-                }
-                if (modulesContainer != null) {
-                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
-                }
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
     }
     
     private View createModuleView(ModuleItem module) {
-        // Create card layout (matching theme card design)
-        MaterialCardView moduleCard = new MaterialCardView(getContext());
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        cardParams.setMargins(
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density)
-        );
-        moduleCard.setLayoutParams(cardParams);
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        moduleCard.setCardElevation(0); // Remove elevation for flat design
-        moduleCard.setClickable(true);
-        moduleCard.setFocusable(true);
-        
-        // Apply theme colors to card (matching themes card)
-        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-        
-        // Main container (horizontal layout like themes)
-        LinearLayout mainLayout = new LinearLayout(getContext());
-        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density)
-        );
-        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
-        
-        // Left side: Icon
-        ImageView iconView = new ImageView(getContext());
-        iconView.setImageResource(R.drawable.wrench);
-        iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),
-            (int) (24 * getResources().getDisplayMetrics().density)
-        );
-        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
-        iconView.setLayoutParams(iconParams);
-        
-        // Apply theme color to icon
-        try {
-            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-        } catch (Exception e) {
-            // Fallback to default color if theme not ready
-            iconView.setColorFilter(0xFFFFFFFF);
-        }
-        
-        // Text container (matching themes layout)
-        LinearLayout textLayout = new LinearLayout(getContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-            0, 
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            1.0f
-        );
-        textLayout.setLayoutParams(textParams);
-        
-        // Module name (matching theme name styling)
-        TextView moduleNameText = new TextView(getContext());
-        moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);
-        moduleNameText.setTypeface(null, Typeface.BOLD);
-        ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-        
-        // Module description (matching theme description styling)
-        TextView moduleDescriptionText = new TextView(getContext());
-        moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);
-        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        moduleDescriptionText.setLayoutParams(descParams);
-        moduleDescriptionText.setMaxLines(2);
-        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        
-        textLayout.addView(moduleNameText);
-        textLayout.addView(moduleDescriptionText);
-        
-        // Right side container for switch (matching theme card right container)
-        LinearLayout rightContainer = new LinearLayout(getContext());
-        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
-        rightContainer.setLayoutParams(rightParams);
-        
-        // Module switch (replacing radio button)
-        MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
-        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        moduleSwitch.setLayoutParams(switchParams);
-        moduleSwitch.setChecked(module.isEnabled());
-        moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            module.setEnabled(isChecked);
-            onModuleToggle(module, isChecked);
-        });
-        
-        // Apply theme to switch
-        try {
-            ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
-        } catch (Exception e) {
-            // Fallback if theme not ready
-        }
-        
-        rightContainer.addView(moduleSwitch);
-        
-        mainLayout.addView(iconView);
-        mainLayout.addView(textLayout);
-        mainLayout.addView(rightContainer);
-        
-        moduleCard.addView(mainLayout);
-        
-        return moduleCard;
-    }
+    // Create card layout (matching theme card design)
+    MaterialCardView moduleCard = new MaterialCardView(getContext());
+    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, 
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    cardParams.setMargins(
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density)
+    );
+    moduleCard.setLayoutParams(cardParams);
+    moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+    moduleCard.setCardElevation(0); // Remove elevation for flat design
+    moduleCard.setClickable(true);
+    moduleCard.setFocusable(true);
+    
+    // Apply theme colors to card (matching themes card)
+    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
+    moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+    
+    // Main container (horizontal layout like themes)
+    LinearLayout mainLayout = new LinearLayout(getContext());
+    mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+    mainLayout.setPadding(
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density)
+    );
+    mainLayout.setGravity(Gravity.CENTER_VERTICAL);
+    
+    // Left side: Icon
+    ImageView iconView = new ImageView(getContext());
+    iconView.setImageResource(R.drawable.wrench);
+    iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+    LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+        (int) (24 * getResources().getDisplayMetrics().density),
+        (int) (24 * getResources().getDisplayMetrics().density)
+    );
+    iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
+    iconView.setLayoutParams(iconParams);
+    iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+    
+    // Text container (matching themes layout)
+    LinearLayout textLayout = new LinearLayout(getContext());
+    textLayout.setOrientation(LinearLayout.VERTICAL);
+    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+        0, 
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        1.0f
+    );
+    textLayout.setLayoutParams(textParams);
+    
+    // Module name (matching theme name styling)
+    TextView moduleNameText = new TextView(getContext());
+    moduleNameText.setText(module.getName());
+    moduleNameText.setTextSize(16);
+    moduleNameText.setTypeface(null, Typeface.BOLD);
+    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
+    
+    // Module description (matching theme description styling)
+    TextView moduleDescriptionText = new TextView(getContext());
+    moduleDescriptionText.setText(module.getDescription());
+    moduleDescriptionText.setTextSize(14);
+    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+    moduleDescriptionText.setLayoutParams(descParams);
+    moduleDescriptionText.setMaxLines(2);
+    moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+    
+    textLayout.addView(moduleNameText);
+    textLayout.addView(moduleDescriptionText);
+    
+    // Right side container for switch (matching theme card right container)
+    LinearLayout rightContainer = new LinearLayout(getContext());
+    rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+    rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+    LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+    rightContainer.setLayoutParams(rightParams);
+    
+    // Module switch (replacing radio button)
+    MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
+    LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    moduleSwitch.setLayoutParams(switchParams);
+    moduleSwitch.setChecked(module.isEnabled());
+    moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        module.setEnabled(isChecked);
+        onModuleToggle(module, isChecked);
+    });
+    
+    rightContainer.addView(moduleSwitch);
+    
+    mainLayout.addView(iconView);
+    mainLayout.addView(textLayout);
+    mainLayout.addView(rightContainer);
+    
+    moduleCard.addView(mainLayout);
+    
+    return moduleCard;
+}
     
     private void setupConfigButtons(View view) {
         // Find the existing buttons from XML
@@ -753,76 +401,76 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
     
     private void exportConfig() {
-        try {
-            // Check if config file exists
+    try {
+        // Check if config file exists
+        if (!configFile.exists()) {
+            Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
+            createDefaultConfig();
+            
             if (!configFile.exists()) {
-                Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
-                createDefaultConfig();
-                
-                if (!configFile.exists()) {
-                    Toast.makeText(requireContext(), "Failed to create config file.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-            
-            // Always copy to cache directory for sharing
-            File cacheDir = requireContext().getCacheDir();
-            File tempConfigFile = new File(cacheDir, "config.json");
-            
-            // Delete existing temp file if it exists
-            if (tempConfigFile.exists()) {
-                tempConfigFile.delete();
-            }
-            
-            // Copy the actual config file to cache directory
-            try (FileInputStream fis = new FileInputStream(configFile);
-                 FileOutputStream fos = new FileOutputStream(tempConfigFile)) {
-                
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = fis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, length);
-                }
-                fos.flush();
-            }
-            
-            // Verify the temp file was created and has content
-            if (!tempConfigFile.exists() || tempConfigFile.length() == 0) {
-                Toast.makeText(requireContext(), "Failed to prepare config file for sharing.", Toast.LENGTH_LONG).show();
+                Toast.makeText(requireContext(), "Failed to create config file.", Toast.LENGTH_LONG).show();
                 return;
             }
-            
-            // Create file URI for the temp file (using cache path)
-            Uri fileUri = FileProvider.getUriForFile(
-                requireContext(), 
-                "com.origin.launcher.fileprovider", 
-                tempConfigFile
-            );
-            
-            // Create share intent
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("application/json");
-            shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Config");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client configuration file");
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            
-            // Verify that there are apps that can handle this intent
-            if (shareIntent.resolveActivity(requireContext().getPackageManager()) != null) {
-                startActivity(Intent.createChooser(shareIntent, "Export Config File"));
-                Toast.makeText(requireContext(), "Config file ready to share!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(requireContext(), "No apps available to share the config file.", Toast.LENGTH_SHORT).show();
-            }
-            
-        } catch (IOException e) {
-            Toast.makeText(requireContext(), "Failed to export config: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Unexpected error during config export: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace();
         }
+        
+        // Always copy to cache directory for sharing
+        File cacheDir = requireContext().getCacheDir();
+        File tempConfigFile = new File(cacheDir, "config.json");
+        
+        // Delete existing temp file if it exists
+        if (tempConfigFile.exists()) {
+            tempConfigFile.delete();
+        }
+        
+        // Copy the actual config file to cache directory
+        try (FileInputStream fis = new FileInputStream(configFile);
+             FileOutputStream fos = new FileOutputStream(tempConfigFile)) {
+            
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                fos.write(buffer, 0, length);
+            }
+            fos.flush();
+        }
+        
+        // Verify the temp file was created and has content
+        if (!tempConfigFile.exists() || tempConfigFile.length() == 0) {
+            Toast.makeText(requireContext(), "Failed to prepare config file for sharing.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Create file URI for the temp file (using cache path)
+        Uri fileUri = FileProvider.getUriForFile(
+            requireContext(), 
+            "com.origin.launcher.fileprovider", 
+            tempConfigFile
+        );
+        
+        // Create share intent
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("application/json");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Config");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client configuration file");
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        
+        // Verify that there are apps that can handle this intent
+        if (shareIntent.resolveActivity(requireContext().getPackageManager()) != null) {
+            startActivity(Intent.createChooser(shareIntent, "Export Config File"));
+            Toast.makeText(requireContext(), "Config file ready to share!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(requireContext(), "No apps available to share the config file.", Toast.LENGTH_SHORT).show();
+        }
+        
+    } catch (IOException e) {
+        Toast.makeText(requireContext(), "Failed to export config: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        e.printStackTrace();
+    } catch (Exception e) {
+        Toast.makeText(requireContext(), "Unexpected error during config export: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        e.printStackTrace();
     }
+}
     
     private void openConfigFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -1700,65 +1348,26 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
 
     /**
-     * Manually refresh modules - can be called from UI
+     * Refresh ScrollView and container background colors
      */
-    public void refreshModules() {
-        if (currentRootDir != null && getView() != null) {
-            Log.d(TAG, "Manually refreshing modules");
-            initializeModules(getView());
-            Toast.makeText(requireContext(), "Modules refreshed", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(requireContext(), "Cannot refresh modules: root directory not set", Toast.LENGTH_SHORT).show();
-        }
-    }
-    
-    /**
-     * Force refresh all themes and module cards
-     */
-    public void forceRefreshThemes() {
+    private void refreshScrollViewBackground() {
         try {
-            // Force refresh the theme manager
-            ThemeManager themeManager = ThemeManager.getInstance();
-            if (themeManager != null) {
-                themeManager.refreshCurrentTheme();
-            }
-            
-            // Refresh root view background
-            View rootView = getView();
-            if (rootView != null) {
-                rootView.setBackgroundColor(themeManager.getColor("background"));
-            }
-            
-            // Refresh ScrollView background
             if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
+                modulesScrollView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
             }
-            
-            // Refresh modules container background
             if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                modulesContainer.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
             }
-            
-            // Refresh all module cards
-            refreshModuleCardsTheme();
-            
         } catch (Exception e) {
-            // Handle error gracefully
+            // Fallback to default background
+            int fallbackColor = 0xFF0A0A0A;
+            if (modulesScrollView != null) {
+                modulesScrollView.setBackgroundColor(fallbackColor);
+            }
+            if (modulesContainer != null) {
+                modulesContainer.setBackgroundColor(fallbackColor);
+            }
         }
-    }
-
-    /**
-     * Check if modules are initialized
-     */
-    public boolean areModulesInitialized() {
-        return modulesContainer != null && moduleItems != null;
-    }
-
-    /**
-     * Check if modules are available for use
-     */
-    private boolean areModulesAvailable() {
-        return currentRootDir != null && modulesContainer != null;
     }
 
     // Improved adapter for folder names with custom styling
