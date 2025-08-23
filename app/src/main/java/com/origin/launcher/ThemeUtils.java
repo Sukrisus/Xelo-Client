@@ -43,8 +43,72 @@ public class ThemeUtils {
     public static void applyThemeToButton(MaterialButton button, Context context) {
         ThemeManager themeManager = ThemeManager.getInstance();
         
-        button.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("primary")));
-        button.setTextColor(themeManager.getColor("onPrimary"));
+        // Determine button type and apply appropriate styling
+        String buttonType = determineButtonType(button);
+        
+        switch (buttonType) {
+            case "outlined":
+                // Outlined button: transparent background, colored border and text
+                button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+                button.setTextColor(themeManager.getColor("primary"));
+                button.setStrokeColor(ColorStateList.valueOf(themeManager.getColor("outline")));
+                button.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
+                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("primary")));
+                break;
+            case "text":
+                // Text button: transparent background, colored text only
+                button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+                button.setTextColor(themeManager.getColor("primary"));
+                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("primary")));
+                break;
+            case "filled":
+            default:
+                // Filled button: colored background, contrasting text
+                ColorStateList enabledStates = getThemedColorStateList("primary", "surfaceVariant");
+                button.setBackgroundTintList(enabledStates);
+                button.setTextColor(themeManager.getColor("onPrimary"));
+                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("onPrimary")));
+                break;
+        }
+    }
+    
+    /**
+     * Determine button type based on current styling
+     */
+    private static String determineButtonType(MaterialButton button) {
+        // Check view tag for button type hint
+        Object tag = button.getTag();
+        if (tag != null) {
+            String tagStr = tag.toString().toLowerCase();
+            if (tagStr.contains("outlined")) return "outlined";
+            if (tagStr.contains("text")) return "text";
+        }
+        
+        // Check if button has outlined style characteristics
+        if (button.getStrokeWidth() > 0) {
+            return "outlined";
+        }
+        
+        // Check if background is transparent
+        if (button.getBackgroundTintList() != null && 
+            button.getBackgroundTintList().equals(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT))) {
+            return "text";
+        }
+        
+        // Check button ID to determine type
+        String resourceName = "";
+        try {
+            resourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
+        } catch (Exception e) {
+            // Ignore, use default
+        }
+        
+        if (resourceName.contains("import") || resourceName.contains("export")) {
+            // Import/Export buttons are typically outlined
+            return "outlined";
+        }
+        
+        return "filled";
     }
     
     /**
@@ -152,11 +216,9 @@ public class ThemeUtils {
                 card.setStrokeWidth((int) (1 * view.getContext().getResources().getDisplayMetrics().density));
             }
         } else if (view instanceof MaterialButton) {
-            // Only theme buttons that don't have custom background tints
+            // Always apply theming to override hardcoded colors from XML
             MaterialButton button = (MaterialButton) view;
-            if (button.getBackgroundTintList() == null) {
-                applyThemeToButton(button, view.getContext());
-            }
+            applyThemeToButton(button, view.getContext());
         } else if (view instanceof MaterialRadioButton) {
             applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
         } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
@@ -242,6 +304,42 @@ public class ThemeUtils {
             default:
                 applyThemeToButton(button, button.getContext());
                 break;
+        }
+    }
+    
+    /**
+     * Apply theme colors to Material AlertDialog
+     */
+    public static void applyThemeToDialog(android.app.AlertDialog dialog) {
+        if (dialog == null || dialog.getWindow() == null) return;
+        
+        try {
+            // Apply background color to dialog
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            
+            // Get the root view and apply theme
+            View dialogView = dialog.findViewById(android.R.id.content);
+            if (dialogView != null) {
+                dialogView.setBackgroundColor(ThemeManager.getInstance().getColor("surface"));
+            }
+            
+            // Apply theme to buttons
+            android.widget.Button positiveButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
+            android.widget.Button negativeButton = dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE);
+            android.widget.Button neutralButton = dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL);
+            
+            if (positiveButton != null) {
+                positiveButton.setTextColor(ThemeManager.getInstance().getColor("primary"));
+            }
+            if (negativeButton != null) {
+                negativeButton.setTextColor(ThemeManager.getInstance().getColor("onSurfaceVariant"));
+            }
+            if (neutralButton != null) {
+                neutralButton.setTextColor(ThemeManager.getInstance().getColor("onSurfaceVariant"));
+            }
+            
+        } catch (Exception e) {
+            // Ignore theming errors
         }
     }
 }

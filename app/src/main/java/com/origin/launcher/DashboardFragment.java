@@ -253,57 +253,97 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     private View createModuleView(ModuleItem module) {
+    // Create card layout (matching theme card design)
     MaterialCardView moduleCard = new MaterialCardView(getContext());
-    
-    int cardHeight = (int) (80 * getResources().getDisplayMetrics().density);
     LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        cardHeight
-    );
-    cardParams.setMargins(16, 8, 16, 8);
-    moduleCard.setLayoutParams(cardParams);
-    
-    moduleCard.setRadius(28f);
-    moduleCard.setCardElevation(2f);
-    moduleCard.setStrokeWidth(1);
-    
-    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-    
-    LinearLayout mainLayout = new LinearLayout(getContext());
-    mainLayout.setOrientation(LinearLayout.VERTICAL);
-    mainLayout.setPadding(18, 16, 18, 16);
-    
-    LinearLayout topRow = new LinearLayout(getContext());
-    topRow.setOrientation(LinearLayout.HORIZONTAL);
-    topRow.setGravity(Gravity.CENTER_VERTICAL);
-    topRow.setLayoutParams(new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.MATCH_PARENT, 
         LinearLayout.LayoutParams.WRAP_CONTENT
-    ));
+    );
+    cardParams.setMargins(
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density)
+    );
+    moduleCard.setLayoutParams(cardParams);
+    moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+    moduleCard.setCardElevation(0); // Remove elevation for flat design
+    moduleCard.setClickable(true);
+    moduleCard.setFocusable(true);
     
+    // Apply theme colors to card (matching themes card)
+    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
+    moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+    
+    // Main container (horizontal layout like themes)
+    LinearLayout mainLayout = new LinearLayout(getContext());
+    mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+    mainLayout.setPadding(
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (16 * getResources().getDisplayMetrics().density)
+    );
+    mainLayout.setGravity(Gravity.CENTER_VERTICAL);
+    
+    // Left side: Icon
     ImageView iconView = new ImageView(getContext());
     iconView.setImageResource(R.drawable.wrench);
     iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-    
     LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-        (int) (20 * getResources().getDisplayMetrics().density),
-        (int) (20 * getResources().getDisplayMetrics().density)
+        (int) (24 * getResources().getDisplayMetrics().density),
+        (int) (24 * getResources().getDisplayMetrics().density)
     );
-    iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));
+    iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
     iconView.setLayoutParams(iconParams);
     iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
     
+    // Text container (matching themes layout)
+    LinearLayout textLayout = new LinearLayout(getContext());
+    textLayout.setOrientation(LinearLayout.VERTICAL);
+    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+        0, 
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        1.0f
+    );
+    textLayout.setLayoutParams(textParams);
+    
+    // Module name (matching theme name styling)
     TextView moduleNameText = new TextView(getContext());
     moduleNameText.setText(module.getName());
-    moduleNameText.setTextSize(17f);
-    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
+    moduleNameText.setTextSize(16);
     moduleNameText.setTypeface(null, Typeface.BOLD);
-    moduleNameText.setLayoutParams(new LinearLayout.LayoutParams(
-        0,
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        1f
-    ));
+    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
     
+    // Module description (matching theme description styling)
+    TextView moduleDescriptionText = new TextView(getContext());
+    moduleDescriptionText.setText(module.getDescription());
+    moduleDescriptionText.setTextSize(14);
+    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, 
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+    moduleDescriptionText.setLayoutParams(descParams);
+    moduleDescriptionText.setMaxLines(2);
+    moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+    
+    textLayout.addView(moduleNameText);
+    textLayout.addView(moduleDescriptionText);
+    
+    // Right side container for switch (matching theme card right container)
+    LinearLayout rightContainer = new LinearLayout(getContext());
+    rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+    rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+    LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+    rightContainer.setLayoutParams(rightParams);
+    
+    // Module switch (replacing radio button)
     MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
     LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -316,28 +356,11 @@ public class DashboardFragment extends BaseThemedFragment {
         onModuleToggle(module, isChecked);
     });
     
-    topRow.addView(iconView);
-    topRow.addView(moduleNameText);
-    topRow.addView(moduleSwitch);
+    rightContainer.addView(moduleSwitch);
     
-    TextView moduleDescriptionText = new TextView(getContext());
-    moduleDescriptionText.setText(module.getDescription());
-    moduleDescriptionText.setTextSize(14f);
-    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-    moduleDescriptionText.setAlpha(0.7f);
-    moduleDescriptionText.setMaxLines(1);
-    moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-    
-    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    descParams.setMargins((int) (32 * getResources().getDisplayMetrics().density), 
-                         (int) (2 * getResources().getDisplayMetrics().density), 0, 0);
-    moduleDescriptionText.setLayoutParams(descParams);
-    
-    mainLayout.addView(topRow);
-    mainLayout.addView(moduleDescriptionText);
+    mainLayout.addView(iconView);
+    mainLayout.addView(textLayout);
+    mainLayout.addView(rightContainer);
     
     moduleCard.addView(mainLayout);
     

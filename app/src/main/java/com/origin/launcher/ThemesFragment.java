@@ -688,11 +688,14 @@ public class ThemesFragment extends BaseThemedFragment {
                 addManifestInfo(dialogLayout, theme.key);
             }
             
-            // Create dialog
+            // Create dialog with proper theming
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
             builder.setView(dialogLayout);
             builder.setPositiveButton("Close", null);
-            builder.show();
+            
+            // Apply theme to dialog
+            android.app.AlertDialog dialog = builder.show();
+            ThemeUtils.applyThemeToDialog(dialog);
             
         } catch (Exception e) {
             Log.e(TAG, "Error showing theme info dialog", e);
