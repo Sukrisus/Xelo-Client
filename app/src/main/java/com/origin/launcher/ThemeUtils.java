@@ -436,7 +436,7 @@ public class ThemeUtils {
                 // Add ripple effect if toggle colors are available
                 if (themeManager.hasToggleColors()) {
                     int rippleColor = themeManager.getToggleColor("ripple");
-                    materialSwitch.setRippleColor(ColorStateList.valueOf(createOptimizedRippleColor(rippleColor, "switch")));
+                    materialSwitch.setRippleColor(ColorStateList.valueOf(createLightRippleColor(rippleColor)));
                 }
             } else {
                 // Fallback to default colors if theme not ready

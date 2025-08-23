@@ -138,6 +138,24 @@ public class ThemeManager {
                 }
             }
             
+            // Parse toggle colors if they exist
+            if (colors.has("toggle")) {
+                try {
+                    JSONObject toggleColors = colors.getJSONObject("toggle");
+                    String[] toggleKeys = {"track", "trackChecked", "thumb", "thumbChecked", "ripple"};
+                    
+                    for (String toggleKey : toggleKeys) {
+                        if (toggleColors.has(toggleKey)) {
+                            String colorHex = toggleColors.getString(toggleKey);
+                            int color = Color.parseColor(colorHex);
+                            newColors.put("toggle_" + toggleKey, color);
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "Error parsing toggle colors, using defaults", e);
+                }
+            }
+            
             // Update current colors
             currentColors.clear();
             currentColors.putAll(newColors);
@@ -457,10 +475,11 @@ public class ThemeManager {
      */
     public int getToggleColor(String colorType) {
         try {
-            if (currentColors != null && currentColors.has("toggle")) {
-                JSONObject toggleColors = currentColors.getJSONObject("toggle");
-                if (toggleColors.has(colorType)) {
-                    return Color.parseColor(toggleColors.getString(colorType));
+            // Check if toggle colors are available in the current theme
+            if (hasToggleColors()) {
+                String toggleKey = "toggle_" + colorType;
+                if (currentColors.containsKey(toggleKey)) {
+                    return currentColors.get(toggleKey);
                 }
             }
             // Fallback to default toggle colors
@@ -495,7 +514,12 @@ public class ThemeManager {
      */
     public boolean hasToggleColors() {
         try {
-            return currentColors != null && currentColors.has("toggle");
+            // Check if any toggle colors exist in the current theme
+            return currentColors.containsKey("toggle_track") || 
+                   currentColors.containsKey("toggle_trackChecked") ||
+                   currentColors.containsKey("toggle_thumb") ||
+                   currentColors.containsKey("toggle_thumbChecked") ||
+                   currentColors.containsKey("toggle_ripple");
         } catch (Exception e) {
             return false;
         }
