@@ -75,7 +75,23 @@ public class ThemeUtils {
             case "outlined":
                 // Outlined button: transparent background, colored border and text
                 button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                button.setTextColor(themeManager.getColor("onSurface")); // Use onSurface for better visibility
+                
+                // Check if this is an export/import button and use primary color for better visibility
+                String resourceName = "";
+                try {
+                    resourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
+                } catch (Exception e) {
+                    // Ignore, use default
+                }
+                
+                if (resourceName.contains("import") || resourceName.contains("export")) {
+                    // Export/Import buttons use primary color for better visibility
+                    button.setTextColor(themeManager.getColor("primary"));
+                } else {
+                    // Other outlined buttons use onSurface
+                    button.setTextColor(themeManager.getColor("onSurface"));
+                }
+                
                 button.setStrokeColor(ColorStateList.valueOf(themeManager.getColor("outline")));
                 button.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 button.setRippleColor(ColorStateList.valueOf(lightOutlineRippleColor));
@@ -83,7 +99,23 @@ public class ThemeUtils {
             case "text":
                 // Text button: transparent background, colored text only
                 button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                button.setTextColor(themeManager.getColor("onSurface")); // Use onSurface for better visibility
+                
+                // Check if this is an export/import button and use primary color for better visibility
+                String textResourceName = "";
+                try {
+                    textResourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
+                } catch (Exception e) {
+                    // Ignore, use default
+                }
+                
+                if (textResourceName.contains("import") || textResourceName.contains("export")) {
+                    // Export/Import buttons use primary color for better visibility
+                    button.setTextColor(themeManager.getColor("primary"));
+                } else {
+                    // Other text buttons use onSurface
+                    button.setTextColor(themeManager.getColor("onSurface"));
+                }
+                
                 button.setRippleColor(ColorStateList.valueOf(lightRippleColor));
                 break;
             case "filled":
