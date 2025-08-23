@@ -299,9 +299,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         // Initialize options editor
         initializeOptionsEditor(view);
         
-        // Set up search functionality
-        setupSearch(view);
-        
         // Set up config buttons
         setupConfigButtons(view);
         
