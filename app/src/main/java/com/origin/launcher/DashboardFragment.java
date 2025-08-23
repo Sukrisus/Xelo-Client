@@ -214,6 +214,11 @@ public class DashboardFragment extends BaseThemedFragment {
         
         // Refresh button themes
         refreshButtonThemes();
+        
+        // Refresh all ripple effects in the entire view hierarchy
+        if (rootView != null) {
+            ThemeUtils.refreshRippleEffects(rootView);
+        }
     }
     
     /**
@@ -244,6 +249,23 @@ public class DashboardFragment extends BaseThemedFragment {
                 if (importConfigButton != null) {
                     ThemeUtils.applyThemeToButton(importConfigButton, requireContext());
                 }
+                
+                // Refresh module card ripple effects
+                refreshModuleCardRipples();
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    /**
+     * Refresh ripple effects on module cards
+     */
+    private void refreshModuleCardRipples() {
+        try {
+            if (modulesContainer != null) {
+                // Use the new ThemeUtils method for consistent ripple refresh
+                ThemeUtils.refreshRippleEffects(modulesContainer);
             }
         } catch (Exception e) {
             // Handle error gracefully

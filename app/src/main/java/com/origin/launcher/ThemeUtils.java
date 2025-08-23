@@ -33,7 +33,7 @@ public class ThemeUtils {
                 
                 // Create ripple effect with theme colors
                 RippleDrawable ripple = new RippleDrawable(
-                    ColorStateList.valueOf(themeManager.getColor("onSurface") & 0x1AFFFFFF),
+                    ColorStateList.valueOf(createOptimizedRippleColor("onSurface", "card")),
                     null,
                     null
                 );
@@ -65,6 +65,11 @@ public class ThemeUtils {
         // Determine button type and apply appropriate styling
         String buttonType = determineButtonType(button);
         
+        // Create lighter ripple colors for better visibility
+        int lightRippleColor = createOptimizedRippleColor("primary", "button");
+        int lightSurfaceRippleColor = createOptimizedRippleColor("surfaceVariant", "button");
+        int lightOutlineRippleColor = createOptimizedRippleColor("outline", "button");
+        
         switch (buttonType) {
             case "outlined":
                 // Outlined button: transparent background, colored border and text
@@ -72,13 +77,13 @@ public class ThemeUtils {
                 button.setTextColor(themeManager.getColor("primary"));
                 button.setStrokeColor(ColorStateList.valueOf(themeManager.getColor("outline")));
                 button.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
-                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("primary")));
+                button.setRippleColor(ColorStateList.valueOf(lightOutlineRippleColor));
                 break;
             case "text":
                 // Text button: transparent background, colored text only
                 button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
                 button.setTextColor(themeManager.getColor("primary"));
-                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("primary")));
+                button.setRippleColor(ColorStateList.valueOf(lightRippleColor));
                 break;
             case "filled":
             default:
@@ -86,7 +91,7 @@ public class ThemeUtils {
                 ColorStateList enabledStates = getThemedColorStateList("primary", "surfaceVariant");
                 button.setBackgroundTintList(enabledStates);
                 button.setTextColor(themeManager.getColor("onPrimary"));
-                button.setRippleColor(ColorStateList.valueOf(themeManager.getColor("onPrimary")));
+                button.setRippleColor(ColorStateList.valueOf(lightSurfaceRippleColor));
                 break;
         }
     }
@@ -188,7 +193,7 @@ public class ThemeUtils {
         circle.setColor(android.graphics.Color.TRANSPARENT);
         
         return new RippleDrawable(
-            ColorStateList.valueOf(themeManager.getColor(colorName) & 0x1AFFFFFF),
+            ColorStateList.valueOf(createOptimizedRippleColor(colorName, "button")),
             null,
             circle
         );
@@ -468,6 +473,113 @@ public class ThemeUtils {
             
             materialSwitch.setTrackTintList(switchTrackColor);
             materialSwitch.setThumbTintList(switchThumbColor);
+        }
+    }
+
+    /**
+     * Create a lighter ripple color for better visibility
+     */
+    private static int createLightRippleColor(int baseColor) {
+        // Convert to HSV for better color manipulation
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(baseColor, hsv);
+        
+        // For very dark colors, create a light gray ripple
+        if (hsv[2] < 0.3f) {
+            // Create a light gray with slight tint of the original color
+            hsv[0] = hsv[0]; // Keep hue
+            hsv[1] = 0.1f;   // Very low saturation
+            hsv[2] = 0.7f;   // High lightness
+        } else {
+            // For lighter colors, increase lightness and reduce saturation
+            hsv[1] = Math.max(0.15f, hsv[1] * 0.5f); // Reduce saturation more
+            hsv[2] = Math.min(0.85f, hsv[2] * 1.4f); // Increase lightness more
+        }
+        
+        // Convert back to color and add transparency
+        int lightColor = android.graphics.Color.HSVToColor(hsv);
+        
+        // Make it semi-transparent for a subtle ripple effect
+        return (lightColor & 0x00FFFFFF) | 0x50000000; // 31% opacity for better visibility
+    }
+    
+    /**
+     * Create a ripple color optimized for specific UI element types
+     */
+    public static int createOptimizedRippleColor(String colorName, String elementType) {
+        ThemeManager themeManager = ThemeManager.getInstance();
+        int baseColor = themeManager.getColor(colorName);
+        
+        switch (elementType) {
+            case "button":
+                // Buttons get lighter, more visible ripples
+                return createLightRippleColor(baseColor);
+            case "card":
+                // Cards get subtle, elegant ripples
+                return createSubtleRippleColor(baseColor);
+            case "switch":
+                // Switches get medium visibility ripples
+                return createMediumRippleColor(baseColor);
+            default:
+                return createLightRippleColor(baseColor);
+        }
+    }
+    
+    /**
+     * Create a subtle ripple color for cards and other subtle elements
+     */
+    private static int createSubtleRippleColor(int baseColor) {
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(baseColor, hsv);
+        
+        // Create very subtle ripple
+        hsv[1] = Math.max(0.05f, hsv[1] * 0.3f); // Very low saturation
+        hsv[2] = Math.min(0.8f, hsv[2] * 1.2f);  // Moderate lightness increase
+        
+        int subtleColor = android.graphics.Color.HSVToColor(hsv);
+        return (subtleColor & 0x00FFFFFF) | 0x30000000; // 19% opacity for subtle effect
+    }
+    
+    /**
+     * Create a medium visibility ripple color for switches and other medium elements
+     */
+    private static int createMediumRippleColor(int baseColor) {
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(baseColor, hsv);
+        
+        // Create medium visibility ripple
+        hsv[1] = Math.max(0.1f, hsv[1] * 0.4f);  // Low saturation
+        hsv[2] = Math.min(0.8f, hsv[2] * 1.3f);  // Good lightness increase
+        
+        int mediumColor = android.graphics.Color.HSVToColor(hsv);
+        return (mediumColor & 0x00FFFFFF) | 0x40000000; // 25% opacity for medium effect
+    }
+
+    /**
+     * Refresh all ripple effects in a view hierarchy
+     */
+    public static void refreshRippleEffects(View view) {
+        try {
+            if (view instanceof MaterialCardView) {
+                MaterialCardView card = (MaterialCardView) view;
+                // Reapply theme to refresh ripple effects
+                applyThemeToCard(card, view.getContext());
+            } else if (view instanceof MaterialButton) {
+                MaterialButton button = (MaterialButton) view;
+                // Reapply theme to refresh ripple effects
+                applyThemeToButton(button, view.getContext());
+            }
+            
+            // Recursively refresh child views
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup viewGroup = (android.view.ViewGroup) view;
+                for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                    View child = viewGroup.getChildAt(i);
+                    refreshRippleEffects(child);
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
         }
     }
 }
