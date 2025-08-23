@@ -310,7 +310,7 @@ public class ThemeUtils {
     /**
      * Apply theme colors to Material AlertDialog
      */
-    public static void applyThemeToDialog(android.app.AlertDialog dialog) {
+    public static void applyThemeToDialog(androidx.appcompat.app.AlertDialog dialog) {
         if (dialog == null || dialog.getWindow() == null) return;
         
         try {
