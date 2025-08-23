@@ -219,6 +219,9 @@ public class DashboardFragment extends BaseThemedFragment {
         if (rootView != null) {
             ThemeUtils.refreshRippleEffects(rootView);
         }
+        
+        // Refresh module card backgrounds to ensure they remain visible
+        refreshModuleCardBackgrounds();
     }
     
     /**
@@ -266,6 +269,35 @@ public class DashboardFragment extends BaseThemedFragment {
             if (modulesContainer != null) {
                 // Use the new ThemeUtils method for consistent ripple refresh
                 ThemeUtils.refreshRippleEffects(modulesContainer);
+                
+                // Also refresh the card backgrounds to ensure they remain visible
+                refreshModuleCardBackgrounds();
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    /**
+     * Refresh module card backgrounds to ensure they remain visible
+     */
+    private void refreshModuleCardBackgrounds() {
+        try {
+            if (modulesContainer != null) {
+                for (int i = 0; i < modulesContainer.getChildCount(); i++) {
+                    View child = modulesContainer.getChildAt(i);
+                    if (child instanceof MaterialCardView) {
+                        MaterialCardView card = (MaterialCardView) child;
+                        // Set a distinct background color for better visibility
+                        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
+                        card.setCardBackgroundColor(cardBackgroundColor);
+                        
+                        // Ensure elevation and border are maintained
+                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
+                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                    }
+                }
             }
         } catch (Exception e) {
             // Handle error gracefully
@@ -342,6 +374,14 @@ public class DashboardFragment extends BaseThemedFragment {
     
     // Apply theme colors to card (matching themes card)
     ThemeUtils.applyThemeToCard(moduleCard, requireContext());
+    
+    // Override the background to make it more visible and distinct from the main background
+    int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
+    moduleCard.setCardBackgroundColor(cardBackgroundColor);
+    
+    // Add subtle elevation and border for better visibility
+    moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
+    moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
     moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
     
     // Main container (horizontal layout like themes)

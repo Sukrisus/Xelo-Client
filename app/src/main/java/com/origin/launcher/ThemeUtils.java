@@ -74,7 +74,7 @@ public class ThemeUtils {
             case "outlined":
                 // Outlined button: transparent background, colored border and text
                 button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                button.setTextColor(themeManager.getColor("primary"));
+                button.setTextColor(themeManager.getColor("onSurface")); // Use onSurface for better visibility
                 button.setStrokeColor(ColorStateList.valueOf(themeManager.getColor("outline")));
                 button.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 button.setRippleColor(ColorStateList.valueOf(lightOutlineRippleColor));
@@ -82,7 +82,7 @@ public class ThemeUtils {
             case "text":
                 // Text button: transparent background, colored text only
                 button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                button.setTextColor(themeManager.getColor("primary"));
+                button.setTextColor(themeManager.getColor("onSurface")); // Use onSurface for better visibility
                 button.setRippleColor(ColorStateList.valueOf(lightRippleColor));
                 break;
             case "filled":
