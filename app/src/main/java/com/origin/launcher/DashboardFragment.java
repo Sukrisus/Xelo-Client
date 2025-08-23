@@ -144,9 +144,20 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                         rootDir = testDir;
                         rootPath = path;
                         currentRootDir = testDir; // Store for later use
+                        
+                        // Initialize modules now that we have the root directory
+                        if (getView() != null) {
+                            initializeModules(getView());
+                        }
                         break;
                     }
                 }
+            }
+            
+            // If we still don't have a root directory, try to initialize modules with a default path
+            if (currentRootDir == null) {
+                // Try to use a default path or wait for user to set it
+                Log.w(TAG, "No root directory found, modules will be initialized when directory is set");
             }
             
             List<String> folderNames = new ArrayList<>();
@@ -190,8 +201,10 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
             });
         }
 
-        // Initialize modules
-        initializeModules(view);
+        // Initialize modules AFTER currentRootDir is set
+        if (currentRootDir != null) {
+            initializeModules(view);
+        }
         
         // Initialize options.txt editor
         initializeOptionsEditor(view);
@@ -211,6 +224,11 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                 View rootView = getView();
                 if (rootView != null) {
                     rootView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                // Refresh ScrollView background
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
                 }
                 
                 // Refresh modules container background
@@ -244,6 +262,10 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                     rootView.setBackgroundColor(themeManager.getColor("background"));
                 }
                 
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
                 if (modulesContainer != null) {
                     modulesContainer.setBackgroundColor(themeManager.getColor("background"));
                 }
@@ -267,6 +289,10 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                     View rootView = getView();
                     if (rootView != null) {
                         rootView.setBackgroundColor(themeManager.getColor("background"));
+                    }
+                    
+                    if (modulesScrollView != null) {
+                        modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
                     }
                     
                     if (modulesContainer != null) {
@@ -317,6 +343,10 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                 View rootView = getView();
                 if (rootView != null) {
                     rootView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
                 }
                 
                 if (modulesContainer != null) {
@@ -486,15 +516,37 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         modulesScrollView = view.findViewById(R.id.modulesScrollView);
         modulesContainer = view.findViewById(R.id.modulesContainer);
         
-        // Apply theme background to modules container
+        // Apply theme background to both ScrollView and container
         try {
-            if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                int backgroundColor = themeManager.getColor("background");
+                
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(backgroundColor);
+                }
+                
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(backgroundColor);
+                }
+            } else {
+                // Fallback to default background
+                int fallbackColor = 0xFF0A0A0A;
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(fallbackColor);
+                }
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(fallbackColor);
+                }
             }
         } catch (Exception e) {
             // Fallback to default background
+            int fallbackColor = 0xFF0A0A0A;
+            if (modulesScrollView != null) {
+                modulesScrollView.setBackgroundColor(fallbackColor);
+            }
             if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(0xFF0A0A0A);
+                modulesContainer.setBackgroundColor(fallbackColor);
             }
         }
         
@@ -542,6 +594,9 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         try {
             ThemeManager themeManager = ThemeManager.getInstance();
             if (themeManager != null && themeManager.isThemeLoaded()) {
+                if (modulesScrollView != null) {
+                    modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
+                }
                 if (modulesContainer != null) {
                     modulesContainer.setBackgroundColor(themeManager.getColor("background"));
                 }
@@ -708,76 +763,82 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
     
     private void exportConfig() {
-    try {
-        // Check if config file exists
-        if (!configFile.exists()) {
-            Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
-            createDefaultConfig();
-            
-            if (!configFile.exists()) {
-                Toast.makeText(requireContext(), "Failed to create config file.", Toast.LENGTH_LONG).show();
+        try {
+            // Check if root directory is set
+            if (currentRootDir == null) {
+                Toast.makeText(requireContext(), "No Minecraft data directory found. Please ensure Minecraft has been launched at least once.", Toast.LENGTH_LONG).show();
                 return;
             }
-        }
-        
-        // Always copy to cache directory for sharing
-        File cacheDir = requireContext().getCacheDir();
-        File tempConfigFile = new File(cacheDir, "config.json");
-        
-        // Delete existing temp file if it exists
-        if (tempConfigFile.exists()) {
-            tempConfigFile.delete();
-        }
-        
-        // Copy the actual config file to cache directory
-        try (FileInputStream fis = new FileInputStream(configFile);
-             FileOutputStream fos = new FileOutputStream(tempConfigFile)) {
             
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer)) > 0) {
-                fos.write(buffer, 0, length);
+            // Check if config file exists
+            if (!configFile.exists()) {
+                Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
+                createDefaultConfig();
+                
+                if (!configFile.exists()) {
+                    Toast.makeText(requireContext(), "Failed to create config file.", Toast.LENGTH_LONG).show();
+                    return;
+                }
             }
-            fos.flush();
+            
+            // Always copy to cache directory for sharing
+            File cacheDir = requireContext().getCacheDir();
+            File tempConfigFile = new File(cacheDir, "config.json");
+            
+            // Delete existing temp file if it exists
+            if (tempConfigFile.exists()) {
+                tempConfigFile.delete();
+            }
+            
+            // Copy the actual config file to cache directory
+            try (FileInputStream fis = new FileInputStream(configFile);
+                 FileOutputStream fos = new FileOutputStream(tempConfigFile)) {
+                
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, length);
+                }
+                fos.flush();
+            }
+            
+            // Verify the temp file was created and has content
+            if (!tempConfigFile.exists() || tempConfigFile.length() == 0) {
+                Toast.makeText(requireContext(), "Failed to prepare config file for sharing.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            
+            // Create file URI for the temp file (using cache path)
+            Uri fileUri = FileProvider.getUriForFile(
+                requireContext(), 
+                "com.origin.launcher.fileprovider", 
+                tempConfigFile
+            );
+            
+            // Create share intent
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("application/json");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Config");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client configuration file");
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            
+            // Verify that there are apps that can handle this intent
+            if (shareIntent.resolveActivity(requireContext().getPackageManager()) != null) {
+                startActivity(Intent.createChooser(shareIntent, "Export Config File"));
+                Toast.makeText(requireContext(), "Config file ready to share!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), "No apps available to share the config file.", Toast.LENGTH_SHORT).show();
+            }
+            
+        } catch (IOException e) {
+            Toast.makeText(requireContext(), "Failed to export config: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Unexpected error during config export: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
-        
-        // Verify the temp file was created and has content
-        if (!tempConfigFile.exists() || tempConfigFile.length() == 0) {
-            Toast.makeText(requireContext(), "Failed to prepare config file for sharing.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        
-        // Create file URI for the temp file (using cache path)
-        Uri fileUri = FileProvider.getUriForFile(
-            requireContext(), 
-            "com.origin.launcher.fileprovider", 
-            tempConfigFile
-        );
-        
-        // Create share intent
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("application/json");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Config");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client configuration file");
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        
-        // Verify that there are apps that can handle this intent
-        if (shareIntent.resolveActivity(requireContext().getPackageManager()) != null) {
-            startActivity(Intent.createChooser(shareIntent, "Export Config File"));
-            Toast.makeText(requireContext(), "Config file ready to share!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(requireContext(), "No apps available to share the config file.", Toast.LENGTH_SHORT).show();
-        }
-        
-    } catch (IOException e) {
-        Toast.makeText(requireContext(), "Failed to export config: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        e.printStackTrace();
-    } catch (Exception e) {
-        Toast.makeText(requireContext(), "Unexpected error during config export: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        e.printStackTrace();
     }
-}
     
     private void openConfigFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -881,6 +942,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void createDefaultConfig() {
         try {
+            // Check if root directory is set
+            if (currentRootDir == null) {
+                Toast.makeText(requireContext(), "No Minecraft data directory found. Please ensure Minecraft has been launched at least once.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            
             // Create parent directory if it doesn't exist
             File parentDir = configFile.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
@@ -916,6 +983,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void updateConfigFile(String key, boolean value) {
         try {
+            // Check if root directory is set
+            if (currentRootDir == null) {
+                Log.w(TAG, "Cannot update config file: root directory not set");
+                return;
+            }
+            
             JSONObject config;
             
             if (configFile.exists()) {
@@ -1671,6 +1744,11 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                 rootView.setBackgroundColor(themeManager.getColor("background"));
             }
             
+            // Refresh ScrollView background
+            if (modulesScrollView != null) {
+                modulesScrollView.setBackgroundColor(themeManager.getColor("background"));
+            }
+            
             // Refresh modules container background
             if (modulesContainer != null) {
                 modulesContainer.setBackgroundColor(themeManager.getColor("background"));
@@ -1682,6 +1760,53 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         } catch (Exception e) {
             // Handle error gracefully
         }
+    }
+
+    /**
+     * Set the root directory and initialize modules if not already done
+     */
+    public void setRootDirectoryAndInitialize(File rootDir) {
+        if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
+            currentRootDir = rootDir;
+            
+            // Initialize modules if not already done
+            if (modulesContainer == null && getView() != null) {
+                initializeModules(getView());
+            }
+            
+            Log.d(TAG, "Root directory set to: " + rootDir.getAbsolutePath());
+        }
+    }
+    
+    /**
+     * Manually set root directory and initialize modules
+     * This can be called from the UI when the user selects a directory
+     */
+    public void setRootDirectory(File rootDir) {
+        if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
+            currentRootDir = rootDir;
+            
+            // Update config file path
+            configFile = new File(currentRootDir, "config.txt");
+            
+            // Initialize modules if not already done
+            if (modulesContainer == null && getView() != null) {
+                initializeModules(getView());
+            } else if (modulesContainer != null) {
+                // Refresh existing modules
+                refreshModuleCardsTheme();
+            }
+            
+            Log.d(TAG, "Root directory manually set to: " + rootDir.getAbsolutePath());
+            Toast.makeText(requireContext(), "Minecraft directory set: " + rootDir.getName(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Check if modules are initialized
+     */
+    public boolean areModulesInitialized() {
+        return modulesContainer != null && moduleItems != null;
     }
 
     // Improved adapter for folder names with custom styling
