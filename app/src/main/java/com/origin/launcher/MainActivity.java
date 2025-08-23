@@ -27,6 +27,10 @@ public class MainActivity extends BaseThemedActivity {
         checkFirstLaunch();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        
+        // Apply theme to bottom navigation
+        ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
+        
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String presenceActivity = "";
@@ -137,10 +141,12 @@ public class MainActivity extends BaseThemedActivity {
     
     @Override
     protected void onApplyTheme() {
-        // Apply theme to bottom navigation
-        View bottomNav = findViewById(R.id.bottom_navigation);
-        if (bottomNav != null) {
-            ThemeUtils.applyThemeToBottomNavigation(bottomNav);
+        super.onApplyTheme();
+        
+        // Refresh bottom navigation theme
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView != null) {
+            ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
         }
     }
 

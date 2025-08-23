@@ -321,9 +321,25 @@ public class ThemeUtils {
                 (com.google.android.material.bottomnavigation.BottomNavigationView) bottomNavView;
             
             ThemeManager themeManager = ThemeManager.getInstance();
+            
+            // Apply background color
             bottomNav.setBackgroundColor(themeManager.getColor("surface"));
-            bottomNav.setItemTextColor(getThemedColorStateList("onSurface", "onSurfaceVariant"));
-            bottomNav.setItemIconTintList(getThemedColorStateList("onSurface", "onSurfaceVariant"));
+            
+            // Create color state list for selected/unselected states
+            ColorStateList itemColorStateList = new ColorStateList(
+                new int[][]{
+                    new int[]{android.R.attr.state_checked},      // Selected item
+                    new int[]{-android.R.attr.state_checked}      // Unselected item
+                },
+                new int[]{
+                    themeManager.getColor("primary"),              // Selected: primary color
+                    themeManager.getColor("onSurfaceVariant")     // Unselected: onSurfaceVariant
+                }
+            );
+            
+            // Apply colors to both text and icons
+            bottomNav.setItemTextColor(itemColorStateList);
+            bottomNav.setItemIconTintList(itemColorStateList);
         }
     }
     
