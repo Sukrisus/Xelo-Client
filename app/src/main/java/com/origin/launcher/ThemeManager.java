@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ThemeManager {
     private static final String TAG = "ThemeManager";
@@ -23,13 +25,28 @@ public class ThemeManager {
     private Context context;
     private Map<String, Integer> currentColors;
     private String currentThemeName;
+    private List<ThemeChangeListener> themeChangeListeners;
+    
+    /**
+     * Interface for theme change notifications
+     */
+    public interface ThemeChangeListener {
+        void onThemeChanged(String themeName);
+    }
     
     private ThemeManager(Context context) {
         this.context = context.getApplicationContext();
         this.currentColors = new HashMap<>();
+        this.themeChangeListeners = new ArrayList<>();
         
         Log.d(TAG, "Initializing ThemeManager");
-        loadCurrentTheme();
+        
+        // Load default theme immediately
+        if (!loadCurrentTheme()) {
+            Log.w(TAG, "Failed to load current theme, using hardcoded fallbacks");
+            loadHardcodedFallbackColors();
+        }
+        
         Log.d(TAG, "ThemeManager initialized with theme: " + currentThemeName);
     }
     
@@ -129,6 +146,9 @@ public class ThemeManager {
             // Save to preferences
             saveCurrentTheme(themeName);
             
+            // Notify listeners of theme change
+            notifyThemeChanged(themeName);
+            
             Log.d(TAG, "Theme loaded successfully: " + themeName);
             return true;
             
@@ -142,6 +162,11 @@ public class ThemeManager {
      * Get color by name
      */
     public int getColor(String colorName) {
+        if (colorName == null || colorName.isEmpty()) {
+            Log.w(TAG, "Color name is null or empty, returning default");
+            return Color.parseColor("#FFFFFF");
+        }
+        
         Integer color = currentColors.get(colorName);
         if (color != null) {
             return color;
@@ -175,7 +200,9 @@ public class ThemeManager {
             case "success": return Color.parseColor("#00E676");
             case "info": return Color.parseColor("#64B5F6");
             case "warning": return Color.parseColor("#FFC107");
-            default: return Color.parseColor("#FFFFFF");
+            default: 
+                Log.w(TAG, "Unknown color name: " + colorName + ", returning default");
+                return Color.parseColor("#FFFFFF");
         }
     }
     
@@ -285,7 +312,7 @@ public class ThemeManager {
         }
     }
     
-    private void loadCurrentTheme() {
+    private boolean loadCurrentTheme() {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String themeName = prefs.getString(PREF_CURRENT_THEME, DEFAULT_THEME);
         
@@ -296,8 +323,46 @@ public class ThemeManager {
             Log.w(TAG, "Failed to load theme " + themeName + ", falling back to default");
             if (!loadTheme(DEFAULT_THEME)) {
                 Log.e(TAG, "Failed to load default theme, using hardcoded fallbacks");
+                return false; // Indicate failure
             }
         }
+        return true; // Indicate success
+    }
+    
+    /**
+     * Load hardcoded fallback colors when theme loading fails
+     */
+    private void loadHardcodedFallbackColors() {
+        currentColors.clear();
+        currentColors.put("background", Color.parseColor("#0A0A0A"));
+        currentColors.put("onBackground", Color.parseColor("#FFFFFF"));
+        currentColors.put("surface", Color.parseColor("#141414"));
+        currentColors.put("onSurface", Color.parseColor("#FFFFFF"));
+        currentColors.put("surfaceVariant", Color.parseColor("#1F1F1F"));
+        currentColors.put("onSurfaceVariant", Color.parseColor("#CCCCCC"));
+        currentColors.put("outline", Color.parseColor("#505050"));
+        currentColors.put("primary", Color.parseColor("#FFFFFF"));
+        currentColors.put("onPrimary", Color.parseColor("#000000"));
+        currentColors.put("primaryContainer", Color.parseColor("#1F1F1F"));
+        currentColors.put("onPrimaryContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("secondary", Color.parseColor("#FFFFFF"));
+        currentColors.put("onSecondary", Color.parseColor("#000000"));
+        currentColors.put("secondaryContainer", Color.parseColor("#2A2A2A"));
+        currentColors.put("onSecondaryContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("tertiary", Color.parseColor("#F5F5F5"));
+        currentColors.put("onTertiary", Color.parseColor("#000000"));
+        currentColors.put("tertiaryContainer", Color.parseColor("#3A3A3A"));
+        currentColors.put("onTertiaryContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("error", Color.parseColor("#FF6659"));
+        currentColors.put("onError", Color.parseColor("#FFFFFF"));
+        currentColors.put("errorContainer", Color.parseColor("#B00020"));
+        currentColors.put("onErrorContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("success", Color.parseColor("#00E676"));
+        currentColors.put("info", Color.parseColor("#64B5F6"));
+        currentColors.put("warning", Color.parseColor("#FFC107"));
+        
+        currentThemeName = "fallback";
+        Log.d(TAG, "Hardcoded fallback colors loaded");
     }
     
     private void saveCurrentTheme(String themeName) {
@@ -311,6 +376,63 @@ public class ThemeManager {
             currentThemeName = prefs.getString(PREF_CURRENT_THEME, DEFAULT_THEME);
         }
         return currentThemeName;
+    }
+    
+    /**
+     * Force refresh the current theme
+     */
+    public void refreshCurrentTheme() {
+        Log.d(TAG, "Refreshing current theme: " + currentThemeName);
+        if (currentThemeName != null && !currentThemeName.equals("fallback")) {
+            loadTheme(currentThemeName);
+        } else {
+            loadTheme(DEFAULT_THEME);
+        }
+    }
+    
+    /**
+     * Check if theme is properly loaded
+     */
+    public boolean isThemeLoaded() {
+        return !currentColors.isEmpty() && currentThemeName != null;
+    }
+    
+    /**
+     * Get current theme colors map
+     */
+    public Map<String, Integer> getCurrentColors() {
+        return new HashMap<>(currentColors);
+    }
+    
+    /**
+     * Add a theme change listener
+     */
+    public void addThemeChangeListener(ThemeChangeListener listener) {
+        if (listener != null && !themeChangeListeners.contains(listener)) {
+            themeChangeListeners.add(listener);
+        }
+    }
+    
+    /**
+     * Remove a theme change listener
+     */
+    public void removeThemeChangeListener(ThemeChangeListener listener) {
+        if (listener != null) {
+            themeChangeListeners.remove(listener);
+        }
+    }
+    
+    /**
+     * Notify all listeners of theme change
+     */
+    private void notifyThemeChanged(String themeName) {
+        for (ThemeChangeListener listener : themeChangeListeners) {
+            try {
+                listener.onThemeChanged(themeName);
+            } catch (Exception e) {
+                Log.e(TAG, "Error notifying theme change listener", e);
+            }
+        }
     }
     
     /**

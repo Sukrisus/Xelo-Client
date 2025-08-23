@@ -13,6 +13,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import android.graphics.Color;
 
 public class ThemeUtils {
     
@@ -20,21 +21,39 @@ public class ThemeUtils {
      * Apply theme colors to a MaterialCardView
      */
     public static void applyThemeToCard(MaterialCardView card, Context context) {
-        ThemeManager themeManager = ThemeManager.getInstance();
-        
-        card.setCardBackgroundColor(themeManager.getColor("surface"));
-        card.setStrokeColor(themeManager.getColor("outline"));
-        card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density)); // 1dp stroke
-        card.setCardElevation(0f); // Remove elevation for flat design
-        card.setRadius(12 * context.getResources().getDisplayMetrics().density); // 12dp radius
-        
-        // Create ripple effect with theme colors
-        RippleDrawable ripple = new RippleDrawable(
-            ColorStateList.valueOf(themeManager.getColor("onSurface") & 0x1AFFFFFF),
-            null,
-            null
-        );
-        card.setForeground(ripple);
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                card.setCardBackgroundColor(themeManager.getColor("surface"));
+                card.setStrokeColor(themeManager.getColor("outline"));
+                card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density)); // 1dp stroke
+                card.setCardElevation(0f); // Remove elevation for flat design
+                card.setRadius(12 * context.getResources().getDisplayMetrics().density); // 12dp radius
+                
+                // Create ripple effect with theme colors
+                RippleDrawable ripple = new RippleDrawable(
+                    ColorStateList.valueOf(themeManager.getColor("onSurface") & 0x1AFFFFFF),
+                    null,
+                    null
+                );
+                card.setForeground(ripple);
+            } else {
+                // Fallback to default colors if theme not ready
+                card.setCardBackgroundColor(Color.parseColor("#141414"));
+                card.setStrokeColor(Color.parseColor("#505050"));
+                card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
+                card.setCardElevation(0f);
+                card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+            }
+        } catch (Exception e) {
+            // Fallback to default colors on error
+            card.setCardBackgroundColor(Color.parseColor("#141414"));
+            card.setStrokeColor(Color.parseColor("#505050"));
+            card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
+            card.setCardElevation(0f);
+            card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+        }
     }
     
     /**
@@ -115,8 +134,28 @@ public class ThemeUtils {
      * Apply theme colors to a TextView
      */
     public static void applyThemeToTextView(TextView textView, String colorType) {
-        ThemeManager themeManager = ThemeManager.getInstance();
-        textView.setTextColor(themeManager.getColor(colorType));
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                textView.setTextColor(themeManager.getColor(colorType));
+            } else {
+                // Fallback to default colors if theme not ready
+                switch (colorType) {
+                    case "onSurface":
+                        textView.setTextColor(Color.parseColor("#FFFFFF"));
+                        break;
+                    case "onSurfaceVariant":
+                        textView.setTextColor(Color.parseColor("#CCCCCC"));
+                        break;
+                    default:
+                        textView.setTextColor(Color.parseColor("#FFFFFF"));
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            // Fallback to default colors on error
+            textView.setTextColor(Color.parseColor("#FFFFFF"));
+        }
     }
     
     /**
@@ -340,6 +379,95 @@ public class ThemeUtils {
             
         } catch (Exception e) {
             // Ignore theming errors
+        }
+    }
+
+    /**
+     * Apply theme colors to MaterialSwitch
+     */
+    public static void applyThemeToSwitch(com.google.android.material.materialswitch.MaterialSwitch materialSwitch, Context context) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                // Apply theme colors to the switch
+                ColorStateList switchTrackColor = new ColorStateList(
+                    new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{-android.R.attr.state_checked}
+                    },
+                    new int[]{
+                        themeManager.getColor("primary"),
+                        themeManager.getColor("outline")
+                    }
+                );
+                
+                ColorStateList switchThumbColor = new ColorStateList(
+                    new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{-android.R.attr.state_checked}
+                    },
+                    new int[]{
+                        themeManager.getColor("onPrimary"),
+                        themeManager.getColor("onSurface")
+                    }
+                );
+                
+                materialSwitch.setTrackTintList(switchTrackColor);
+                materialSwitch.setThumbTintList(switchThumbColor);
+            } else {
+                // Fallback to default colors if theme not ready
+                ColorStateList switchTrackColor = new ColorStateList(
+                    new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{-android.R.attr.state_checked}
+                    },
+                    new int[]{
+                        Color.parseColor("#FFFFFF"),
+                        Color.parseColor("#505050")
+                    }
+                );
+                
+                ColorStateList switchThumbColor = new ColorStateList(
+                    new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{-android.R.attr.state_checked}
+                    },
+                    new int[]{
+                        Color.parseColor("#000000"),
+                        Color.parseColor("#FFFFFF")
+                    }
+                );
+                
+                materialSwitch.setTrackTintList(switchTrackColor);
+                materialSwitch.setThumbTintList(switchThumbColor);
+            }
+        } catch (Exception e) {
+            // Fallback to default colors on error
+            ColorStateList switchTrackColor = new ColorStateList(
+                new int[][]{
+                    new int[]{android.R.attr.state_checked},
+                    new int[]{-android.R.attr.state_checked}
+                },
+                new int[]{
+                    Color.parseColor("#FFFFFF"),
+                    Color.parseColor("#505050")
+                }
+            );
+            
+            ColorStateList switchThumbColor = new ColorStateList(
+                new int[][]{
+                    new int[]{android.R.attr.state_checked},
+                    new int[]{-android.R.attr.state_checked}
+                },
+                new int[]{
+                    Color.parseColor("#000000"),
+                    Color.parseColor("#FFFFFF")
+                }
+            );
+            
+            materialSwitch.setTrackTintList(switchTrackColor);
+            materialSwitch.setThumbTintList(switchThumbColor);
         }
     }
 }

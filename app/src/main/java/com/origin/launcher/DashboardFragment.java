@@ -55,8 +55,10 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import android.util.Log;
 
-public class DashboardFragment extends BaseThemedFragment {
+public class DashboardFragment extends BaseThemedFragment implements ThemeManager.ThemeChangeListener {
+    private static final String TAG = "DashboardFragment";
     private File currentRootDir = null; // Store the found root directory
     private static final int IMPORT_REQUEST_CODE = 1002;
     private static final int EXPORT_REQUEST_CODE = 1003;
@@ -199,20 +201,305 @@ public class DashboardFragment extends BaseThemedFragment {
     
     @Override
     protected void onApplyTheme() {
-        // Apply theme to the root view background
-        View rootView = getView();
-        if (rootView != null) {
-            rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+        super.onApplyTheme();
+        
+        // Refresh background colors
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                // Refresh root view background
+                View rootView = getView();
+                if (rootView != null) {
+                    rootView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                // Refresh modules container background
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+        
+        // Refresh theme colors for existing module cards
+        refreshModuleCardsTheme();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        
+        // Refresh theme colors for existing module cards when fragment resumes
+        if (modulesContainer != null) {
+            refreshModuleCardsTheme();
+        }
+        
+        // Also refresh the background
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                View rootView = getView();
+                if (rootView != null) {
+                    rootView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser && getView() != null) {
+            // Refresh theme colors when fragment becomes visible
+            refreshModuleCardsTheme();
+            
+            // Also refresh the background
+            try {
+                ThemeManager themeManager = ThemeManager.getInstance();
+                if (themeManager != null && themeManager.isThemeLoaded()) {
+                    View rootView = getView();
+                    if (rootView != null) {
+                        rootView.setBackgroundColor(themeManager.getColor("background"));
+                    }
+                    
+                    if (modulesContainer != null) {
+                        modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                    }
+                }
+            } catch (Exception e) {
+                // Handle error gracefully
+            }
+        }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        
+        // Register as theme change listener
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null) {
+                themeManager.addThemeChangeListener(this);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to register theme change listener", e);
+        }
+        
+        // Initialize modules
+        initializeModules(view);
+        
+        // Initialize options editor
+        initializeOptionsEditor(view);
+        
+        // Set up search functionality
+        setupSearch(view);
+        
+        // Set up config buttons
+        setupConfigButtons(view);
+        
+        // Apply initial theme
+        applyInitialTheme();
+    }
+    
+    /**
+     * Apply initial theme when fragment is created
+     */
+    private void applyInitialTheme() {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                // Apply background colors
+                View rootView = getView();
+                if (rootView != null) {
+                    rootView.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                }
+                
+                // Refresh module cards theme
+                refreshModuleCardsTheme();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error applying initial theme", e);
+        }
+    }
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        
+        // Unregister theme change listener
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null) {
+                themeManager.removeThemeChangeListener(this);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to unregister theme change listener", e);
+        }
+    }
+    
+    @Override
+    public void onThemeChanged(String themeName) {
+        // Handle theme change
+        Log.d(TAG, "Theme changed to: " + themeName);
+        
+        // Refresh theme colors on the main thread
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                try {
+                    // Force refresh all themes and module cards
+                    forceRefreshThemes();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error refreshing themes after change", e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Refresh theme colors for all existing module cards
+     */
+    private void refreshModuleCardsTheme() {
+        if (modulesContainer != null) {
+            for (int i = 0; i < modulesContainer.getChildCount(); i++) {
+                View child = modulesContainer.getChildAt(i);
+                if (child instanceof MaterialCardView) {
+                    MaterialCardView card = (MaterialCardView) child;
+                    ThemeUtils.applyThemeToCard(card, requireContext());
+                    
+                    // Also refresh all elements inside the card
+                    refreshCardContentTheme(card);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Refresh theme colors for all content inside a module card
+     */
+    private void refreshCardContentTheme(MaterialCardView card) {
+        if (card.getChildCount() > 0) {
+            View mainLayout = card.getChildAt(0);
+            if (mainLayout instanceof LinearLayout) {
+                LinearLayout layout = (LinearLayout) mainLayout;
+                for (int i = 0; i < layout.getChildCount(); i++) {
+                    View child = layout.getChildAt(i);
+                    
+                    // Refresh icon colors
+                    if (child instanceof ImageView) {
+                        ImageView iconView = (ImageView) child;
+                        try {
+                            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+                        } catch (Exception e) {
+                            iconView.setColorFilter(0xFFFFFFFF);
+                        }
+                    }
+                    
+                    // Refresh text colors
+                    if (child instanceof LinearLayout) {
+                        LinearLayout textLayout = (LinearLayout) child;
+                        for (int j = 0; j < textLayout.getChildCount(); j++) {
+                            View textView = textLayout.getChildAt(j);
+                            if (textView instanceof TextView) {
+                                TextView tv = (TextView) textView;
+                                if (j == 0) {
+                                    // Module name
+                                    ThemeUtils.applyThemeToTextView(tv, "onSurface");
+                                } else {
+                                    // Module description
+                                    ThemeUtils.applyThemeToTextView(tv, "onSurfaceVariant");
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Refresh switch colors
+                    if (child instanceof LinearLayout) {
+                        LinearLayout rightContainer = (LinearLayout) child;
+                        for (int j = 0; j < rightContainer.getChildCount(); j++) {
+                            View switchView = rightContainer.getChildAt(j);
+                            if (switchView instanceof com.google.android.material.materialswitch.MaterialSwitch) {
+                                ThemeUtils.applyThemeToSwitch(
+                                    (com.google.android.material.materialswitch.MaterialSwitch) switchView, 
+                                    requireContext()
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Refresh theme colors for the switch inside a module card
+     */
+    private void refreshCardSwitchTheme(MaterialCardView card) {
+        if (card.getChildCount() > 0) {
+            View mainLayout = card.getChildAt(0);
+            if (mainLayout instanceof LinearLayout) {
+                LinearLayout layout = (LinearLayout) mainLayout;
+                for (int i = 0; i < layout.getChildCount(); i++) {
+                    View child = layout.getChildAt(i);
+                    
+                    // Refresh icon colors
+                    if (child instanceof ImageView) {
+                        ImageView iconView = (ImageView) child;
+                        try {
+                            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+                        } catch (Exception e) {
+                            iconView.setColorFilter(0xFFFFFFFF);
+                        }
+                    }
+                    
+                    // Refresh switch colors
+                    if (child instanceof LinearLayout) {
+                        LinearLayout rightContainer = (LinearLayout) child;
+                        for (int j = 0; j < rightContainer.getChildCount(); j++) {
+                            View switchView = rightContainer.getChildAt(j);
+                            if (switchView instanceof com.google.android.material.materialswitch.MaterialSwitch) {
+                                ThemeUtils.applyThemeToSwitch(
+                                    (com.google.android.material.materialswitch.MaterialSwitch) switchView, 
+                                    requireContext()
+                                );
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
     private void initializeModules(View view) {
         // Initialize config file path
-        configFile = new File(getContext().getExternalFilesDir(null), "origin_mods/config.json");
+        configFile = new File(currentRootDir, "config.txt");
         
-        // Get ScrollView and container - UPDATED
+        // Initialize modules container
         modulesScrollView = view.findViewById(R.id.modulesScrollView);
         modulesContainer = view.findViewById(R.id.modulesContainer);
+        
+        // Apply theme background to modules container
+        try {
+            if (modulesContainer != null) {
+                modulesContainer.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+            }
+        } catch (Exception e) {
+            // Fallback to default background
+            if (modulesContainer != null) {
+                modulesContainer.setBackgroundColor(0xFF0A0A0A);
+            }
+        }
         
         if (modulesContainer != null) {
             // Initialize module items
@@ -240,132 +527,161 @@ public class DashboardFragment extends BaseThemedFragment {
     
     // NEW METHOD: Populate modules in ScrollView
     private void populateModules() {
-        if (modulesContainer == null) return;
+        if (modulesContainer == null || moduleItems == null) return;
         
-        // Clear existing modules
+        // Clear existing views
         modulesContainer.removeAllViews();
         
-        // Add each module as a card view
+        // Create and add module cards
         for (ModuleItem module : moduleItems) {
             View moduleView = createModuleView(module);
             modulesContainer.addView(moduleView);
         }
+        
+        // Refresh theme colors after populating modules
+        refreshModuleCardsTheme();
+        
+        // Also refresh the background
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                if (modulesContainer != null) {
+                    modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
     }
     
     private View createModuleView(ModuleItem module) {
-    // Create card layout (matching theme card design)
-    MaterialCardView moduleCard = new MaterialCardView(getContext());
-    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, 
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    cardParams.setMargins(
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (8 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (8 * getResources().getDisplayMetrics().density)
-    );
-    moduleCard.setLayoutParams(cardParams);
-    moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-    moduleCard.setCardElevation(0); // Remove elevation for flat design
-    moduleCard.setClickable(true);
-    moduleCard.setFocusable(true);
-    
-    // Apply theme colors to card (matching themes card)
-    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-    moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-    
-    // Main container (horizontal layout like themes)
-    LinearLayout mainLayout = new LinearLayout(getContext());
-    mainLayout.setOrientation(LinearLayout.HORIZONTAL);
-    mainLayout.setPadding(
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density)
-    );
-    mainLayout.setGravity(Gravity.CENTER_VERTICAL);
-    
-    // Left side: Icon
-    ImageView iconView = new ImageView(getContext());
-    iconView.setImageResource(R.drawable.wrench);
-    iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-    LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-        (int) (24 * getResources().getDisplayMetrics().density),
-        (int) (24 * getResources().getDisplayMetrics().density)
-    );
-    iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
-    iconView.setLayoutParams(iconParams);
-    iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-    
-    // Text container (matching themes layout)
-    LinearLayout textLayout = new LinearLayout(getContext());
-    textLayout.setOrientation(LinearLayout.VERTICAL);
-    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-        0, 
-        LinearLayout.LayoutParams.WRAP_CONTENT, 
-        1.0f
-    );
-    textLayout.setLayoutParams(textParams);
-    
-    // Module name (matching theme name styling)
-    TextView moduleNameText = new TextView(getContext());
-    moduleNameText.setText(module.getName());
-    moduleNameText.setTextSize(16);
-    moduleNameText.setTypeface(null, Typeface.BOLD);
-    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-    
-    // Module description (matching theme description styling)
-    TextView moduleDescriptionText = new TextView(getContext());
-    moduleDescriptionText.setText(module.getDescription());
-    moduleDescriptionText.setTextSize(14);
-    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT, 
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
-    moduleDescriptionText.setLayoutParams(descParams);
-    moduleDescriptionText.setMaxLines(2);
-    moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-    
-    textLayout.addView(moduleNameText);
-    textLayout.addView(moduleDescriptionText);
-    
-    // Right side container for switch (matching theme card right container)
-    LinearLayout rightContainer = new LinearLayout(getContext());
-    rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-    rightContainer.setGravity(Gravity.CENTER_VERTICAL);
-    LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
-    rightContainer.setLayoutParams(rightParams);
-    
-    // Module switch (replacing radio button)
-    MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
-    LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    moduleSwitch.setLayoutParams(switchParams);
-    moduleSwitch.setChecked(module.isEnabled());
-    moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-        module.setEnabled(isChecked);
-        onModuleToggle(module, isChecked);
-    });
-    
-    rightContainer.addView(moduleSwitch);
-    
-    mainLayout.addView(iconView);
-    mainLayout.addView(textLayout);
-    mainLayout.addView(rightContainer);
-    
-    moduleCard.addView(mainLayout);
-    
-    return moduleCard;
-}
+        // Create card layout (matching theme card design)
+        MaterialCardView moduleCard = new MaterialCardView(getContext());
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        cardParams.setMargins(
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (8 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (8 * getResources().getDisplayMetrics().density)
+        );
+        moduleCard.setLayoutParams(cardParams);
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        moduleCard.setCardElevation(0); // Remove elevation for flat design
+        moduleCard.setClickable(true);
+        moduleCard.setFocusable(true);
+        
+        // Apply theme colors to card (matching themes card)
+        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
+        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+        
+        // Main container (horizontal layout like themes)
+        LinearLayout mainLayout = new LinearLayout(getContext());
+        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+        mainLayout.setPadding(
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
+        );
+        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
+        
+        // Left side: Icon
+        ImageView iconView = new ImageView(getContext());
+        iconView.setImageResource(R.drawable.wrench);
+        iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
+        );
+        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
+        iconView.setLayoutParams(iconParams);
+        
+        // Apply theme color to icon
+        try {
+            iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+        } catch (Exception e) {
+            // Fallback to default color if theme not ready
+            iconView.setColorFilter(0xFFFFFFFF);
+        }
+        
+        // Text container (matching themes layout)
+        LinearLayout textLayout = new LinearLayout(getContext());
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+            0, 
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            1.0f
+        );
+        textLayout.setLayoutParams(textParams);
+        
+        // Module name (matching theme name styling)
+        TextView moduleNameText = new TextView(getContext());
+        moduleNameText.setText(module.getName());
+        moduleNameText.setTextSize(16);
+        moduleNameText.setTypeface(null, Typeface.BOLD);
+        ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
+        
+        // Module description (matching theme description styling)
+        TextView moduleDescriptionText = new TextView(getContext());
+        moduleDescriptionText.setText(module.getDescription());
+        moduleDescriptionText.setTextSize(14);
+        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        moduleDescriptionText.setLayoutParams(descParams);
+        moduleDescriptionText.setMaxLines(2);
+        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        
+        textLayout.addView(moduleNameText);
+        textLayout.addView(moduleDescriptionText);
+        
+        // Right side container for switch (matching theme card right container)
+        LinearLayout rightContainer = new LinearLayout(getContext());
+        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+        rightContainer.setLayoutParams(rightParams);
+        
+        // Module switch (replacing radio button)
+        MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
+        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        moduleSwitch.setLayoutParams(switchParams);
+        moduleSwitch.setChecked(module.isEnabled());
+        moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            module.setEnabled(isChecked);
+            onModuleToggle(module, isChecked);
+        });
+        
+        // Apply theme to switch
+        try {
+            ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
+        } catch (Exception e) {
+            // Fallback if theme not ready
+        }
+        
+        rightContainer.addView(moduleSwitch);
+        
+        mainLayout.addView(iconView);
+        mainLayout.addView(textLayout);
+        mainLayout.addView(rightContainer);
+        
+        moduleCard.addView(mainLayout);
+        
+        return moduleCard;
+    }
     
     private void setupConfigButtons(View view) {
         // Find the existing buttons from XML
@@ -1338,6 +1654,36 @@ public class DashboardFragment extends BaseThemedFragment {
             } else {
                 Toast.makeText(requireContext(), "Storage permission is required to backup files", Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    /**
+     * Force refresh all themes and module cards
+     */
+    public void forceRefreshThemes() {
+        try {
+            // Force refresh the theme manager
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null) {
+                themeManager.refreshCurrentTheme();
+            }
+            
+            // Refresh root view background
+            View rootView = getView();
+            if (rootView != null) {
+                rootView.setBackgroundColor(themeManager.getColor("background"));
+            }
+            
+            // Refresh modules container background
+            if (modulesContainer != null) {
+                modulesContainer.setBackgroundColor(themeManager.getColor("background"));
+            }
+            
+            // Refresh all module cards
+            refreshModuleCardsTheme();
+            
+        } catch (Exception e) {
+            // Handle error gracefully
         }
     }
 
