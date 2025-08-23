@@ -694,7 +694,7 @@ public class ThemesFragment extends BaseThemedFragment {
             builder.setPositiveButton("Close", null);
             
             // Apply theme to dialog
-            android.app.AlertDialog dialog = builder.show();
+            androidx.appcompat.app.AlertDialog dialog = builder.show();
             ThemeUtils.applyThemeToDialog(dialog);
             
         } catch (Exception e) {
