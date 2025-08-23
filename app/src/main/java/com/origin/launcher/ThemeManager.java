@@ -155,26 +155,26 @@ public class ThemeManager {
             case "onSurface": return Color.parseColor("#FFFFFF");
             case "surfaceVariant": return Color.parseColor("#2D2D2D");
             case "onSurfaceVariant": return Color.parseColor("#CCCCCC");
-            case "outline": return Color.parseColor("#737373");
-            case "primary": return Color.parseColor("#BB86FC");
+            case "outline": return Color.parseColor("#666666");
+            case "primary": return Color.parseColor("#FFFFFF");
             case "onPrimary": return Color.parseColor("#000000");
-            case "primaryContainer": return Color.parseColor("#3700B3");
+            case "primaryContainer": return Color.parseColor("#333333");
             case "onPrimaryContainer": return Color.parseColor("#FFFFFF");
-            case "secondary": return Color.parseColor("#03DAC6");
+            case "secondary": return Color.parseColor("#EEEEEE");
             case "onSecondary": return Color.parseColor("#000000");
-            case "secondaryContainer": return Color.parseColor("#018786");
+            case "secondaryContainer": return Color.parseColor("#444444");
             case "onSecondaryContainer": return Color.parseColor("#FFFFFF");
             case "tertiary": return Color.parseColor("#FFFFFF");
             case "onTertiary": return Color.parseColor("#000000");
-            case "tertiaryContainer": return Color.parseColor("#444444");
+            case "tertiaryContainer": return Color.parseColor("#555555");
             case "onTertiaryContainer": return Color.parseColor("#FFFFFF");
-            case "error": return Color.parseColor("#CF6679");
+            case "error": return Color.parseColor("#FF5555");
             case "onError": return Color.parseColor("#FFFFFF");
-            case "errorContainer": return Color.parseColor("#B00020");
+            case "errorContainer": return Color.parseColor("#CC0000");
             case "onErrorContainer": return Color.parseColor("#FFFFFF");
-            case "success": return Color.parseColor("#00C853");
-            case "info": return Color.parseColor("#2196F3");
-            case "warning": return Color.parseColor("#FF9800");
+            case "success": return Color.parseColor("#55FF55");
+            case "info": return Color.parseColor("#5555FF");
+            case "warning": return Color.parseColor("#FFAA00");
             default: return Color.parseColor("#FFFFFF");
         }
     }
