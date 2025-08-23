@@ -106,9 +106,12 @@ public class ThemeManager {
             
             // Parse colors from JSON
             Map<String, Integer> newColors = new HashMap<>();
-            String[] colorKeys = {"primary", "primaryDark", "accent", "background", "surface", 
-                                "onBackground", "onSurface", "onSurfaceVariant", "onPrimary", 
-                                "outline", "error"};
+            String[] colorKeys = {"background", "onBackground", "surface", "onSurface", 
+                                "surfaceVariant", "onSurfaceVariant", "outline", "primary", "onPrimary",
+                                "primaryContainer", "onPrimaryContainer", "secondary", "onSecondary",
+                                "secondaryContainer", "onSecondaryContainer", "tertiary", "onTertiary",
+                                "tertiaryContainer", "onTertiaryContainer", "error", "onError",
+                                "errorContainer", "onErrorContainer", "success", "info", "warning"};
             
             for (String key : colorKeys) {
                 if (colors.has(key)) {
@@ -146,17 +149,32 @@ public class ThemeManager {
         
         // Fallback to default colors if not found
         switch (colorName) {
-            case "primary": return Color.parseColor("#ffffff");
-            case "primaryDark": return Color.parseColor("#ffffff");
-            case "accent": return Color.parseColor("#FF0077");
-            case "background": return Color.parseColor("#121212");
-            case "surface": return Color.parseColor("#1E1E1E");
+            case "background": return Color.parseColor("#0A0A0A");
             case "onBackground": return Color.parseColor("#FFFFFF");
+            case "surface": return Color.parseColor("#141414");
             case "onSurface": return Color.parseColor("#FFFFFF");
-            case "onSurfaceVariant": return Color.parseColor("#BBBBBB");
+            case "surfaceVariant": return Color.parseColor("#1F1F1F");
+            case "onSurfaceVariant": return Color.parseColor("#CCCCCC");
+            case "outline": return Color.parseColor("#505050");
+            case "primary": return Color.parseColor("#FFFFFF");
             case "onPrimary": return Color.parseColor("#000000");
-            case "outline": return Color.parseColor("#444444");
-            case "error": return Color.parseColor("#FF5555");
+            case "primaryContainer": return Color.parseColor("#1F1F1F");
+            case "onPrimaryContainer": return Color.parseColor("#FFFFFF");
+            case "secondary": return Color.parseColor("#FFFFFF");
+            case "onSecondary": return Color.parseColor("#000000");
+            case "secondaryContainer": return Color.parseColor("#2A2A2A");
+            case "onSecondaryContainer": return Color.parseColor("#FFFFFF");
+            case "tertiary": return Color.parseColor("#F5F5F5");
+            case "onTertiary": return Color.parseColor("#000000");
+            case "tertiaryContainer": return Color.parseColor("#3A3A3A");
+            case "onTertiaryContainer": return Color.parseColor("#FFFFFF");
+            case "error": return Color.parseColor("#FF6659");
+            case "onError": return Color.parseColor("#FFFFFF");
+            case "errorContainer": return Color.parseColor("#B00020");
+            case "onErrorContainer": return Color.parseColor("#FFFFFF");
+            case "success": return Color.parseColor("#00E676");
+            case "info": return Color.parseColor("#64B5F6");
+            case "warning": return Color.parseColor("#FFC107");
             default: return Color.parseColor("#FFFFFF");
         }
     }

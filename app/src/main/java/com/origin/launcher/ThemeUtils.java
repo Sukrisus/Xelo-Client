@@ -5,11 +5,14 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class ThemeUtils {
     
@@ -143,6 +146,10 @@ public class ThemeUtils {
             applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
         } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
             applyThemeToBottomNavigation(view);
+        } else if (view instanceof TextInputLayout) {
+            applyThemeToTextInputLayout((TextInputLayout) view);
+        } else if (view instanceof EditText && !(view instanceof TextInputEditText)) {
+            applyThemeToEditText((EditText) view);
         } else if (view instanceof TextView) {
             // Apply default text color for TextViews
             applyThemeToTextView((TextView) view, "onSurface");
@@ -167,6 +174,63 @@ public class ThemeUtils {
             bottomNav.setBackgroundColor(themeManager.getColor("surface"));
             bottomNav.setItemTextColor(getThemedColorStateList("onSurface", "onSurfaceVariant"));
             bottomNav.setItemIconTintList(getThemedColorStateList("onSurface", "onSurfaceVariant"));
+        }
+    }
+    
+    /**
+     * Apply theme colors to TextInputLayout
+     */
+    public static void applyThemeToTextInputLayout(TextInputLayout textInputLayout) {
+        ThemeManager themeManager = ThemeManager.getInstance();
+        
+        textInputLayout.setBoxBackgroundColor(themeManager.getColor("surfaceVariant"));
+        textInputLayout.setHintTextColor(getThemedColorStateList("onSurfaceVariant", "onSurfaceVariant"));
+        textInputLayout.setBoxStrokeColor(themeManager.getColor("outline"));
+        
+        // Apply theme to the EditText inside
+        EditText editText = textInputLayout.getEditText();
+        if (editText != null) {
+            editText.setTextColor(themeManager.getColor("onSurface"));
+            editText.setHintTextColor(themeManager.getColor("onSurfaceVariant"));
+        }
+    }
+    
+    /**
+     * Apply theme colors to EditText
+     */
+    public static void applyThemeToEditText(EditText editText) {
+        ThemeManager themeManager = ThemeManager.getInstance();
+        editText.setTextColor(themeManager.getColor("onSurface"));
+        editText.setHintTextColor(themeManager.getColor("onSurfaceVariant"));
+        editText.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("outline")));
+    }
+    
+    /**
+     * Apply theme colors to share/action buttons
+     */
+    public static void applyThemeToActionButton(MaterialButton button, String colorType) {
+        ThemeManager themeManager = ThemeManager.getInstance();
+        
+        switch (colorType) {
+            case "primary":
+                button.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("primary")));
+                button.setTextColor(themeManager.getColor("onPrimary"));
+                break;
+            case "secondary":
+                button.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("secondary")));
+                button.setTextColor(themeManager.getColor("onSecondary"));
+                break;
+            case "error":
+                button.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("error")));
+                button.setTextColor(themeManager.getColor("onError"));
+                break;
+            case "success":
+                button.setBackgroundTintList(ColorStateList.valueOf(themeManager.getColor("success")));
+                button.setTextColor(themeManager.getColor("onSurface"));
+                break;
+            default:
+                applyThemeToButton(button, button.getContext());
+                break;
         }
     }
 }
