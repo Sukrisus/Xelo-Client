@@ -144,20 +144,9 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
                         rootDir = testDir;
                         rootPath = path;
                         currentRootDir = testDir; // Store for later use
-                        
-                        // Initialize modules now that we have the root directory
-                        if (getView() != null) {
-                            initializeModules(getView());
-                        }
                         break;
                     }
                 }
-            }
-            
-            // If we still don't have a root directory, try to initialize modules with a default path
-            if (currentRootDir == null) {
-                // Try to use a default path or wait for user to set it
-                Log.w(TAG, "No root directory found, modules will be initialized when directory is set");
             }
             
             List<String> folderNames = new ArrayList<>();
@@ -201,10 +190,8 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
             });
         }
 
-        // Initialize modules AFTER currentRootDir is set
-        if (currentRootDir != null) {
-            initializeModules(view);
-        }
+        // Initialize modules
+        initializeModules(view);
         
         // Initialize options.txt editor
         initializeOptionsEditor(view);
@@ -248,9 +235,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     public void onResume() {
         super.onResume();
         
-        // Check if we need to initialize modules
-        checkAndInitializeModules();
-        
         // Refresh theme colors for existing module cards when fragment resumes
         if (modulesContainer != null) {
             refreshModuleCardsTheme();
@@ -278,22 +262,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         }
     }
     
-    /**
-     * Check if modules need to be initialized and initialize them if needed
-     */
-    private void checkAndInitializeModules() {
-        if (currentRootDir != null && modulesContainer == null && getView() != null) {
-            Log.d(TAG, "Initializing modules on resume");
-            initializeModules(getView());
-        }
-    }
-    
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser && getView() != null) {
             // Check if we need to initialize modules
-            checkAndInitializeModules();
+            // checkAndInitializeModules(); // Removed
             
             // Refresh theme colors when fragment becomes visible
             refreshModuleCardsTheme();
@@ -334,6 +308,9 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         } catch (Exception e) {
             Log.e(TAG, "Failed to register theme change listener", e);
         }
+        
+        // Initialize modules
+        initializeModules(view);
         
         // Initialize options editor
         initializeOptionsEditor(view);
@@ -522,12 +499,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
 
     private void initializeModules(View view) {
-        // Only initialize if we have a valid root directory
-        if (currentRootDir == null) {
-            Log.w(TAG, "Cannot initialize modules: root directory not set");
-            return;
-        }
-        
         // Initialize config file path
         configFile = new File(currentRootDir, "config.txt");
         
@@ -763,11 +734,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         if (exportConfigButton != null) {
             exportConfigButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
-                    // Check if modules are initialized, if not try to initialize them
-                    if (modulesContainer == null && currentRootDir != null) {
-                        initializeModules(view);
-                    }
-                    
                     exportConfig();
                 } else {
                     requestStoragePermissions();
@@ -788,18 +754,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void exportConfig() {
         try {
-            // Check if root directory is set
-            if (currentRootDir == null) {
-                Toast.makeText(requireContext(), "No Minecraft data directory found. Please ensure Minecraft has been launched at least once.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            // Check if modules are initialized
-            if (modulesContainer == null) {
-                Toast.makeText(requireContext(), "Modules not initialized. Please wait a moment or refresh the screen.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
             // Check if config file exists
             if (!configFile.exists()) {
                 Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
@@ -935,12 +889,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void loadModuleStates() {
         try {
-            // Check if root directory is set
-            if (currentRootDir == null) {
-                Log.w(TAG, "Cannot load module states: root directory not set");
-                return;
-            }
-            
             if (!configFile.exists()) {
                 // Create directory if it doesn't exist
                 File parentDir = configFile.getParentFile();
@@ -978,12 +926,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void createDefaultConfig() {
         try {
-            // Check if root directory is set
-            if (currentRootDir == null) {
-                Toast.makeText(requireContext(), "No Minecraft data directory found. Please ensure Minecraft has been launched at least once.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            
             // Create parent directory if it doesn't exist
             File parentDir = configFile.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
@@ -1019,12 +961,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void updateConfigFile(String key, boolean value) {
         try {
-            // Check if root directory is set
-            if (currentRootDir == null) {
-                Log.w(TAG, "Cannot update config file: root directory not set");
-                return;
-            }
-            
             JSONObject config;
             
             if (configFile.exists()) {
@@ -1772,7 +1708,7 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
             initializeModules(getView());
             Toast.makeText(requireContext(), "Modules refreshed", Toast.LENGTH_SHORT).show();
         } else {
-            showModulesNotAvailableMessage();
+            Toast.makeText(requireContext(), "Cannot refresh modules: root directory not set", Toast.LENGTH_SHORT).show();
         }
     }
     
@@ -1812,63 +1748,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
 
     /**
-     * Set the root directory and initialize modules if not already done
-     */
-    public void setRootDirectoryAndInitialize(File rootDir) {
-        if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
-            currentRootDir = rootDir;
-            
-            // Initialize modules if not already done
-            if (modulesContainer == null && getView() != null) {
-                initializeModules(getView());
-            }
-            
-            Log.d(TAG, "Root directory set to: " + rootDir.getAbsolutePath());
-        }
-    }
-    
-    /**
-     * Manually set root directory and initialize modules
-     * This can be called from the UI when the user selects a directory
-     */
-    public void setRootDirectory(File rootDir) {
-        if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
-            currentRootDir = rootDir;
-            
-            // Update config file path
-            configFile = new File(currentRootDir, "config.txt");
-            
-            // Initialize modules if not already done
-            if (modulesContainer == null && getView() != null) {
-                initializeModules(getView());
-            } else if (modulesContainer != null) {
-                // Refresh existing modules
-                refreshModuleCardsTheme();
-            }
-            
-            Log.d(TAG, "Root directory manually set to: " + rootDir.getAbsolutePath());
-            Toast.makeText(requireContext(), "Minecraft directory set: " + rootDir.getName(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
      * Check if modules are initialized
      */
     public boolean areModulesInitialized() {
         return modulesContainer != null && moduleItems != null;
     }
 
-    /**
-     * Show a message when modules are not available
-     */
-    private void showModulesNotAvailableMessage() {
-        if (currentRootDir == null) {
-            Toast.makeText(requireContext(), "Minecraft data directory not found. Please launch Minecraft at least once, then return to this screen.", Toast.LENGTH_LONG).show();
-        } else if (modulesContainer == null) {
-            Toast.makeText(requireContext(), "Modules not initialized. Please wait a moment or refresh the screen.", Toast.LENGTH_SHORT).show();
-        }
-    }
-    
     /**
      * Check if modules are available for use
      */
