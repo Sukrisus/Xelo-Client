@@ -248,6 +248,9 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     public void onResume() {
         super.onResume();
         
+        // Check if we need to initialize modules
+        checkAndInitializeModules();
+        
         // Refresh theme colors for existing module cards when fragment resumes
         if (modulesContainer != null) {
             refreshModuleCardsTheme();
@@ -275,10 +278,23 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         }
     }
     
+    /**
+     * Check if modules need to be initialized and initialize them if needed
+     */
+    private void checkAndInitializeModules() {
+        if (currentRootDir != null && modulesContainer == null && getView() != null) {
+            Log.d(TAG, "Initializing modules on resume");
+            initializeModules(getView());
+        }
+    }
+    
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser && getView() != null) {
+            // Check if we need to initialize modules
+            checkAndInitializeModules();
+            
             // Refresh theme colors when fragment becomes visible
             refreshModuleCardsTheme();
             
@@ -318,9 +334,6 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         } catch (Exception e) {
             Log.e(TAG, "Failed to register theme change listener", e);
         }
-        
-        // Initialize modules
-        initializeModules(view);
         
         // Initialize options editor
         initializeOptionsEditor(view);
@@ -509,6 +522,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
 
     private void initializeModules(View view) {
+        // Only initialize if we have a valid root directory
+        if (currentRootDir == null) {
+            Log.w(TAG, "Cannot initialize modules: root directory not set");
+            return;
+        }
+        
         // Initialize config file path
         configFile = new File(currentRootDir, "config.txt");
         
@@ -744,6 +763,11 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
         if (exportConfigButton != null) {
             exportConfigButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
+                    // Check if modules are initialized, if not try to initialize them
+                    if (modulesContainer == null && currentRootDir != null) {
+                        initializeModules(view);
+                    }
+                    
                     exportConfig();
                 } else {
                     requestStoragePermissions();
@@ -767,6 +791,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
             // Check if root directory is set
             if (currentRootDir == null) {
                 Toast.makeText(requireContext(), "No Minecraft data directory found. Please ensure Minecraft has been launched at least once.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            
+            // Check if modules are initialized
+            if (modulesContainer == null) {
+                Toast.makeText(requireContext(), "Modules not initialized. Please wait a moment or refresh the screen.", Toast.LENGTH_SHORT).show();
                 return;
             }
             
@@ -905,6 +935,12 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     
     private void loadModuleStates() {
         try {
+            // Check if root directory is set
+            if (currentRootDir == null) {
+                Log.w(TAG, "Cannot load module states: root directory not set");
+                return;
+            }
+            
             if (!configFile.exists()) {
                 // Create directory if it doesn't exist
                 File parentDir = configFile.getParentFile();
@@ -1728,6 +1764,19 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
     }
 
     /**
+     * Manually refresh modules - can be called from UI
+     */
+    public void refreshModules() {
+        if (currentRootDir != null && getView() != null) {
+            Log.d(TAG, "Manually refreshing modules");
+            initializeModules(getView());
+            Toast.makeText(requireContext(), "Modules refreshed", Toast.LENGTH_SHORT).show();
+        } else {
+            showModulesNotAvailableMessage();
+        }
+    }
+    
+    /**
      * Force refresh all themes and module cards
      */
     public void forceRefreshThemes() {
@@ -1807,6 +1856,24 @@ public class DashboardFragment extends BaseThemedFragment implements ThemeManage
      */
     public boolean areModulesInitialized() {
         return modulesContainer != null && moduleItems != null;
+    }
+
+    /**
+     * Show a message when modules are not available
+     */
+    private void showModulesNotAvailableMessage() {
+        if (currentRootDir == null) {
+            Toast.makeText(requireContext(), "Minecraft data directory not found. Please launch Minecraft at least once, then return to this screen.", Toast.LENGTH_LONG).show();
+        } else if (modulesContainer == null) {
+            Toast.makeText(requireContext(), "Modules not initialized. Please wait a moment or refresh the screen.", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Check if modules are available for use
+     */
+    private boolean areModulesAvailable() {
+        return currentRootDir != null && modulesContainer != null;
     }
 
     // Improved adapter for folder names with custom styling
