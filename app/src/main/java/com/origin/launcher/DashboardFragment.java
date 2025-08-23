@@ -165,6 +165,8 @@ public class DashboardFragment extends BaseThemedFragment {
         }
 
         if (backupButton != null) {
+            // Apply theme to backup button
+            ThemeUtils.applyThemeToButton(backupButton, requireContext());
             backupButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
                     if (currentRootDir != null) {
@@ -179,6 +181,8 @@ public class DashboardFragment extends BaseThemedFragment {
         }
 
         if (importButton != null) {
+            // Apply theme to import button
+            ThemeUtils.applyThemeToButton(importButton, requireContext());
             importButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
                     openFileChooser();
@@ -207,6 +211,43 @@ public class DashboardFragment extends BaseThemedFragment {
         
         // Apply theme to ScrollView and modules container background
         refreshScrollViewBackground();
+        
+        // Refresh button themes
+        refreshButtonThemes();
+    }
+    
+    /**
+     * Refresh button themes when theme changes
+     */
+    private void refreshButtonThemes() {
+        try {
+            View view = getView();
+            if (view != null) {
+                // Refresh backup and import buttons
+                MaterialButton backupButton = view.findViewById(R.id.backupButton);
+                MaterialButton importButton = view.findViewById(R.id.importButton);
+                
+                if (backupButton != null) {
+                    ThemeUtils.applyThemeToButton(backupButton, requireContext());
+                }
+                if (importButton != null) {
+                    ThemeUtils.applyThemeToButton(importButton, requireContext());
+                }
+                
+                // Refresh config buttons
+                MaterialButton exportConfigButton = view.findViewById(R.id.exportConfigButton);
+                MaterialButton importConfigButton = view.findViewById(R.id.importConfigButton);
+                
+                if (exportConfigButton != null) {
+                    ThemeUtils.applyThemeToButton(exportConfigButton, requireContext());
+                }
+                if (importConfigButton != null) {
+                    ThemeUtils.applyThemeToButton(importConfigButton, requireContext());
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
     }
 
     private void initializeModules(View view) {
@@ -266,9 +307,9 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT
     );
     cardParams.setMargins(
-        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
         (int) (8 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
         (int) (8 * getResources().getDisplayMetrics().density)
     );
     moduleCard.setLayoutParams(cardParams);
@@ -285,9 +326,9 @@ public class DashboardFragment extends BaseThemedFragment {
     LinearLayout mainLayout = new LinearLayout(getContext());
     mainLayout.setOrientation(LinearLayout.HORIZONTAL);
     mainLayout.setPadding(
+        (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
         (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (16 * getResources().getDisplayMetrics().density),
+        (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
         (int) (16 * getResources().getDisplayMetrics().density)
     );
     mainLayout.setGravity(Gravity.CENTER_VERTICAL);
@@ -312,6 +353,7 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT, 
         1.0f
     );
+    textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Add left margin
     textLayout.setLayoutParams(textParams);
     
     // Module name (matching theme name styling)
@@ -330,7 +372,7 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT, 
         LinearLayout.LayoutParams.WRAP_CONTENT
     );
-    descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+    descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 4
     moduleDescriptionText.setLayoutParams(descParams);
     moduleDescriptionText.setMaxLines(2);
     moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -346,7 +388,7 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT,
         LinearLayout.LayoutParams.WRAP_CONTENT
     );
-    rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+    rightParams.setMarginStart((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
     rightContainer.setLayoutParams(rightParams);
     
     // Module switch (replacing radio button)
@@ -378,8 +420,9 @@ public class DashboardFragment extends BaseThemedFragment {
         MaterialButton exportConfigButton = view.findViewById(R.id.exportConfigButton);
         MaterialButton importConfigButton = view.findViewById(R.id.importConfigButton);
         
-        // Set click listeners for the XML buttons
+        // Apply themes to both buttons
         if (exportConfigButton != null) {
+            ThemeUtils.applyThemeToButton(exportConfigButton, requireContext());
             exportConfigButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
                     exportConfig();
@@ -390,6 +433,7 @@ public class DashboardFragment extends BaseThemedFragment {
         }
         
         if (importConfigButton != null) {
+            ThemeUtils.applyThemeToButton(importConfigButton, requireContext());
             importConfigButton.setOnClickListener(v -> {
                 if (hasStoragePermission()) {
                     openConfigFileChooser();
@@ -1353,19 +1397,20 @@ public class DashboardFragment extends BaseThemedFragment {
     private void refreshScrollViewBackground() {
         try {
             if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+                // Make ScrollView background transparent
+                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             }
             if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+                // Make container background transparent
+                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             }
         } catch (Exception e) {
-            // Fallback to default background
-            int fallbackColor = 0xFF0A0A0A;
+            // Fallback to transparent background
             if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(fallbackColor);
+                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             }
             if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(fallbackColor);
+                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             }
         }
     }
