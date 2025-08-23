@@ -45,7 +45,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import android.os.Looper;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseThemedFragment {
 
     private TextView listener;
     private Button mbl2_button;

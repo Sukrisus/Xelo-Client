@@ -4,12 +4,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseThemedActivity {
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "app_preferences";
     private static final String KEY_FIRST_LAUNCH = "first_launch";
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         setContentView(R.layout.activity_main);
 
         // Check if this is the first launch
@@ -128,8 +130,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        
         // Update presence when app comes to foreground
         DiscordRPCHelper.getInstance().updatePresence("Using Xelo Client", "Using the best MCPE Client");
+    }
+    
+    @Override
+    protected void onApplyTheme() {
+        // Apply theme to bottom navigation
+        View bottomNav = findViewById(R.id.bottom_navigation);
+        if (bottomNav != null) {
+            ThemeUtils.applyThemeToBottomNavigation(bottomNav);
+        }
     }
 
     @Override

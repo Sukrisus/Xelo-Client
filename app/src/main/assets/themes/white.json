@@ -1,0 +1,33 @@
+{
+  "name": "Material Design 3",
+  "author": "Xelo Team",
+  "description": "Material Design 3 Dark Theme",
+  "colors": {
+    "background": "#121212",
+    "onBackground": "#FFFFFF",
+    "surface": "#1E1E1E",
+    "onSurface": "#FFFFFF",
+    "surfaceVariant": "#2D2D2D",
+    "onSurfaceVariant": "#CCCCCC",
+    "outline": "#737373",
+    "primary": "#BB86FC",
+    "onPrimary": "#000000",
+    "primaryContainer": "#3700B3",
+    "onPrimaryContainer": "#FFFFFF",
+    "secondary": "#03DAC6",
+    "onSecondary": "#000000",
+    "secondaryContainer": "#018786",
+    "onSecondaryContainer": "#FFFFFF",
+    "tertiary": "#CF6679",
+    "onTertiary": "#000000",
+    "tertiaryContainer": "#B00020",
+    "onTertiaryContainer": "#FFFFFF",
+    "error": "#CF6679",
+    "onError": "#FFFFFF",
+    "errorContainer": "#B00020",
+    "onErrorContainer": "#FFFFFF",
+    "success": "#00C853",
+    "info": "#2196F3",
+    "warning": "#FF9800"
+  }
+}
