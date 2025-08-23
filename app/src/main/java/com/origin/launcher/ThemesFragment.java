@@ -3,6 +3,8 @@ package com.origin.launcher;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +22,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -182,7 +185,7 @@ public class ThemesFragment extends BaseThemedFragment {
                     }
                     outputStream.close();
                     
-                    // Check if this is the colors.json file
+                    // Check if this is the required files
                     if (entry.getName().equals("colors/colors.json")) {
                         foundColorsJson = true;
                     }
@@ -198,6 +201,12 @@ public class ThemesFragment extends BaseThemedFragment {
                 deleteDirectory(themeDir);
                 Log.e(TAG, "No colors/colors.json found in .xtheme file");
                 return false;
+            }
+            
+            // Verify manifest.json exists
+            File manifestFile = new File(themeDir, "manifest.json");
+            if (!manifestFile.exists()) {
+                Log.w(TAG, "No manifest.json found in .xtheme file, theme may not display properly");
             }
             
             return true;
@@ -226,20 +235,40 @@ public class ThemesFragment extends BaseThemedFragment {
     
     private ThemeItem getXThemeMetadata(File colorsJsonFile, String themeKey) {
         try {
-            // Read the colors.json file
-            InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
-            byte[] buffer = new byte[inputStream.available()];
-            inputStream.read(buffer);
-            inputStream.close();
+            // First try to read manifest.json for metadata
+            File themeDir = colorsJsonFile.getParentFile().getParentFile(); // Go up from colors/colors.json to theme root
+            File manifestFile = new File(themeDir, "manifest.json");
             
-            String jsonString = new String(buffer, "UTF-8");
-            JSONObject themeJson = new JSONObject(jsonString);
-            
-            String name = themeJson.optString("name", themeKey);
-            String author = themeJson.optString("author", null);
-            String description = themeJson.optString("description", "Custom theme");
-            
-            return new ThemeItem(name, description, themeKey, false, author);
+            if (manifestFile.exists()) {
+                InputStream inputStream = new java.io.FileInputStream(manifestFile);
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+                inputStream.close();
+                
+                String jsonString = new String(buffer, "UTF-8");
+                JSONObject manifestJson = new JSONObject(jsonString);
+                
+                String name = manifestJson.optString("name", themeKey);
+                String author = manifestJson.optString("author", null);
+                String description = manifestJson.optString("description", "Custom theme");
+                
+                return new ThemeItem(name, description, themeKey, false, author);
+            } else {
+                // Fallback to old method (colors.json) for compatibility
+                InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+                inputStream.close();
+                
+                String jsonString = new String(buffer, "UTF-8");
+                JSONObject themeJson = new JSONObject(jsonString);
+                
+                String name = themeJson.optString("name", themeKey);
+                String author = themeJson.optString("author", null);
+                String description = themeJson.optString("description", "Custom theme");
+                
+                return new ThemeItem(name, description, themeKey, false, author);
+            }
             
         } catch (Exception e) {
             Log.e(TAG, "Error reading .xtheme metadata: " + themeKey, e);
@@ -451,6 +480,7 @@ public class ThemesFragment extends BaseThemedFragment {
     infoButton.setBackground(ThemeUtils.createCircularRipple("onSurfaceVariant"));
     infoButton.setClickable(true);
     infoButton.setFocusable(true);
+    infoButton.setOnClickListener(v -> showThemeInfoDialog(theme));
     
     // Radio button / Selection indicator
     MaterialRadioButton radioButton = new MaterialRadioButton(requireContext());
@@ -587,6 +617,167 @@ public class ThemesFragment extends BaseThemedFragment {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    private void showThemeInfoDialog(ThemeItem theme) {
+        try {
+            // Create dialog layout
+            LinearLayout dialogLayout = new LinearLayout(requireContext());
+            dialogLayout.setOrientation(LinearLayout.VERTICAL);
+            dialogLayout.setPadding(24, 24, 24, 24);
+            
+            // Title
+            TextView titleText = new TextView(requireContext());
+            titleText.setText(theme.name);
+            titleText.setTextSize(20);
+            titleText.setTypeface(null, android.graphics.Typeface.BOLD);
+            ThemeUtils.applyThemeToTextView(titleText, "onSurface");
+            dialogLayout.addView(titleText);
+            
+            // Author (if available)
+            if (theme.author != null && !theme.author.isEmpty()) {
+                TextView authorText = new TextView(requireContext());
+                authorText.setText("by " + theme.author);
+                authorText.setTextSize(14);
+                ThemeUtils.applyThemeToTextView(authorText, "onSurfaceVariant");
+                LinearLayout.LayoutParams authorParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                authorParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+                authorText.setLayoutParams(authorParams);
+                dialogLayout.addView(authorText);
+            }
+            
+            // Preview image (if available for custom themes)
+            if (!isBuiltInTheme(theme.key)) {
+                File previewFile = new File(themesDirectory, theme.key + "/preview.png");
+                if (previewFile.exists()) {
+                    ImageView previewImage = new ImageView(requireContext());
+                    Bitmap bitmap = BitmapFactory.decodeFile(previewFile.getAbsolutePath());
+                    if (bitmap != null) {
+                        previewImage.setImageBitmap(bitmap);
+                        previewImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            (int) (200 * getResources().getDisplayMetrics().density)
+                        );
+                        imageParams.topMargin = (int) (16 * getResources().getDisplayMetrics().density);
+                        imageParams.bottomMargin = (int) (16 * getResources().getDisplayMetrics().density);
+                        previewImage.setLayoutParams(imageParams);
+                        dialogLayout.addView(previewImage);
+                    }
+                }
+            }
+            
+            // Description
+            TextView descriptionText = new TextView(requireContext());
+            descriptionText.setText(theme.description);
+            descriptionText.setTextSize(14);
+            ThemeUtils.applyThemeToTextView(descriptionText, "onSurfaceVariant");
+            LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, 
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            descParams.topMargin = (int) (16 * getResources().getDisplayMetrics().density);
+            descriptionText.setLayoutParams(descParams);
+            dialogLayout.addView(descriptionText);
+            
+            // Show additional metadata for custom themes
+            if (!isBuiltInTheme(theme.key)) {
+                addManifestInfo(dialogLayout, theme.key);
+            }
+            
+            // Create dialog
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+            builder.setView(dialogLayout);
+            builder.setPositiveButton("Close", null);
+            builder.show();
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing theme info dialog", e);
+            Toast.makeText(getContext(), "Error loading theme information", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void addManifestInfo(LinearLayout layout, String themeKey) {
+        try {
+            File manifestFile = new File(themesDirectory, themeKey + "/manifest.json");
+            if (manifestFile.exists()) {
+                java.io.InputStream inputStream = new java.io.FileInputStream(manifestFile);
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+                inputStream.close();
+                
+                String jsonString = new String(buffer, "UTF-8");
+                JSONObject manifest = new JSONObject(jsonString);
+                
+                // Add divider
+                View divider = new View(requireContext());
+                divider.setBackgroundColor(ThemeManager.getInstance().getColor("outline"));
+                LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 
+                    (int) (1 * getResources().getDisplayMetrics().density)
+                );
+                dividerParams.topMargin = (int) (16 * getResources().getDisplayMetrics().density);
+                dividerParams.bottomMargin = (int) (16 * getResources().getDisplayMetrics().density);
+                divider.setLayoutParams(dividerParams);
+                layout.addView(divider);
+                
+                // Version
+                if (manifest.has("version")) {
+                    addInfoRow(layout, "Version", manifest.getString("version"));
+                }
+                
+                // Package
+                if (manifest.has("package")) {
+                    addInfoRow(layout, "Package", manifest.getString("package"));
+                }
+                
+                // License
+                if (manifest.has("license")) {
+                    addInfoRow(layout, "License", manifest.getString("license"));
+                }
+                
+                // Created/Updated dates
+                if (manifest.has("createdAt")) {
+                    addInfoRow(layout, "Created", manifest.getString("createdAt"));
+                }
+                if (manifest.has("updatedAt")) {
+                    addInfoRow(layout, "Updated", manifest.getString("updatedAt"));
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading manifest info", e);
+        }
+    }
+    
+    private void addInfoRow(LinearLayout layout, String label, String value) {
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        
+        TextView labelText = new TextView(requireContext());
+        labelText.setText(label + ": ");
+        labelText.setTextSize(12);
+        labelText.setTypeface(null, android.graphics.Typeface.BOLD);
+        ThemeUtils.applyThemeToTextView(labelText, "onSurfaceVariant");
+        
+        TextView valueText = new TextView(requireContext());
+        valueText.setText(value);
+        valueText.setTextSize(12);
+        ThemeUtils.applyThemeToTextView(valueText, "onSurfaceVariant");
+        
+        row.addView(labelText);
+        row.addView(valueText);
+        
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rowParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        row.setLayoutParams(rowParams);
+        
+        layout.addView(row);
     }
     
     @Override

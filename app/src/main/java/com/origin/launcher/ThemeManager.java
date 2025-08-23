@@ -209,9 +209,27 @@ public class ThemeManager {
         try {
             File themesDir = new File(context.getExternalFilesDir(null), "themes");
             File themeDir = new File(themesDir, themeName);
+            File manifestFile = new File(themeDir, "manifest.json");
             File colorsJsonFile = new File(themeDir, "colors/colors.json");
             
-            if (colorsJsonFile.exists()) {
+            // First try manifest.json
+            if (manifestFile.exists()) {
+                InputStream inputStream = new java.io.FileInputStream(manifestFile);
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+                inputStream.close();
+                
+                String jsonString = new String(buffer, "UTF-8");
+                JSONObject manifestJson = new JSONObject(jsonString);
+                
+                String name = manifestJson.optString("name", themeName);
+                String author = manifestJson.optString("author", null);
+                String description = manifestJson.optString("description", "Custom theme");
+                
+                return new ThemeMetadata(name, author, description, themeName);
+            }
+            // Fallback to colors.json for compatibility
+            else if (colorsJsonFile.exists()) {
                 InputStream inputStream = new java.io.FileInputStream(colorsJsonFile);
                 byte[] buffer = new byte[inputStream.available()];
                 inputStream.read(buffer);

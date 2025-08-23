@@ -14,16 +14,33 @@ The Xelo Client uses a dynamic theme system that loads colors from JSON files in
 .xtheme files are ZIP archives with this structure:
 ```
 MyCoolTheme.xtheme
+│
+├── manifest.json       # Theme metadata
+├── preview.png         # Optional preview image
+│
 └── colors/
-    └── colors.json
+    └── colors.json     # Color definitions only
 ```
 
-### 2. colors.json format
+### 2. manifest.json format
 ```json
 {
   "name": "My Cool Theme",
-  "author": "Your Name", 
-  "description": "A cool custom theme",
+  "package": "com.community.theme.cooltheme",
+  "version": "1.0",
+  "author": "User123",
+  "email": "user123@example.com",
+  "license": "MIT",
+  "description": "A clean minimalistic theme with teal accents.",
+  "preview": "preview.png",
+  "createdAt": "2025-08-21",
+  "updatedAt": "2025-08-21"
+}
+```
+
+### 3. colors.json format (colors only)
+```json
+{
   "colors": {
     "background": "#0A0A0A",
     "onBackground": "#FFFFFF",
@@ -55,7 +72,10 @@ MyCoolTheme.xtheme
 }
 ```
 
-### 3. Install the theme
+### 4. Optional preview.png
+Add a preview image (PNG format, recommended size: 400x300px) to show users what the theme looks like.
+
+### 5. Install the theme
 1. Open Xelo Client
 2. Go to Themes section
 3. Tap "New Theme" button
@@ -68,3 +88,4 @@ MyCoolTheme.xtheme
 - Custom themes can be deleted, built-in themes cannot
 - Theme choice persists across app restarts
 - Uses Material Design 3 color system for proper contrast and accessibility
+- Click the "i" button on any theme to see details, preview image, and metadata
