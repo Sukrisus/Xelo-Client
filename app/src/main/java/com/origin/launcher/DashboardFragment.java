@@ -55,6 +55,9 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.RippleDrawable;
 
 public class DashboardFragment extends BaseThemedFragment {
     private File currentRootDir = null; // Store the found root directory
@@ -160,7 +163,7 @@ public class DashboardFragment extends BaseThemedFragment {
             } else {
                 folderNames.add("No Minecraft data found");
             }
-            FolderAdapter adapter = new FolderAdapter(folderNames);
+            FolderAdapter adapter = new FolderAdapter(folderNames, getContext());
             folderRecyclerView.setAdapter(adapter);
         }
 
@@ -201,6 +204,70 @@ public class DashboardFragment extends BaseThemedFragment {
         return view;
     }
     
+    /**
+     * Refresh folder themes when theme changes
+     */
+    private void refreshFolderThemes() {
+        try {
+            RecyclerView folderRecyclerView = getView().findViewById(R.id.folderRecyclerView);
+            if (folderRecyclerView != null && folderRecyclerView.getAdapter() != null) {
+                // Force refresh of all folder items
+                folderRecyclerView.getAdapter().notifyDataSetChanged();
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    /**
+     * Refresh toggle themes when theme changes
+     */
+    private void refreshToggleThemes() {
+        try {
+            if (modulesContainer != null) {
+                for (int i = 0; i < modulesContainer.getChildCount(); i++) {
+                    View child = modulesContainer.getChildAt(i);
+                    if (child instanceof MaterialCardView) {
+                        // Find MaterialSwitch in the card and refresh its theme
+                        refreshSwitchThemeInCard((MaterialCardView) child);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    /**
+     * Refresh switch theme within a card
+     */
+    private void refreshSwitchThemeInCard(MaterialCardView card) {
+        try {
+            // Find MaterialSwitch in the card
+            for (int i = 0; i < ((ViewGroup) card.getChildAt(0)).getChildCount(); i++) {
+                View child = ((ViewGroup) card.getChildAt(0)).getChildAt(i);
+                if (child instanceof LinearLayout) {
+                    LinearLayout layout = (LinearLayout) child;
+                    for (int j = 0; j < layout.getChildCount(); j++) {
+                        View layoutChild = layout.getChildAt(j);
+                        if (layoutChild instanceof LinearLayout) {
+                            LinearLayout rightContainer = (LinearLayout) layoutChild;
+                            for (int k = 0; k < rightContainer.getChildCount(); k++) {
+                                View rightChild = rightContainer.getChildAt(k);
+                                if (rightChild instanceof MaterialSwitch) {
+                                    MaterialSwitch materialSwitch = (MaterialSwitch) rightChild;
+                                    ThemeUtils.applyThemeToSwitch(materialSwitch, requireContext());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
     @Override
     protected void onApplyTheme() {
         // Apply theme to the root view background
@@ -222,6 +289,12 @@ public class DashboardFragment extends BaseThemedFragment {
         
         // Refresh module card backgrounds to ensure they remain visible
         refreshModuleCardBackgrounds();
+        
+        // Refresh folder themes
+        refreshFolderThemes();
+        
+        // Refresh toggle themes
+        refreshToggleThemes();
     }
     
     /**
@@ -272,6 +345,9 @@ public class DashboardFragment extends BaseThemedFragment {
                 
                 // Also refresh the card backgrounds to ensure they remain visible
                 refreshModuleCardBackgrounds();
+                
+                // Refresh toggle themes in the cards
+                refreshToggleThemes();
             }
         } catch (Exception e) {
             // Handle error gracefully
@@ -922,7 +998,7 @@ public class DashboardFragment extends BaseThemedFragment {
             } else {
                 folderNames.add("No Minecraft data found");
             }
-            FolderAdapter adapter = new FolderAdapter(folderNames);
+            FolderAdapter adapter = new FolderAdapter(folderNames, getContext());
             folderRecyclerView.setAdapter(adapter);
         }
     }
@@ -1480,29 +1556,74 @@ public class DashboardFragment extends BaseThemedFragment {
     // Improved adapter for folder names with custom styling
     private static class FolderAdapter extends RecyclerView.Adapter<FolderViewHolder> {
         private final List<String> folders;
-        FolderAdapter(List<String> folders) { this.folders = folders; }
+        private final Context context;
+        
+        FolderAdapter(List<String> folders, Context context) { 
+            this.folders = folders; 
+            this.context = context;
+        }
+        
         @NonNull
         @Override
         public FolderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_folder, parent, false);
             return new FolderViewHolder(view);
         }
+        
         @Override
         public void onBindViewHolder(@NonNull FolderViewHolder holder, int position) {
             holder.bind(folders.get(position));
+            // Apply theme to the folder item
+            holder.applyTheme();
         }
+        
         @Override
         public int getItemCount() { return folders.size(); }
     }
     
     private static class FolderViewHolder extends RecyclerView.ViewHolder {
         private final android.widget.TextView textView;
+        private final MaterialCardView cardView;
+        private final ImageView iconView;
+        
         FolderViewHolder(@NonNull View itemView) {
             super(itemView);
             textView = itemView.findViewById(R.id.folderNameText);
+            cardView = (MaterialCardView) itemView;
+            iconView = itemView.findViewById(R.id.folderIcon);
         }
+        
         void bind(String folderName) {
             textView.setText(folderName);
+        }
+        
+        void applyTheme() {
+            try {
+                ThemeManager themeManager = ThemeManager.getInstance();
+                if (themeManager != null && themeManager.isThemeLoaded()) {
+                    // Apply theme to the card
+                    cardView.setCardBackgroundColor(themeManager.getColor("surfaceVariant"));
+                    cardView.setStrokeColor(themeManager.getColor("outline"));
+                    cardView.setStrokeWidth((int) (1 * itemView.getContext().getResources().getDisplayMetrics().density));
+                    cardView.setCardElevation(2 * itemView.getContext().getResources().getDisplayMetrics().density);
+                    
+                    // Apply theme to the text
+                    textView.setTextColor(themeManager.getColor("onSurface"));
+                    
+                    // Apply theme to the icon
+                    iconView.setColorFilter(themeManager.getColor("primary"));
+                    
+                    // Add ripple effect
+                    RippleDrawable ripple = new RippleDrawable(
+                        ColorStateList.valueOf(ThemeUtils.createOptimizedRippleColor("onSurface", "card")),
+                        null,
+                        null
+                    );
+                    cardView.setForeground(ripple);
+                }
+            } catch (Exception e) {
+                // Handle error gracefully
+            }
         }
     }
 }

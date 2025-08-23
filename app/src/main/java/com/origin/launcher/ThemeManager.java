@@ -451,4 +451,53 @@ public class ThemeManager {
             this.key = key;
         }
     }
+
+    /**
+     * Get toggle color by type
+     */
+    public int getToggleColor(String colorType) {
+        try {
+            if (currentColors != null && currentColors.has("toggle")) {
+                JSONObject toggleColors = currentColors.getJSONObject("toggle");
+                if (toggleColors.has(colorType)) {
+                    return Color.parseColor(toggleColors.getString(colorType));
+                }
+            }
+            // Fallback to default toggle colors
+            return getDefaultToggleColor(colorType);
+        } catch (Exception e) {
+            return getDefaultToggleColor(colorType);
+        }
+    }
+    
+    /**
+     * Get default toggle color if theme doesn't specify it
+     */
+    private int getDefaultToggleColor(String colorType) {
+        switch (colorType) {
+            case "track":
+                return Color.parseColor("#2A2A2A");
+            case "trackChecked":
+                return Color.parseColor("#4CAF50");
+            case "thumb":
+                return Color.parseColor("#FFFFFF");
+            case "thumbChecked":
+                return Color.parseColor("#FFFFFF");
+            case "ripple":
+                return Color.parseColor("#4CAF50");
+            default:
+                return Color.parseColor("#2A2A2A");
+        }
+    }
+    
+    /**
+     * Check if toggle colors are available in current theme
+     */
+    public boolean hasToggleColors() {
+        try {
+            return currentColors != null && currentColors.has("toggle");
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

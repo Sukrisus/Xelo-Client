@@ -14,6 +14,7 @@ import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import android.graphics.Color;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class ThemeUtils {
     
@@ -390,89 +391,62 @@ public class ThemeUtils {
     /**
      * Apply theme colors to MaterialSwitch
      */
-    public static void applyThemeToSwitch(com.google.android.material.materialswitch.MaterialSwitch materialSwitch, Context context) {
+    public static void applyThemeToSwitch(MaterialSwitch materialSwitch, Context context) {
         try {
             ThemeManager themeManager = ThemeManager.getInstance();
-            
             if (themeManager != null && themeManager.isThemeLoaded()) {
-                // Apply theme colors to the switch
-                ColorStateList switchTrackColor = new ColorStateList(
+                // Use toggle colors if available, otherwise fall back to theme colors
+                int trackColor, trackCheckedColor, thumbColor, thumbCheckedColor;
+                
+                if (themeManager.hasToggleColors()) {
+                    // Use theme-specific toggle colors
+                    trackColor = themeManager.getToggleColor("track");
+                    trackCheckedColor = themeManager.getToggleColor("trackChecked");
+                    thumbColor = themeManager.getToggleColor("thumb");
+                    thumbCheckedColor = themeManager.getToggleColor("thumbChecked");
+                } else {
+                    // Fall back to theme colors
+                    trackColor = themeManager.getColor("surfaceVariant");
+                    trackCheckedColor = themeManager.getColor("primary");
+                    thumbColor = themeManager.getColor("onSurface");
+                    thumbCheckedColor = themeManager.getColor("onSurface");
+                }
+                
+                // Create color state lists for different states
+                ColorStateList trackColorStateList = new ColorStateList(
                     new int[][]{
                         new int[]{android.R.attr.state_checked},
                         new int[]{-android.R.attr.state_checked}
                     },
-                    new int[]{
-                        themeManager.getColor("primary"),
-                        themeManager.getColor("outline")
-                    }
+                    new int[]{trackCheckedColor, trackColor}
                 );
                 
-                ColorStateList switchThumbColor = new ColorStateList(
+                ColorStateList thumbColorStateList = new ColorStateList(
                     new int[][]{
                         new int[]{android.R.attr.state_checked},
                         new int[]{-android.R.attr.state_checked}
                     },
-                    new int[]{
-                        themeManager.getColor("onPrimary"),
-                        themeManager.getColor("onSurface")
-                    }
+                    new int[]{thumbCheckedColor, thumbColor}
                 );
                 
-                materialSwitch.setTrackTintList(switchTrackColor);
-                materialSwitch.setThumbTintList(switchThumbColor);
+                // Apply colors to the switch
+                materialSwitch.setTrackTintList(trackColorStateList);
+                materialSwitch.setThumbTintList(thumbColorStateList);
+                
+                // Add ripple effect if toggle colors are available
+                if (themeManager.hasToggleColors()) {
+                    int rippleColor = themeManager.getToggleColor("ripple");
+                    materialSwitch.setRippleColor(ColorStateList.valueOf(createOptimizedRippleColor(rippleColor, "switch")));
+                }
             } else {
                 // Fallback to default colors if theme not ready
-                ColorStateList switchTrackColor = new ColorStateList(
-                    new int[][]{
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{-android.R.attr.state_checked}
-                    },
-                    new int[]{
-                        Color.parseColor("#FFFFFF"),
-                        Color.parseColor("#505050")
-                    }
-                );
-                
-                ColorStateList switchThumbColor = new ColorStateList(
-                    new int[][]{
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{-android.R.attr.state_checked}
-                    },
-                    new int[]{
-                        Color.parseColor("#000000"),
-                        Color.parseColor("#FFFFFF")
-                    }
-                );
-                
-                materialSwitch.setTrackTintList(switchTrackColor);
-                materialSwitch.setThumbTintList(switchThumbColor);
+                materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#2A2A2A")));
+                materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FFFFFF")));
             }
         } catch (Exception e) {
             // Fallback to default colors on error
-            ColorStateList switchTrackColor = new ColorStateList(
-                new int[][]{
-                    new int[]{android.R.attr.state_checked},
-                    new int[]{-android.R.attr.state_checked}
-                },
-                new int[]{
-                    Color.parseColor("#FFFFFF"),
-                    Color.parseColor("#505050")
-                }
-            );
-            
-            ColorStateList switchThumbColor = new ColorStateList(
-                new int[][]{
-                    new int[]{android.R.attr.state_checked},
-                    new int[]{-android.R.attr.state_checked}
-                },
-                new int[]{
-                    Color.parseColor("#000000"),
-                    Color.parseColor("#FFFFFF")
-                }
-            );
-            
-            materialSwitch.setTrackTintList(switchTrackColor);
-            materialSwitch.setThumbTintList(switchThumbColor);
+            materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#2A2A2A")));
+            materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FFFFFF")));
         }
     }
 
