@@ -616,19 +616,21 @@ public class ThemeUtils {
             if (themeManager != null && themeManager.isThemeLoaded()) {
                 // Get current colors
                 int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                int currentStroke = card.getStrokeColor().getDefaultColor();
+                int currentStroke = card.getStrokeColor() != null ? 
+                    card.getStrokeColor().getDefaultColor() : Color.TRANSPARENT;
                 
                 // Get target colors
                 int targetBackground = themeManager.getColor("surface");
                 int targetStroke = themeManager.getColor("outline");
                 
                 // Animate background color transition
-                animateColorTransition(currentBackground, targetBackground, duration, 
-                    color -> card.setCardBackgroundColor(color));
+                animateBackgroundColorTransition(card, currentBackground, targetBackground, duration);
                 
-                // Animate stroke color transition
-                animateColorTransition(currentStroke, targetStroke, duration, 
-                    color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                // Animate stroke color transition if stroke exists
+                if (currentStroke != Color.TRANSPARENT) {
+                    animateColorTransition(currentStroke, targetStroke, duration, 
+                        color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                }
                 
                 // Apply other properties immediately
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
@@ -669,8 +671,7 @@ public class ThemeUtils {
                     // Animate text color transition
                     int currentTextColor = button.getCurrentTextColor();
                     int targetTextColor = getExportImportButtonTextColor(button, themeManager);
-                    animateColorTransition(currentTextColor, targetTextColor, duration, 
-                        color -> button.setTextColor(color));
+                    animateTextColorTransition(button, currentTextColor, targetTextColor, duration);
                     
                     // Animate stroke color transition
                     if (button.getStrokeColor() != null) {
@@ -690,8 +691,7 @@ public class ThemeUtils {
                     // Animate text color transition
                     int currentTextColorText = button.getCurrentTextColor();
                     int targetTextColorText = getExportImportButtonTextColor(button, themeManager);
-                    animateColorTransition(currentTextColorText, targetTextColorText, duration, 
-                        color -> button.setTextColor(color));
+                    animateTextColorTransition(button, currentTextColorText, targetTextColorText, duration);
                     
                     // Apply other properties immediately
                     button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
@@ -711,8 +711,7 @@ public class ThemeUtils {
                     // Animate text color transition
                     int currentTextColorFilled = button.getCurrentTextColor();
                     int targetTextColorFilled = themeManager.getColor("onPrimary");
-                    animateColorTransition(currentTextColorFilled, targetTextColorFilled, duration, 
-                        color -> button.setTextColor(color));
+                    animateTextColorTransition(button, currentTextColorFilled, targetTextColorFilled, duration);
                     
                     button.setRippleColor(ColorStateList.valueOf(lightSurfaceRippleColor));
                     break;
@@ -744,7 +743,7 @@ public class ThemeUtils {
     /**
      * Animate color transition from one color to another
      */
-    private static void animateColorTransition(int fromColor, int toColor, int duration, 
+    public static void animateColorTransition(int fromColor, int toColor, int duration, 
                                             android.animation.ValueAnimator.AnimatorUpdateListener listener) {
         if (fromColor == toColor) return; // No animation needed
         

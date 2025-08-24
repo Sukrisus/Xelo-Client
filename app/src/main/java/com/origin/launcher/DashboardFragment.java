@@ -223,7 +223,8 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Get current colors
                         int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int currentStroke = card.getStrokeColor().getDefaultColor();
+                        int currentStroke = card.getStrokeColor() != null ? 
+                            card.getStrokeColor().getDefaultColor() : Color.TRANSPARENT;
                         
                         // Get target colors
                         int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
@@ -231,8 +232,10 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Animate color transitions
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
-                        ThemeUtils.animateColorTransition(currentStroke, targetStroke, 300, 
-                            color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                        if (currentStroke != Color.TRANSPARENT) {
+                            ThemeUtils.animateColorTransition(currentStroke, targetStroke, 300, 
+                                color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                        }
                     }
                 }
             }
@@ -401,7 +404,7 @@ public class DashboardFragment extends BaseThemedFragment {
                 ThemeUtils.refreshRippleEffects(modulesContainer);
                 
                 // Also refresh the card backgrounds to ensure they remain visible
-                refreshModuleCardBackgrounds();
+                refreshModuleCardBackgroundsWithAnimation();
                 
                 // Refresh toggle themes in the cards
                 refreshToggleThemes();
