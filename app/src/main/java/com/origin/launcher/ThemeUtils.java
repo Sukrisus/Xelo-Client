@@ -5,6 +5,8 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,6 +17,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import android.graphics.Color;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import android.animation.ValueAnimator;
+import android.animation.ArgbEvaluator;
 
 public class ThemeUtils {
     
@@ -600,5 +604,183 @@ public class ThemeUtils {
         } catch (Exception e) {
             // Handle error gracefully
         }
+    }
+
+    /**
+     * Apply theme colors to a MaterialCardView with fade animation
+     */
+    public static void applyThemeToCardWithAnimation(MaterialCardView card, Context context, int duration) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                // Get current colors
+                int currentBackground = card.getCardBackgroundColor().getDefaultColor();
+                int currentStroke = card.getStrokeColor().getDefaultColor();
+                
+                // Get target colors
+                int targetBackground = themeManager.getColor("surface");
+                int targetStroke = themeManager.getColor("outline");
+                
+                // Animate background color transition
+                animateColorTransition(currentBackground, targetBackground, duration, 
+                    color -> card.setCardBackgroundColor(color));
+                
+                // Animate stroke color transition
+                animateColorTransition(currentStroke, targetStroke, duration, 
+                    color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                
+                // Apply other properties immediately
+                card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
+                card.setCardElevation(0f);
+                card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+                
+                // Create ripple effect with theme colors
+                RippleDrawable ripple = new RippleDrawable(
+                    ColorStateList.valueOf(createOptimizedRippleColor("onSurface", "card")),
+                    null,
+                    null
+                );
+                card.setForeground(ripple);
+            }
+        } catch (Exception e) {
+            // Fallback to immediate application on error
+            applyThemeToCard(card, context);
+        }
+    }
+    
+    /**
+     * Apply theme colors to a MaterialButton with fade animation
+     */
+    public static void applyThemeToButtonWithAnimation(MaterialButton button, Context context, int duration) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            
+            // Determine button type and apply appropriate styling
+            String buttonType = determineButtonType(button);
+            
+            // Create lighter ripple colors for better visibility
+            int lightRippleColor = createOptimizedRippleColor("primary", "button");
+            int lightSurfaceRippleColor = createOptimizedRippleColor("surfaceVariant", "button");
+            int lightOutlineRippleColor = createOptimizedRippleColor("outline", "button");
+            
+            switch (buttonType) {
+                case "outlined":
+                    // Animate text color transition
+                    int currentTextColor = button.getCurrentTextColor();
+                    int targetTextColor = getExportImportButtonTextColor(button, themeManager);
+                    animateColorTransition(currentTextColor, targetTextColor, duration, 
+                        color -> button.setTextColor(color));
+                    
+                    // Animate stroke color transition
+                    if (button.getStrokeColor() != null) {
+                        int currentStroke = button.getStrokeColor().getDefaultColor();
+                        int targetStroke = themeManager.getColor("outline");
+                        animateColorTransition(currentStroke, targetStroke, duration, 
+                            color -> button.setStrokeColor(ColorStateList.valueOf(color)));
+                    }
+                    
+                    // Apply other properties immediately
+                    button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+                    button.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
+                    button.setRippleColor(ColorStateList.valueOf(lightOutlineRippleColor));
+                    break;
+                    
+                case "text":
+                    // Animate text color transition
+                    int currentTextColorText = button.getCurrentTextColor();
+                    int targetTextColorText = getExportImportButtonTextColor(button, themeManager);
+                    animateColorTransition(currentTextColorText, targetTextColorText, duration, 
+                        color -> button.setTextColor(color));
+                    
+                    // Apply other properties immediately
+                    button.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+                    button.setRippleColor(ColorStateList.valueOf(lightRippleColor));
+                    break;
+                    
+                case "filled":
+                default:
+                    // Animate background color transition
+                    if (button.getBackgroundTintList() != null) {
+                        int currentBackground = button.getBackgroundTintList().getDefaultColor();
+                        int targetBackground = themeManager.getColor("primary");
+                        animateColorTransition(currentBackground, targetBackground, duration, 
+                            color -> button.setBackgroundTintList(ColorStateList.valueOf(color)));
+                    }
+                    
+                    // Animate text color transition
+                    int currentTextColorFilled = button.getCurrentTextColor();
+                    int targetTextColorFilled = themeManager.getColor("onPrimary");
+                    animateColorTransition(currentTextColorFilled, targetTextColorFilled, duration, 
+                        color -> button.setTextColor(color));
+                    
+                    button.setRippleColor(ColorStateList.valueOf(lightSurfaceRippleColor));
+                    break;
+            }
+        } catch (Exception e) {
+            // Fallback to immediate application on error
+            applyThemeToButton(button, context);
+        }
+    }
+    
+    /**
+     * Helper method to get the appropriate text color for export/import buttons
+     */
+    private static int getExportImportButtonTextColor(MaterialButton button, ThemeManager themeManager) {
+        String resourceName = "";
+        try {
+            resourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
+        } catch (Exception e) {
+            // Ignore, use default
+        }
+        
+        if (resourceName.contains("import") || resourceName.contains("export")) {
+            return themeManager.getColor("primary");
+        } else {
+            return themeManager.getColor("onSurface");
+        }
+    }
+    
+    /**
+     * Animate color transition from one color to another
+     */
+    private static void animateColorTransition(int fromColor, int toColor, int duration, 
+                                            android.animation.ValueAnimator.AnimatorUpdateListener listener) {
+        if (fromColor == toColor) return; // No animation needed
+        
+        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+        colorAnimator.setDuration(duration);
+        colorAnimator.addUpdateListener(listener);
+        colorAnimator.start();
+    }
+    
+    /**
+     * Apply fade animation to view background color transition
+     */
+    public static void animateBackgroundColorTransition(View view, int fromColor, int toColor, int duration) {
+        if (fromColor == toColor) return; // No animation needed
+        
+        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+        colorAnimator.setDuration(duration);
+        colorAnimator.addUpdateListener(animation -> {
+            int animatedColor = (int) animation.getAnimatedValue();
+            view.setBackgroundColor(animatedColor);
+        });
+        colorAnimator.start();
+    }
+    
+    /**
+     * Apply fade animation to text color transition
+     */
+    public static void animateTextColorTransition(TextView textView, int fromColor, int toColor, int duration) {
+        if (fromColor == toColor) return; // No animation needed
+        
+        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+        colorAnimator.setDuration(duration);
+        colorAnimator.addUpdateListener(animation -> {
+            int animatedColor = (int) animation.getAnimatedValue();
+            textView.setTextColor(animatedColor);
+        });
+        colorAnimator.start();
     }
 }

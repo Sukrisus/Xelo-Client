@@ -58,6 +58,7 @@ import java.util.zip.ZipOutputStream;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.RippleDrawable;
+import android.graphics.Color;
 
 public class DashboardFragment extends BaseThemedFragment {
     private File currentRootDir = null; // Store the found root directory
@@ -211,8 +212,29 @@ public class DashboardFragment extends BaseThemedFragment {
         try {
             RecyclerView folderRecyclerView = getView().findViewById(R.id.folderRecyclerView);
             if (folderRecyclerView != null && folderRecyclerView.getAdapter() != null) {
-                // Force refresh of all folder items
+                // Force refresh of all folder items with animation
                 folderRecyclerView.getAdapter().notifyDataSetChanged();
+                
+                // Apply animated theme changes to existing folder items
+                for (int i = 0; i < folderRecyclerView.getChildCount(); i++) {
+                    View child = folderRecyclerView.getChildAt(i);
+                    if (child instanceof MaterialCardView) {
+                        MaterialCardView card = (MaterialCardView) child;
+                        
+                        // Get current colors
+                        int currentBackground = card.getCardBackgroundColor().getDefaultColor();
+                        int currentStroke = card.getStrokeColor().getDefaultColor();
+                        
+                        // Get target colors
+                        int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
+                        int targetStroke = ThemeManager.getInstance().getColor("outline");
+                        
+                        // Animate color transitions
+                        ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
+                        ThemeUtils.animateColorTransition(currentStroke, targetStroke, 300, 
+                            color -> card.setStrokeColor(ColorStateList.valueOf(color)));
+                    }
+                }
             }
         } catch (Exception e) {
             // Handle error gracefully
@@ -228,8 +250,8 @@ public class DashboardFragment extends BaseThemedFragment {
                 for (int i = 0; i < modulesContainer.getChildCount(); i++) {
                     View child = modulesContainer.getChildAt(i);
                     if (child instanceof MaterialCardView) {
-                        // Find MaterialSwitch in the card and refresh its theme
-                        refreshSwitchThemeInCard((MaterialCardView) child);
+                        // Find MaterialSwitch in the card and refresh its theme with animation
+                        refreshSwitchThemeInCardWithAnimation((MaterialCardView) child);
                     }
                 }
             }
@@ -239,9 +261,9 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     /**
-     * Refresh switch theme within a card
+     * Refresh switch theme within a card with animation
      */
-    private void refreshSwitchThemeInCard(MaterialCardView card) {
+    private void refreshSwitchThemeInCardWithAnimation(MaterialCardView card) {
         try {
             // Find MaterialSwitch in the card
             for (int i = 0; i < ((ViewGroup) card.getChildAt(0)).getChildCount(); i++) {
@@ -256,7 +278,36 @@ public class DashboardFragment extends BaseThemedFragment {
                                 View rightChild = rightContainer.getChildAt(k);
                                 if (rightChild instanceof MaterialSwitch) {
                                     MaterialSwitch materialSwitch = (MaterialSwitch) rightChild;
+                                    
+                                    // Get current colors
+                                    ColorStateList currentTrackColors = materialSwitch.getTrackTintList();
+                                    ColorStateList currentThumbColors = materialSwitch.getThumbTintList();
+                                    
+                                    // Apply new theme
                                     ThemeUtils.applyThemeToSwitch(materialSwitch, requireContext());
+                                    
+                                    // Get new colors
+                                    ColorStateList newTrackColors = materialSwitch.getTrackTintList();
+                                    ColorStateList newThumbColors = materialSwitch.getThumbTintList();
+                                    
+                                    // Animate color transitions if colors changed
+                                    if (currentTrackColors != null && newTrackColors != null) {
+                                        int currentTrack = currentTrackColors.getDefaultColor();
+                                        int newTrack = newTrackColors.getDefaultColor();
+                                        if (currentTrack != newTrack) {
+                                            ThemeUtils.animateColorTransition(currentTrack, newTrack, 300, 
+                                                color -> materialSwitch.setTrackTintList(ColorStateList.valueOf(color)));
+                                        }
+                                    }
+                                    
+                                    if (currentThumbColors != null && newThumbColors != null) {
+                                        int currentThumb = currentThumbColors.getDefaultColor();
+                                        int newThumb = newThumbColors.getDefaultColor();
+                                        if (currentThumb != newThumb) {
+                                            ThemeUtils.animateColorTransition(currentThumb, newThumb, 300, 
+                                                color -> materialSwitch.setThumbTintList(ColorStateList.valueOf(color)));
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -270,17 +321,23 @@ public class DashboardFragment extends BaseThemedFragment {
     
     @Override
     protected void onApplyTheme() {
-        // Apply theme to the root view background
+        // Apply theme to the root view background with animation
         View rootView = getView();
         if (rootView != null) {
-            rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+            int currentBackground = rootView.getBackground() != null ? 
+                ((android.graphics.drawable.ColorDrawable) rootView.getBackground()).getColor() : 
+                Color.parseColor("#0A0A0A");
+            int targetBackground = ThemeManager.getInstance().getColor("background");
+            
+            // Animate background color transition
+            ThemeUtils.animateBackgroundColorTransition(rootView, currentBackground, targetBackground, 300);
         }
         
         // Apply theme to ScrollView and modules container background
         refreshScrollViewBackground();
         
-        // Refresh button themes
-        refreshButtonThemes();
+        // Refresh button themes with animation
+        refreshButtonThemesWithAnimation();
         
         // Refresh all ripple effects in the entire view hierarchy
         if (rootView != null) {
@@ -288,7 +345,7 @@ public class DashboardFragment extends BaseThemedFragment {
         }
         
         // Refresh module card backgrounds to ensure they remain visible
-        refreshModuleCardBackgrounds();
+        refreshModuleCardBackgroundsWithAnimation();
         
         // Refresh folder themes
         refreshFolderThemes();
@@ -298,32 +355,32 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     /**
-     * Refresh button themes when theme changes
+     * Refresh button themes with animation when theme changes
      */
-    private void refreshButtonThemes() {
+    private void refreshButtonThemesWithAnimation() {
         try {
             View view = getView();
             if (view != null) {
-                // Refresh backup and import buttons
+                // Refresh backup and import buttons with animation
                 MaterialButton backupButton = view.findViewById(R.id.backupButton);
                 MaterialButton importButton = view.findViewById(R.id.importButton);
                 
                 if (backupButton != null) {
-                    ThemeUtils.applyThemeToButton(backupButton, requireContext());
+                    ThemeUtils.applyThemeToButtonWithAnimation(backupButton, requireContext(), 300);
                 }
                 if (importButton != null) {
-                    ThemeUtils.applyThemeToButton(importButton, requireContext());
+                    ThemeUtils.applyThemeToButtonWithAnimation(importButton, requireContext(), 300);
                 }
                 
-                // Refresh config buttons
+                // Refresh config buttons with animation
                 MaterialButton exportConfigButton = view.findViewById(R.id.exportConfigButton);
                 MaterialButton importConfigButton = view.findViewById(R.id.importConfigButton);
                 
                 if (exportConfigButton != null) {
-                    ThemeUtils.applyThemeToButton(exportConfigButton, requireContext());
+                    ThemeUtils.applyThemeToButtonWithAnimation(exportConfigButton, requireContext(), 300);
                 }
                 if (importConfigButton != null) {
-                    ThemeUtils.applyThemeToButton(importConfigButton, requireContext());
+                    ThemeUtils.applyThemeToButtonWithAnimation(importConfigButton, requireContext(), 300);
                 }
                 
                 // Refresh module card ripple effects
@@ -355,18 +412,22 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     /**
-     * Refresh module card backgrounds to ensure they remain visible
+     * Refresh module card backgrounds with animation to ensure they remain visible
      */
-    private void refreshModuleCardBackgrounds() {
+    private void refreshModuleCardBackgroundsWithAnimation() {
         try {
             if (modulesContainer != null) {
                 for (int i = 0; i < modulesContainer.getChildCount(); i++) {
                     View child = modulesContainer.getChildAt(i);
                     if (child instanceof MaterialCardView) {
                         MaterialCardView card = (MaterialCardView) child;
-                        // Set a distinct background color for better visibility
-                        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
-                        card.setCardBackgroundColor(cardBackgroundColor);
+                        
+                        // Get current background color
+                        int currentBackground = card.getCardBackgroundColor().getDefaultColor();
+                        int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
+                        
+                        // Animate background color transition
+                        ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
                         // Ensure elevation and border are maintained
                         card.setCardElevation(2 * getResources().getDisplayMetrics().density);
