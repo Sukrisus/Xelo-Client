@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import android.graphics.Color;
 
 public class MainActivity extends BaseThemedActivity {
     private static final String TAG = "MainActivity";
@@ -27,6 +28,10 @@ public class MainActivity extends BaseThemedActivity {
         checkFirstLaunch();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        
+        // Apply theme to bottom navigation
+        ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
+        
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String presenceActivity = "";
@@ -137,10 +142,22 @@ public class MainActivity extends BaseThemedActivity {
     
     @Override
     protected void onApplyTheme() {
-        // Apply theme to bottom navigation
-        View bottomNav = findViewById(R.id.bottom_navigation);
-        if (bottomNav != null) {
-            ThemeUtils.applyThemeToBottomNavigation(bottomNav);
+        super.onApplyTheme();
+        
+        // Refresh bottom navigation theme with animation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView != null) {
+            // Get current background color
+            int currentBackground = bottomNavigationView.getBackground() != null ? 
+                ((android.graphics.drawable.ColorDrawable) bottomNavigationView.getBackground()).getColor() : 
+                Color.parseColor("#141414");
+            int targetBackground = ThemeManager.getInstance().getColor("surface");
+            
+            // Animate background color transition
+            ThemeUtils.animateBackgroundColorTransition(bottomNavigationView, currentBackground, targetBackground, 300);
+            
+            // Apply other theme properties
+            ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
         }
     }
 
