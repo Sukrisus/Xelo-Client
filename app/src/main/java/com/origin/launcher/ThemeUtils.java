@@ -23,6 +23,18 @@ import android.animation.ArgbEvaluator;
 public class ThemeUtils {
     
     /**
+     * Ensure corner radius is preserved on a MaterialCardView
+     */
+    public static void preserveCornerRadius(MaterialCardView card, Context context) {
+        try {
+            // Always ensure corner radius is set to 12dp
+            card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    /**
      * Apply theme colors to a MaterialCardView
      */
     public static void applyThemeToCard(MaterialCardView card, Context context) {
@@ -34,7 +46,6 @@ public class ThemeUtils {
                 card.setStrokeColor(themeManager.getColor("outline"));
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density)); // 1dp stroke
                 card.setCardElevation(0f); // Remove elevation for flat design
-                card.setRadius(12 * context.getResources().getDisplayMetrics().density); // 12dp radius
                 
                 // Create ripple effect with theme colors
                 RippleDrawable ripple = new RippleDrawable(
@@ -49,15 +60,19 @@ public class ThemeUtils {
                 card.setStrokeColor(Color.parseColor("#505050"));
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 card.setCardElevation(0f);
-                card.setRadius(12 * context.getResources().getDisplayMetrics().density);
             }
+            
+            // Always preserve corner radius after theme application
+            preserveCornerRadius(card, context);
         } catch (Exception e) {
             // Fallback to default colors on error
             card.setCardBackgroundColor(Color.parseColor("#141414"));
             card.setStrokeColor(Color.parseColor("#505050"));
             card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
             card.setCardElevation(0f);
-            card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+            
+            // Always preserve corner radius even on error
+            preserveCornerRadius(card, context);
         }
     }
     
@@ -635,7 +650,6 @@ public class ThemeUtils {
                 // Apply other properties immediately
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 card.setCardElevation(0f);
-                card.setRadius(12 * context.getResources().getDisplayMetrics().density);
                 
                 // Create ripple effect with theme colors
                 RippleDrawable ripple = new RippleDrawable(
@@ -644,6 +658,9 @@ public class ThemeUtils {
                     null
                 );
                 card.setForeground(ripple);
+                
+                // Always preserve corner radius
+                preserveCornerRadius(card, context);
             }
         } catch (Exception e) {
             // Fallback to immediate application on error

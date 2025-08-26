@@ -236,6 +236,9 @@ public class DashboardFragment extends BaseThemedFragment {
                                 int animated = (int) va.getAnimatedValue();
                                 card.setStrokeColor(animated);
                             });
+                        
+                        // Ensure corner radius is preserved
+                        ThemeUtils.preserveCornerRadius(card, requireContext());
                     }
                 }
             }
@@ -448,6 +451,9 @@ public class DashboardFragment extends BaseThemedFragment {
                         card.setCardElevation(2 * getResources().getDisplayMetrics().density);
                         card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
                         card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        
+                        // Ensure corner radius is preserved
+                        ThemeUtils.preserveCornerRadius(card, requireContext());
                     }
                 }
             }
@@ -519,7 +525,8 @@ public class DashboardFragment extends BaseThemedFragment {
             (int) (8 * getResources().getDisplayMetrics().density)
         );
         moduleCard.setLayoutParams(cardParams);
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        
+        // Set initial properties
         moduleCard.setCardElevation(0); // Remove elevation for flat design
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
@@ -537,7 +544,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
         
         // Ensure corner radius is preserved
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        ThemeUtils.preserveCornerRadius(moduleCard, requireContext());
         
         // Main container (vertical layout for two areas)
         LinearLayout mainLayout = new LinearLayout(getContext());
@@ -1720,6 +1727,9 @@ public class DashboardFragment extends BaseThemedFragment {
                     cardView.setStrokeColor(themeManager.getColor("outline"));
                     cardView.setStrokeWidth((int) (1 * itemView.getContext().getResources().getDisplayMetrics().density));
                     cardView.setCardElevation(2 * itemView.getContext().getResources().getDisplayMetrics().density);
+                    
+                    // Ensure corner radius is preserved
+                    ThemeUtils.preserveCornerRadius(cardView, itemView.getContext());
                     
                     // Apply theme to the text
                     textView.setTextColor(themeManager.getColor("onSurface"));
