@@ -238,7 +238,7 @@ public class DashboardFragment extends BaseThemedFragment {
                             });
                         
                         // Ensure corner radius is preserved
-                        ThemeUtils.preserveCornerRadius(card, requireContext());
+                        card.setRadius(12 * getResources().getDisplayMetrics().density);
                     }
                 }
             }
@@ -453,7 +453,7 @@ public class DashboardFragment extends BaseThemedFragment {
                         card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
                         
                         // Ensure corner radius is preserved
-                        ThemeUtils.preserveCornerRadius(card, requireContext());
+                        card.setRadius(12 * getResources().getDisplayMetrics().density);
                     }
                 }
             }
@@ -526,7 +526,8 @@ public class DashboardFragment extends BaseThemedFragment {
         );
         moduleCard.setLayoutParams(cardParams);
         
-        // Set initial properties
+        // Set corner radius directly - this was working in the old code
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
         moduleCard.setCardElevation(0); // Remove elevation for flat design
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
@@ -543,41 +544,33 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
         moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
         
-        // Ensure corner radius is preserved
-        ThemeUtils.preserveCornerRadius(moduleCard, requireContext());
+        // FORCE corner radius again to ensure it's not overridden
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
         
-        // Main container (vertical layout for two areas)
+        // Main container (horizontal layout like themes)
         LinearLayout mainLayout = new LinearLayout(getContext());
-        mainLayout.setOrientation(LinearLayout.VERTICAL);
+        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
         mainLayout.setPadding(
             (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
             (int) (12 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 12
             (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
             (int) (12 * getResources().getDisplayMetrics().density)   // Reduced from 16 to 12
         );
-        
-        // TOP AREA: Icon, name, and toggle (horizontal layout)
-        LinearLayout topArea = new LinearLayout(getContext());
-        topArea.setOrientation(LinearLayout.HORIZONTAL);
-        topArea.setGravity(Gravity.CENTER_VERTICAL);
-        topArea.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
+        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
         
         // Left side: Icon
         ImageView iconView = new ImageView(getContext());
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (20 * getResources().getDisplayMetrics().density),  // Reduced from 24 to 20
-            (int) (20 * getResources().getDisplayMetrics().density)   // Reduced from 24 to 20
+            (int) (24 * getResources().getDisplayMetrics().density),  // Back to 24dp for better visibility
+            (int) (24 * getResources().getDisplayMetrics().density)   // Back to 24dp for better visibility
         );
-        iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
+        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
         iconView.setLayoutParams(iconParams);
         iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
         
-        // Text container (module name)
+        // Text container (matching themes layout)
         LinearLayout textLayout = new LinearLayout(getContext());
         textLayout.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
@@ -585,19 +578,34 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             1.0f
         );
-        textParams.setMarginStart((int) (6 * getResources().getDisplayMetrics().density));  // Reduced from 8 to 6
+        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Back to 8dp
         textLayout.setLayoutParams(textParams);
         
         // Module name (matching theme name styling)
         TextView moduleNameText = new TextView(getContext());
         moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(15);  // Reduced from 16 to 15
+        moduleNameText.setTextSize(16);  // Back to 16sp
         moduleNameText.setTypeface(null, Typeface.BOLD);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         
-        textLayout.addView(moduleNameText);
+        // Module description (matching theme description styling)
+        TextView moduleDescriptionText = new TextView(getContext());
+        moduleDescriptionText.setText(module.getDescription());
+        moduleDescriptionText.setTextSize(14);  // Back to 14sp
+        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = (int) (6 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 6
+        moduleDescriptionText.setLayoutParams(descParams);
+        moduleDescriptionText.setMaxLines(2);
+        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
         
-        // Right side container for switch (smaller and better padded)
+        textLayout.addView(moduleNameText);
+        textLayout.addView(moduleDescriptionText);
+        
+        // Right side container for switch (matching theme card right container)
         LinearLayout rightContainer = new LinearLayout(getContext());
         rightContainer.setOrientation(LinearLayout.HORIZONTAL);
         rightContainer.setGravity(Gravity.CENTER_VERTICAL);
@@ -605,18 +613,16 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        rightParams.setMarginStart((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
+        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
         rightContainer.setLayoutParams(rightParams);
         
-        // Module switch (smaller size)
+        // Module switch (normal size - not scaled down)
         MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        // Make switch smaller
-        moduleSwitch.setScaleX(0.75f);  // Reduced from 0.8f to 0.75f
-        moduleSwitch.setScaleY(0.75f);  // Reduced from 0.8f to 0.75f
+        // No scaling - use normal size
         moduleSwitch.setLayoutParams(switchParams);
         moduleSwitch.setChecked(module.isEnabled());
         
@@ -630,46 +636,14 @@ public class DashboardFragment extends BaseThemedFragment {
         
         rightContainer.addView(moduleSwitch);
         
-        // Add elements to top area
-        topArea.addView(iconView);
-        topArea.addView(textLayout);
-        topArea.addView(rightContainer);
-        
-        // BOTTOM AREA: Description only
-        LinearLayout bottomArea = new LinearLayout(getContext());
-        bottomArea.setOrientation(LinearLayout.VERTICAL);
-        bottomArea.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-        bottomArea.setPadding(
-            (int) (26 * getResources().getDisplayMetrics().density),  // Reduced from 32 to 26
-            0,
-            0,
-            0
-        );
-        
-        // Module description (matching theme description styling)
-        TextView moduleDescriptionText = new TextView(getContext());
-        moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(13);  // Reduced from 14 to 13
-        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 4
-        moduleDescriptionText.setLayoutParams(descParams);
-        moduleDescriptionText.setMaxLines(2);
-        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        
-        bottomArea.addView(moduleDescriptionText);
-        
-        // Add both areas to main layout
-        mainLayout.addView(topArea);
-        mainLayout.addView(bottomArea);
+        mainLayout.addView(iconView);
+        mainLayout.addView(textLayout);
+        mainLayout.addView(rightContainer);
         
         moduleCard.addView(mainLayout);
+        
+        // FINAL corner radius enforcement
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
         
         return moduleCard;
     }
@@ -1729,7 +1703,7 @@ public class DashboardFragment extends BaseThemedFragment {
                     cardView.setCardElevation(2 * itemView.getContext().getResources().getDisplayMetrics().density);
                     
                     // Ensure corner radius is preserved
-                    ThemeUtils.preserveCornerRadius(cardView, itemView.getContext());
+                    cardView.setRadius(12 * itemView.getContext().getResources().getDisplayMetrics().density);
                     
                     // Apply theme to the text
                     textView.setTextColor(themeManager.getColor("onSurface"));

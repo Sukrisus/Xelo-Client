@@ -47,6 +47,9 @@ public class ThemeUtils {
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density)); // 1dp stroke
                 card.setCardElevation(0f); // Remove elevation for flat design
                 
+                // DO NOT override corner radius - preserve existing value
+                // card.setRadius(12 * context.getResources().getDisplayMetrics().density);
+                
                 // Create ripple effect with theme colors
                 RippleDrawable ripple = new RippleDrawable(
                     ColorStateList.valueOf(createOptimizedRippleColor("onSurface", "card")),
@@ -60,10 +63,10 @@ public class ThemeUtils {
                 card.setStrokeColor(Color.parseColor("#505050"));
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 card.setCardElevation(0f);
+                
+                // DO NOT override corner radius - preserve existing value
+                // card.setRadius(12 * context.getResources().getDisplayMetrics().density);
             }
-            
-            // Always preserve corner radius after theme application
-            preserveCornerRadius(card, context);
         } catch (Exception e) {
             // Fallback to default colors on error
             card.setCardBackgroundColor(Color.parseColor("#141414"));
@@ -71,8 +74,8 @@ public class ThemeUtils {
             card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
             card.setCardElevation(0f);
             
-            // Always preserve corner radius even on error
-            preserveCornerRadius(card, context);
+            // DO NOT override corner radius - preserve existing value
+            // card.setRadius(12 * context.getResources().getDisplayMetrics().density);
         }
     }
     
@@ -659,8 +662,8 @@ public class ThemeUtils {
                 );
                 card.setForeground(ripple);
                 
-                // Always preserve corner radius
-                preserveCornerRadius(card, context);
+                // DO NOT override corner radius - preserve existing value
+                // preserveCornerRadius(card, context);
             }
         } catch (Exception e) {
             // Fallback to immediate application on error
