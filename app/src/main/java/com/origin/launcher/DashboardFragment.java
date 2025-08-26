@@ -550,10 +550,10 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout mainLayout = new LinearLayout(getContext());
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(
-            (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
-            (int) (16 * getResources().getDisplayMetrics().density)
+            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
+            (int) (12 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 12
+            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
+            (int) (12 * getResources().getDisplayMetrics().density)   // Reduced from 16 to 12
         );
         
         // TOP AREA: Icon, name, and toggle (horizontal layout)
@@ -570,10 +570,10 @@ public class DashboardFragment extends BaseThemedFragment {
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),
-            (int) (24 * getResources().getDisplayMetrics().density)
+            (int) (20 * getResources().getDisplayMetrics().density),  // Reduced from 24 to 20
+            (int) (20 * getResources().getDisplayMetrics().density)   // Reduced from 24 to 20
         );
-        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
+        iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
         iconView.setLayoutParams(iconParams);
         iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
         
@@ -585,13 +585,13 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             1.0f
         );
-        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Add left margin
+        textParams.setMarginStart((int) (6 * getResources().getDisplayMetrics().density));  // Reduced from 8 to 6
         textLayout.setLayoutParams(textParams);
         
         // Module name (matching theme name styling)
         TextView moduleNameText = new TextView(getContext());
         moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);
+        moduleNameText.setTextSize(15);  // Reduced from 16 to 15
         moduleNameText.setTypeface(null, Typeface.BOLD);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         
@@ -605,7 +605,7 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+        rightParams.setMarginStart((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
         rightContainer.setLayoutParams(rightParams);
         
         // Module switch (smaller size)
@@ -615,8 +615,8 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
         // Make switch smaller
-        moduleSwitch.setScaleX(0.8f);
-        moduleSwitch.setScaleY(0.8f);
+        moduleSwitch.setScaleX(0.75f);  // Reduced from 0.8f to 0.75f
+        moduleSwitch.setScaleY(0.75f);  // Reduced from 0.8f to 0.75f
         moduleSwitch.setLayoutParams(switchParams);
         moduleSwitch.setChecked(module.isEnabled());
         
@@ -643,7 +643,7 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT
         ));
         bottomArea.setPadding(
-            (int) (32 * getResources().getDisplayMetrics().density),  // Indent description
+            (int) (26 * getResources().getDisplayMetrics().density),  // Reduced from 32 to 26
             0,
             0,
             0
@@ -652,13 +652,13 @@ public class DashboardFragment extends BaseThemedFragment {
         // Module description (matching theme description styling)
         TextView moduleDescriptionText = new TextView(getContext());
         moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);
+        moduleDescriptionText.setTextSize(13);  // Reduced from 14 to 13
         ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
         LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 4
         moduleDescriptionText.setLayoutParams(descParams);
         moduleDescriptionText.setMaxLines(2);
         moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);

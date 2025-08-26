@@ -31,10 +31,10 @@
     "warning": "#F57C00",
     "toggle": {
       "track": "#E0E0E0",
-      "trackChecked": "#4CAF50",
+      "trackChecked": "#1976D2",
       "thumb": "#FFFFFF",
       "thumbChecked": "#FFFFFF",
-      "ripple": "#4CAF50"
+      "ripple": "#1976D2"
     }
   }
 }
