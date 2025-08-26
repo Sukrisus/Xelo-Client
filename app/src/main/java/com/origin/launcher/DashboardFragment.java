@@ -506,132 +506,166 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     private View createModuleView(ModuleItem module) {
-    // Create card layout (matching theme card design)
-    MaterialCardView moduleCard = new MaterialCardView(getContext());
-    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, 
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    cardParams.setMargins(
-        (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-        (int) (8 * getResources().getDisplayMetrics().density),
-        (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-        (int) (8 * getResources().getDisplayMetrics().density)
-    );
-    moduleCard.setLayoutParams(cardParams);
-    moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-    moduleCard.setCardElevation(0); // Remove elevation for flat design
-    moduleCard.setClickable(true);
-    moduleCard.setFocusable(true);
-    
-    // Apply theme colors to card (matching themes card)
-    ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-    
-    // Override the background to make it more visible and distinct from the main background
-    int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
-    moduleCard.setCardBackgroundColor(cardBackgroundColor);
-    
-    // Add subtle elevation and border for better visibility
-    moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
-    moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-    moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-    
-    // Main container (horizontal layout like themes)
-    LinearLayout mainLayout = new LinearLayout(getContext());
-    mainLayout.setOrientation(LinearLayout.HORIZONTAL);
-    mainLayout.setPadding(
-        (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
-        (int) (16 * getResources().getDisplayMetrics().density),
-        (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
-        (int) (16 * getResources().getDisplayMetrics().density)
-    );
-    mainLayout.setGravity(Gravity.CENTER_VERTICAL);
-    
-    // Left side: Icon
-    ImageView iconView = new ImageView(getContext());
-    iconView.setImageResource(R.drawable.wrench);
-    iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-    LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-        (int) (24 * getResources().getDisplayMetrics().density),
-        (int) (24 * getResources().getDisplayMetrics().density)
-    );
-    iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
-    iconView.setLayoutParams(iconParams);
-    iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-    
-    // Text container (matching themes layout)
-    LinearLayout textLayout = new LinearLayout(getContext());
-    textLayout.setOrientation(LinearLayout.VERTICAL);
-    LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-        0, 
-        LinearLayout.LayoutParams.WRAP_CONTENT, 
-        1.0f
-    );
-    textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Add left margin
-    textLayout.setLayoutParams(textParams);
-    
-    // Module name (matching theme name styling)
-    TextView moduleNameText = new TextView(getContext());
-    moduleNameText.setText(module.getName());
-    moduleNameText.setTextSize(16);
-    moduleNameText.setTypeface(null, Typeface.BOLD);
-    ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-    
-    // Module description (matching theme description styling)
-    TextView moduleDescriptionText = new TextView(getContext());
-    moduleDescriptionText.setText(module.getDescription());
-    moduleDescriptionText.setTextSize(14);
-    ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-    LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT, 
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 4
-    moduleDescriptionText.setLayoutParams(descParams);
-    moduleDescriptionText.setMaxLines(2);
-    moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-    
-    textLayout.addView(moduleNameText);
-    textLayout.addView(moduleDescriptionText);
-    
-    // Right side container for switch (matching theme card right container)
-    LinearLayout rightContainer = new LinearLayout(getContext());
-    rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-    rightContainer.setGravity(Gravity.CENTER_VERTICAL);
-    LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    rightParams.setMarginStart((int) (12 * getResources().getDisplayMetrics().density));  // Reduced from 16 to 12
-    rightContainer.setLayoutParams(rightParams);
-    
-    // Module switch (replacing radio button)
-    MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
-    LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    moduleSwitch.setLayoutParams(switchParams);
-    moduleSwitch.setChecked(module.isEnabled());
-    
-    // Apply theme to the switch
-    ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
-    
-    moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-        module.setEnabled(isChecked);
-        onModuleToggle(module, isChecked);
-    });
-    
-    rightContainer.addView(moduleSwitch);
-    
-    mainLayout.addView(iconView);
-    mainLayout.addView(textLayout);
-    mainLayout.addView(rightContainer);
-    
-    moduleCard.addView(mainLayout);
-    
-    return moduleCard;
-}
+        // Create card layout (matching theme card design)
+        MaterialCardView moduleCard = new MaterialCardView(getContext());
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        cardParams.setMargins(
+            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
+            (int) (8 * getResources().getDisplayMetrics().density),
+            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
+            (int) (8 * getResources().getDisplayMetrics().density)
+        );
+        moduleCard.setLayoutParams(cardParams);
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        moduleCard.setCardElevation(0); // Remove elevation for flat design
+        moduleCard.setClickable(true);
+        moduleCard.setFocusable(true);
+        
+        // Apply theme colors to card (matching themes card)
+        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
+        
+        // Override the background to make it more visible and distinct from the main background
+        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
+        moduleCard.setCardBackgroundColor(cardBackgroundColor);
+        
+        // Add subtle elevation and border for better visibility
+        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
+        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
+        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+        
+        // Ensure corner radius is preserved
+        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        
+        // Main container (vertical layout for two areas)
+        LinearLayout mainLayout = new LinearLayout(getContext());
+        mainLayout.setOrientation(LinearLayout.VERTICAL);
+        mainLayout.setPadding(
+            (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (20 * getResources().getDisplayMetrics().density),  // Increased from 16 to 20
+            (int) (16 * getResources().getDisplayMetrics().density)
+        );
+        
+        // TOP AREA: Icon, name, and toggle (horizontal layout)
+        LinearLayout topArea = new LinearLayout(getContext());
+        topArea.setOrientation(LinearLayout.HORIZONTAL);
+        topArea.setGravity(Gravity.CENTER_VERTICAL);
+        topArea.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        
+        // Left side: Icon
+        ImageView iconView = new ImageView(getContext());
+        iconView.setImageResource(R.drawable.wrench);
+        iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
+        );
+        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));
+        iconView.setLayoutParams(iconParams);
+        iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
+        
+        // Text container (module name)
+        LinearLayout textLayout = new LinearLayout(getContext());
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+            0, 
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            1.0f
+        );
+        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Add left margin
+        textLayout.setLayoutParams(textParams);
+        
+        // Module name (matching theme name styling)
+        TextView moduleNameText = new TextView(getContext());
+        moduleNameText.setText(module.getName());
+        moduleNameText.setTextSize(16);
+        moduleNameText.setTypeface(null, Typeface.BOLD);
+        ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
+        
+        textLayout.addView(moduleNameText);
+        
+        // Right side container for switch (smaller and better padded)
+        LinearLayout rightContainer = new LinearLayout(getContext());
+        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
+        rightContainer.setLayoutParams(rightParams);
+        
+        // Module switch (smaller size)
+        MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
+        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        // Make switch smaller
+        moduleSwitch.setScaleX(0.8f);
+        moduleSwitch.setScaleY(0.8f);
+        moduleSwitch.setLayoutParams(switchParams);
+        moduleSwitch.setChecked(module.isEnabled());
+        
+        // Apply theme to the switch
+        ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
+        
+        moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            module.setEnabled(isChecked);
+            onModuleToggle(module, isChecked);
+        });
+        
+        rightContainer.addView(moduleSwitch);
+        
+        // Add elements to top area
+        topArea.addView(iconView);
+        topArea.addView(textLayout);
+        topArea.addView(rightContainer);
+        
+        // BOTTOM AREA: Description only
+        LinearLayout bottomArea = new LinearLayout(getContext());
+        bottomArea.setOrientation(LinearLayout.VERTICAL);
+        bottomArea.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        bottomArea.setPadding(
+            (int) (32 * getResources().getDisplayMetrics().density),  // Indent description
+            0,
+            0,
+            0
+        );
+        
+        // Module description (matching theme description styling)
+        TextView moduleDescriptionText = new TextView(getContext());
+        moduleDescriptionText.setText(module.getDescription());
+        moduleDescriptionText.setTextSize(14);
+        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        moduleDescriptionText.setLayoutParams(descParams);
+        moduleDescriptionText.setMaxLines(2);
+        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        
+        bottomArea.addView(moduleDescriptionText);
+        
+        // Add both areas to main layout
+        mainLayout.addView(topArea);
+        mainLayout.addView(bottomArea);
+        
+        moduleCard.addView(mainLayout);
+        
+        return moduleCard;
+    }
     
     private void setupConfigButtons(View view) {
         // Find the existing buttons from XML
