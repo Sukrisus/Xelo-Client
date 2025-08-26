@@ -327,13 +327,25 @@ public class DashboardFragment extends BaseThemedFragment {
         // Apply theme to the root view background with animation
         View rootView = getView();
         if (rootView != null) {
-            int currentBackground = rootView.getBackground() != null ? 
-                ((android.graphics.drawable.ColorDrawable) rootView.getBackground()).getColor() : 
-                Color.parseColor("#0A0A0A");
-            int targetBackground = ThemeManager.getInstance().getColor("background");
-            
-            // Animate background color transition
-            ThemeUtils.animateBackgroundColorTransition(rootView, currentBackground, targetBackground, 300);
+            try {
+                // Get current background color safely
+                int currentBackground = Color.parseColor("#0A0A0A"); // Default fallback
+                if (rootView.getBackground() != null) {
+                    try {
+                        currentBackground = ((android.graphics.drawable.ColorDrawable) rootView.getBackground()).getColor();
+                    } catch (Exception e) {
+                        // Use default if we can't get current color
+                    }
+                }
+                
+                int targetBackground = ThemeManager.getInstance().getColor("background");
+                
+                // Animate background color transition
+                ThemeUtils.animateBackgroundColorTransition(rootView, currentBackground, targetBackground, 300);
+            } catch (Exception e) {
+                // Fallback to immediate theme application
+                rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+            }
         }
         
         // Apply theme to ScrollView and modules container background
@@ -601,6 +613,10 @@ public class DashboardFragment extends BaseThemedFragment {
     );
     moduleSwitch.setLayoutParams(switchParams);
     moduleSwitch.setChecked(module.isEnabled());
+    
+    // Apply theme to the switch
+    ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
+    
     moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
         module.setEnabled(isChecked);
         onModuleToggle(module, isChecked);

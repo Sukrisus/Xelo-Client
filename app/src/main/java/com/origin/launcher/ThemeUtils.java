@@ -741,16 +741,38 @@ public class ThemeUtils {
     }
     
     /**
-     * Animate color transition from one color to another
+     * Animate color transition from one color to another with better error handling
      */
     public static void animateColorTransition(int fromColor, int toColor, int duration, 
                                             android.animation.ValueAnimator.AnimatorUpdateListener listener) {
         if (fromColor == toColor) return; // No animation needed
         
-        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
-        colorAnimator.setDuration(duration);
-        colorAnimator.addUpdateListener(listener);
-        colorAnimator.start();
+        try {
+            ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+            colorAnimator.setDuration(duration);
+            colorAnimator.addUpdateListener(animation -> {
+                try {
+                    if (listener != null) {
+                        listener.onAnimationUpdate(animation);
+                    }
+                } catch (Exception e) {
+                    // Handle error gracefully
+                }
+            });
+            colorAnimator.start();
+        } catch (Exception e) {
+            // Fallback to immediate change
+            if (listener != null) {
+                try {
+                    // Create a fake animation object with the target value
+                    ValueAnimator fakeAnim = ValueAnimator.ofInt(toColor);
+                    fakeAnim.setCurrentPlayTime(duration);
+                    listener.onAnimationUpdate(fakeAnim);
+                } catch (Exception ex) {
+                    // Ignore fallback errors
+                }
+            }
+        }
     }
     
     /**
@@ -759,13 +781,22 @@ public class ThemeUtils {
     public static void animateBackgroundColorTransition(View view, int fromColor, int toColor, int duration) {
         if (fromColor == toColor) return; // No animation needed
         
-        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
-        colorAnimator.setDuration(duration);
-        colorAnimator.addUpdateListener(animation -> {
-            int animatedColor = (int) animation.getAnimatedValue();
-            view.setBackgroundColor(animatedColor);
-        });
-        colorAnimator.start();
+        try {
+            ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+            colorAnimator.setDuration(duration);
+            colorAnimator.addUpdateListener(animation -> {
+                try {
+                    int animatedColor = (int) animation.getAnimatedValue();
+                    view.setBackgroundColor(animatedColor);
+                } catch (Exception e) {
+                    // Handle error gracefully
+                }
+            });
+            colorAnimator.start();
+        } catch (Exception e) {
+            // Fallback to immediate change
+            view.setBackgroundColor(toColor);
+        }
     }
     
     /**
@@ -774,12 +805,21 @@ public class ThemeUtils {
     public static void animateTextColorTransition(TextView textView, int fromColor, int toColor, int duration) {
         if (fromColor == toColor) return; // No animation needed
         
-        ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
-        colorAnimator.setDuration(duration);
-        colorAnimator.addUpdateListener(animation -> {
-            int animatedColor = (int) animation.getAnimatedValue();
-            textView.setTextColor(animatedColor);
-        });
-        colorAnimator.start();
+        try {
+            ValueAnimator colorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), fromColor, toColor);
+            colorAnimator.setDuration(duration);
+            colorAnimator.addUpdateListener(animation -> {
+                try {
+                    int animatedColor = (int) animation.getAnimatedValue();
+                    textView.setTextColor(animatedColor);
+                } catch (Exception e) {
+                    // Handle error gracefully
+                }
+            });
+            colorAnimator.start();
+        } catch (Exception e) {
+            // Fallback to immediate change
+            textView.setTextColor(toColor);
+        }
     }
 }
