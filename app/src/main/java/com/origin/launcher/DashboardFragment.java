@@ -223,8 +223,7 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Get current colors
                         int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int currentStroke = card.getStrokeColor() != null ? 
-                            card.getStrokeColor().getDefaultColor() : Color.TRANSPARENT;
+                        int currentStroke = card.getStrokeColor();
                         
                         // Get target colors
                         int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
@@ -232,10 +231,11 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Animate color transitions
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
-                        if (currentStroke != Color.TRANSPARENT) {
-                            ThemeUtils.animateColorTransition(currentStroke, targetStroke, 300, 
-                                color -> card.setStrokeColor(ColorStateList.valueOf(color)));
-                        }
+                        ThemeUtils.animateColorTransition(currentStroke, targetStroke, 300, 
+                            va -> {
+                                int animated = (int) va.getAnimatedValue();
+                                card.setStrokeColor(animated);
+                            });
                     }
                 }
             }
@@ -293,24 +293,24 @@ public class DashboardFragment extends BaseThemedFragment {
                                     ColorStateList newTrackColors = materialSwitch.getTrackTintList();
                                     ColorStateList newThumbColors = materialSwitch.getThumbTintList();
                                     
-                                    // Animate color transitions if colors changed
-                                    if (currentTrackColors != null && newTrackColors != null) {
-                                        int currentTrack = currentTrackColors.getDefaultColor();
-                                        int newTrack = newTrackColors.getDefaultColor();
-                                        if (currentTrack != newTrack) {
-                                            ThemeUtils.animateColorTransition(currentTrack, newTrack, 300, 
-                                                color -> materialSwitch.setTrackTintList(ColorStateList.valueOf(color)));
-                                        }
-                                    }
-                                    
-                                    if (currentThumbColors != null && newThumbColors != null) {
-                                        int currentThumb = currentThumbColors.getDefaultColor();
-                                        int newThumb = newThumbColors.getDefaultColor();
-                                        if (currentThumb != newThumb) {
-                                            ThemeUtils.animateColorTransition(currentThumb, newThumb, 300, 
-                                                color -> materialSwitch.setThumbTintList(ColorStateList.valueOf(color)));
-                                        }
-                                    }
+                                                            // Animate color transitions if colors changed
+                        if (currentTrackColors != null && newTrackColors != null) {
+                            int currentTrack = currentTrackColors.getDefaultColor();
+                            int newTrack = newTrackColors.getDefaultColor();
+                            if (currentTrack != newTrack) {
+                                ThemeUtils.animateColorTransition(currentTrack, newTrack, 300, 
+                                    va -> materialSwitch.setTrackTintList(ColorStateList.valueOf((int) va.getAnimatedValue())));
+                            }
+                        }
+                        
+                        if (currentThumbColors != null && newThumbColors != null) {
+                            int currentThumb = currentThumbColors.getDefaultColor();
+                            int newThumb = newThumbColors.getDefaultColor();
+                            if (currentThumb != newThumb) {
+                                ThemeUtils.animateColorTransition(currentThumb, newThumb, 300, 
+                                    va -> materialSwitch.setThumbTintList(ColorStateList.valueOf((int) va.getAnimatedValue())));
+                            }
+                        }
                                 }
                             }
                         }

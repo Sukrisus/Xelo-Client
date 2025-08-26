@@ -616,8 +616,7 @@ public class ThemeUtils {
             if (themeManager != null && themeManager.isThemeLoaded()) {
                 // Get current colors
                 int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                int currentStroke = card.getStrokeColor() != null ? 
-                    card.getStrokeColor().getDefaultColor() : Color.TRANSPARENT;
+                int currentStroke = card.getStrokeColor();
                 
                 // Get target colors
                 int targetBackground = themeManager.getColor("surface");
@@ -626,11 +625,12 @@ public class ThemeUtils {
                 // Animate background color transition
                 animateBackgroundColorTransition(card, currentBackground, targetBackground, duration);
                 
-                // Animate stroke color transition if stroke exists
-                if (currentStroke != Color.TRANSPARENT) {
-                    animateColorTransition(currentStroke, targetStroke, duration, 
-                        color -> card.setStrokeColor(ColorStateList.valueOf(color)));
-                }
+                // Animate stroke color transition
+                animateColorTransition(currentStroke, targetStroke, duration, 
+                    va -> {
+                        int animated = (int) va.getAnimatedValue();
+                        card.setStrokeColor(animated);
+                    });
                 
                 // Apply other properties immediately
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
@@ -678,7 +678,7 @@ public class ThemeUtils {
                         int currentStroke = button.getStrokeColor().getDefaultColor();
                         int targetStroke = themeManager.getColor("outline");
                         animateColorTransition(currentStroke, targetStroke, duration, 
-                            color -> button.setStrokeColor(ColorStateList.valueOf(color)));
+                            va -> button.setStrokeColor(ColorStateList.valueOf((int) va.getAnimatedValue())));
                     }
                     
                     // Apply other properties immediately
@@ -705,7 +705,7 @@ public class ThemeUtils {
                         int currentBackground = button.getBackgroundTintList().getDefaultColor();
                         int targetBackground = themeManager.getColor("primary");
                         animateColorTransition(currentBackground, targetBackground, duration, 
-                            color -> button.setBackgroundTintList(ColorStateList.valueOf(color)));
+                            va -> button.setBackgroundTintList(ColorStateList.valueOf((int) va.getAnimatedValue())));
                     }
                     
                     // Animate text color transition
