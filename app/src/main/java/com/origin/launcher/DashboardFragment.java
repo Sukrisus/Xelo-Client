@@ -442,15 +442,14 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Get current background color
                         int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
+                        int targetBackground = Color.TRANSPARENT;
                         
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Ensure elevation and border are maintained
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        // Remove elevation and border to avoid rectangle background
+                        card.setCardElevation(0);
+                        card.setStrokeWidth(0);
                         
                         // Ensure corner radius is preserved
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
@@ -532,17 +531,9 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
-        // Apply theme colors to card (matching themes card)
-        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-        
-        // Override the background to make it more visible and distinct from the main background
-        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
-        moduleCard.setCardBackgroundColor(cardBackgroundColor);
-        
-        // Add subtle elevation and border for better visibility
-        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
-        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+        // Remove default rectangle look: transparent background, no stroke, flat
+        moduleCard.setCardBackgroundColor(Color.TRANSPARENT);
+        moduleCard.setStrokeWidth(0);
         
         // FORCE corner radius again to ensure it's not overridden
         moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
