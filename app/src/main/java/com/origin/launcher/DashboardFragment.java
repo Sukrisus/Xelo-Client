@@ -512,100 +512,61 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     private View createModuleView(ModuleItem module) {
-        // Create card layout (matching theme card design)
-        MaterialCardView moduleCard = new MaterialCardView(getContext());
+        // Create card layout (EXACTLY matching ThemesFragment pattern)
+        MaterialCardView moduleCard = new MaterialCardView(requireContext());
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        cardParams.setMargins(
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-            (int) (8 * getResources().getDisplayMetrics().density)
-        );
         moduleCard.setLayoutParams(cardParams);
-        
-        // Set corner radius FIRST before any other styling
         moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        
-        // Set other basic properties
+        moduleCard.setCardElevation(0); // Remove elevation for flat design
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
-        // Apply theme colors to card (but preserve corner radius)
+        // Apply theme colors to card (exactly like ThemesFragment)
         ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-        
-        // Override the background to make it more visible and distinct from the main background
-        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
-        moduleCard.setCardBackgroundColor(cardBackgroundColor);
-        
-        // Add subtle elevation and border for better visibility
-        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
-        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
         moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
         
-        // FORCE corner radius again after all other styling to ensure it's not overridden
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        
-        // Ensure the card doesn't have any conflicting background
-        moduleCard.setUseCompatPadding(false); // Disable compat padding that might interfere
-        moduleCard.setPreventCornerOverlap(true); // Prevent corner overlap issues
-        
-        // Main container (horizontal layout like themes)
-        LinearLayout mainLayout = new LinearLayout(getContext());
+        // Main container (EXACTLY matching ThemesFragment)
+        LinearLayout mainLayout = new LinearLayout(requireContext());
         mainLayout.setOrientation(LinearLayout.HORIZONTAL);
         mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 12
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density)   // Reduced from 16 to 12
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
         );
-        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
+        mainLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
         
-        // Left side: Icon
-        ImageView iconView = new ImageView(getContext());
-        iconView.setImageResource(R.drawable.wrench);
-        iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),  // Back to 24dp for better visibility
-            (int) (24 * getResources().getDisplayMetrics().density)   // Back to 24dp for better visibility
-        );
-        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
-        iconView.setLayoutParams(iconParams);
-        iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
-        
-        // Text container (matching themes layout)
-        LinearLayout textLayout = new LinearLayout(getContext());
+        // Text container (EXACTLY matching ThemesFragment - text comes first)
+        LinearLayout textLayout = new LinearLayout(requireContext());
         textLayout.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
             0, 
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             1.0f
         );
-        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Back to 8dp
         textLayout.setLayoutParams(textParams);
         
-        // Module name (matching theme name styling)
-        TextView moduleNameText = new TextView(getContext());
+        // Module name (EXACTLY matching ThemesFragment pattern)
+        TextView moduleNameText = new TextView(requireContext());
         moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);  // Back to 16sp
-        moduleNameText.setTypeface(null, Typeface.BOLD);
+        moduleNameText.setTextSize(16);
+        moduleNameText.setTypeface(null, android.graphics.Typeface.BOLD);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         
-        // Module description (matching theme description styling)
-        TextView moduleDescriptionText = new TextView(getContext());
+        // Module description (EXACTLY matching ThemesFragment pattern)
+        TextView moduleDescriptionText = new TextView(requireContext());
         moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);  // Back to 14sp
+        moduleDescriptionText.setTextSize(14);
         ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
         LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        descParams.topMargin = (int) (6 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 6
+        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
         moduleDescriptionText.setLayoutParams(descParams);
-        moduleDescriptionText.setMaxLines(2);
-        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
         
         textLayout.addView(moduleNameText);
         textLayout.addView(moduleDescriptionText);
