@@ -540,6 +540,7 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout mainLayout = new LinearLayout(getContext());
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setBackground(null);
+        mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         mainLayout.setPadding(
             (int) (16 * getResources().getDisplayMetrics().density),
             (int) (16 * getResources().getDisplayMetrics().density),
@@ -551,6 +552,7 @@ public class DashboardFragment extends BaseThemedFragment {
         topArea.setOrientation(LinearLayout.HORIZONTAL);
         topArea.setGravity(Gravity.CENTER_VERTICAL);
         topArea.setBackground(null);
+        topArea.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         LinearLayout.LayoutParams topParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -562,6 +564,7 @@ public class DashboardFragment extends BaseThemedFragment {
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         iconView.setBackground(null);
+        iconView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
             (int) (24 * getResources().getDisplayMetrics().density),
             (int) (24 * getResources().getDisplayMetrics().density)
@@ -575,6 +578,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleNameText.setTextSize(16);
         moduleNameText.setTypeface(null, Typeface.BOLD);
         moduleNameText.setBackground(null);
+        moduleNameText.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         moduleNameText.setSingleLine(false);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
@@ -606,6 +610,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleDescriptionText.setText(module.getDescription());
         moduleDescriptionText.setTextSize(14);
         moduleDescriptionText.setBackground(null);
+        moduleDescriptionText.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         moduleDescriptionText.setSingleLine(false);
         moduleDescriptionText.setMaxLines(3);
         moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
