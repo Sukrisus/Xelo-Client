@@ -447,12 +447,11 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Small elevation and subtle stroke with 12dp radius
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setRadius(12 * getResources().getDisplayMetrics().density);
-                        card.setPreventCornerOverlap(false);
+                        // Small elevation, no stroke, with 16dp radius
+                        card.setCardElevation(1 * getResources().getDisplayMetrics().density);
+                        card.setStrokeWidth(0);
+                        card.setRadius(16 * getResources().getDisplayMetrics().density);
+                        card.setPreventCornerOverlap(true);
                     }
                 }
             }
@@ -522,9 +521,11 @@ public class DashboardFragment extends BaseThemedFragment {
             (int) (8 * getResources().getDisplayMetrics().density),
             (int) (8 * getResources().getDisplayMetrics().density)
         );
+        // Fixed height for consistent card size (e.g., 96dp)
+        cardParams.height = (int) (96 * getResources().getDisplayMetrics().density);
         moduleCard.setLayoutParams(cardParams);
         
-        float cornerRadius = 12 * getResources().getDisplayMetrics().density;
+        float cornerRadius = 16 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
         try { moduleCard.setClipToOutline(true); } catch (Throwable ignored) {}
         moduleCard.setPreventCornerOverlap(true);
@@ -537,10 +538,10 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout mainLayout = new LinearLayout(getContext());
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density)
+            (int) (12 * getResources().getDisplayMetrics().density),
+            (int) (10 * getResources().getDisplayMetrics().density),
+            (int) (12 * getResources().getDisplayMetrics().density),
+            (int) (10 * getResources().getDisplayMetrics().density)
         );
         
         LinearLayout topArea = new LinearLayout(getContext());
