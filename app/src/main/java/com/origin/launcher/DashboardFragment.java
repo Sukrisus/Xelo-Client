@@ -521,8 +521,8 @@ public class DashboardFragment extends BaseThemedFragment {
             (int) (8 * getResources().getDisplayMetrics().density),
             (int) (8 * getResources().getDisplayMetrics().density)
         );
-        // Fixed height for consistent card size (e.g., 96dp)
-        cardParams.height = (int) (96 * getResources().getDisplayMetrics().density);
+        // Fixed height for consistent card size (110dp)
+        cardParams.height = (int) (110 * getResources().getDisplayMetrics().density);
         moduleCard.setLayoutParams(cardParams);
         
         float cornerRadius = 16 * getResources().getDisplayMetrics().density;
@@ -532,7 +532,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setClipChildren(true);
         moduleCard.setClipToPadding(true);
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density);
+        moduleCard.setCardElevation(4 * getResources().getDisplayMetrics().density);
         moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
@@ -541,10 +541,10 @@ public class DashboardFragment extends BaseThemedFragment {
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setBackground(null);
         mainLayout.setPadding(
-            (int) (12 * getResources().getDisplayMetrics().density),
-            (int) (10 * getResources().getDisplayMetrics().density),
-            (int) (12 * getResources().getDisplayMetrics().density),
-            (int) (10 * getResources().getDisplayMetrics().density)
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
         );
         
         LinearLayout topArea = new LinearLayout(getContext());
@@ -555,6 +555,7 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
+        topParams.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
         topArea.setLayoutParams(topParams);
         
         ImageView iconView = new ImageView(getContext());
@@ -574,6 +575,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleNameText.setTextSize(16);
         moduleNameText.setTypeface(null, Typeface.BOLD);
         moduleNameText.setBackground(null);
+        moduleNameText.setSingleLine(false);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
             0,
@@ -604,12 +606,15 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleDescriptionText.setText(module.getDescription());
         moduleDescriptionText.setTextSize(14);
         moduleDescriptionText.setBackground(null);
+        moduleDescriptionText.setSingleLine(false);
+        moduleDescriptionText.setMaxLines(3);
+        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
         ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
         LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        descParams.topMargin = 0;
         moduleDescriptionText.setLayoutParams(descParams);
         
         mainLayout.addView(topArea);
@@ -1601,15 +1606,18 @@ public class DashboardFragment extends BaseThemedFragment {
     private void refreshScrollViewBackground() {
         try {
             if (modulesScrollView != null) {
-                // Make ScrollView background transparent
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesScrollView.setBackground(null);
             }
             if (modulesContainer != null) {
-                // Make container background transparent
                 modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesContainer.setBackground(null);
+            }
+            View rootView = getView();
+            if (rootView != null) {
+                rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
             }
         } catch (Exception e) {
-            // Fallback to transparent background
             if (modulesScrollView != null) {
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
             }
