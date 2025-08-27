@@ -447,13 +447,17 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Ensure elevation and border are maintained
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-                        
-                        // Ensure corner radius is preserved
-                        card.setRadius(12 * getResources().getDisplayMetrics().density);
+                        // FIX: Properly maintain corner radius and style (match createModuleView)
+                        float cornerRadius = 16 * getResources().getDisplayMetrics().density;
+                        card.setRadius(cornerRadius);
+                        card.setCardElevation(6 * getResources().getDisplayMetrics().density);
+                        card.setMaxCardElevation(8 * getResources().getDisplayMetrics().density);
+                        card.setStrokeWidth(0);
+                        card.setPreventCornerOverlap(false);
+                        card.setUseCompatPadding(false);
+                        card.setClipChildren(true);
+                        card.setClipToPadding(false);
+                        card.setBackground(null);
                     }
                 }
             }
@@ -495,6 +499,24 @@ public class DashboardFragment extends BaseThemedFragment {
         
         // Set up the existing XML config buttons
         setupConfigButtons(view);
+
+        // Open Modules screen button
+        View openModulesButton = view.findViewById(R.id.openModulesButton);
+        if (openModulesButton != null) {
+            openModulesButton.setOnClickListener(v -> {
+                try {
+                    requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .setCustomAnimations(
+                            R.anim.slide_in_right, R.anim.slide_out_left,
+                            R.anim.slide_in_left, R.anim.slide_out_right
+                        )
+                        .replace(R.id.fragment_container, new ModulesFragment())
+                        .addToBackStack(null)
+                        .commit();
+                } catch (Exception ignored) {}
+            });
+        }
     }
     
     // NEW METHOD: Populate modules in ScrollView
@@ -512,121 +534,95 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     private View createModuleView(ModuleItem module) {
-        // Create card layout (matching theme card design)
         MaterialCardView moduleCard = new MaterialCardView(getContext());
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
         cardParams.setMargins(
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
-            (int) (8 * getResources().getDisplayMetrics().density)
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (12 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (12 * getResources().getDisplayMetrics().density)
         );
+        // Fixed height for consistent card size (110dp)
+        cardParams.height = (int) (110 * getResources().getDisplayMetrics().density);
         moduleCard.setLayoutParams(cardParams);
         
-        // Set corner radius directly - this was working in the old code
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        moduleCard.setCardElevation(0); // Remove elevation for flat design
+        float cornerRadius = 16 * getResources().getDisplayMetrics().density;
+        moduleCard.setRadius(cornerRadius);
+        // Critical settings for proper corner clipping
+        moduleCard.setPreventCornerOverlap(false);
+        moduleCard.setUseCompatPadding(false);
+        moduleCard.setClipChildren(true);
+        moduleCard.setClipToPadding(false);
+        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
+        moduleCard.setCardElevation(6 * getResources().getDisplayMetrics().density);
+        moduleCard.setMaxCardElevation(8 * getResources().getDisplayMetrics().density);
+        moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
+        // Ensure the card itself has no conflicting background
+        moduleCard.setBackground(null);
         
-        // Apply theme colors to card (matching themes card)
-        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-        
-        // Override the background to make it more visible and distinct from the main background
-        int cardBackgroundColor = ThemeManager.getInstance().getColor("surfaceVariant");
-        moduleCard.setCardBackgroundColor(cardBackgroundColor);
-        
-        // Add subtle elevation and border for better visibility
-        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // 2dp elevation
-        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-        
-        // FORCE corner radius again to ensure it's not overridden
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        
-        // Main container (horizontal layout like themes)
         LinearLayout mainLayout = new LinearLayout(getContext());
-        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+        mainLayout.setOrientation(LinearLayout.VERTICAL);
+        mainLayout.setBackground(null);
+        mainLayout.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 12
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density)   // Reduced from 16 to 12
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
         );
-        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
         
-        // Left side: Icon
+        LinearLayout topArea = new LinearLayout(getContext());
+        topArea.setOrientation(LinearLayout.HORIZONTAL);
+        topArea.setGravity(Gravity.CENTER_VERTICAL);
+        topArea.setBackground(null);
+        topArea.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        LinearLayout.LayoutParams topParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        topParams.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        topArea.setLayoutParams(topParams);
+        
         ImageView iconView = new ImageView(getContext());
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        iconView.setBackground(null);
+        iconView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),  // Back to 24dp for better visibility
-            (int) (24 * getResources().getDisplayMetrics().density)   // Back to 24dp for better visibility
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
         );
-        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
+        iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));
         iconView.setLayoutParams(iconParams);
         iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
         
-        // Text container (matching themes layout)
-        LinearLayout textLayout = new LinearLayout(getContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-            0, 
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            1.0f
-        );
-        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Back to 8dp
-        textLayout.setLayoutParams(textParams);
-        
-        // Module name (matching theme name styling)
         TextView moduleNameText = new TextView(getContext());
         moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);  // Back to 16sp
+        moduleNameText.setTextSize(16);
         moduleNameText.setTypeface(null, Typeface.BOLD);
+        moduleNameText.setBackground(null);
+        moduleNameText.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        moduleNameText.setSingleLine(false);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-        
-        // Module description (matching theme description styling)
-        TextView moduleDescriptionText = new TextView(getContext());
-        moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);  // Back to 14sp
-        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (6 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 6
-        moduleDescriptionText.setLayoutParams(descParams);
-        moduleDescriptionText.setMaxLines(2);
-        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        
-        textLayout.addView(moduleNameText);
-        textLayout.addView(moduleDescriptionText);
-        
-        // Right side container for switch (matching theme card right container)
-        LinearLayout rightContainer = new LinearLayout(getContext());
-        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+            0,
             LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+            1.0f
         );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
-        rightContainer.setLayoutParams(rightParams);
+        moduleNameText.setLayoutParams(nameParams);
         
-        // Module switch (normal size - not scaled down)
         MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        // No scaling - use normal size
         moduleSwitch.setLayoutParams(switchParams);
         moduleSwitch.setChecked(module.isEnabled());
-        
-        // Apply theme to the switch
         ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
         
         moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -634,16 +630,29 @@ public class DashboardFragment extends BaseThemedFragment {
             onModuleToggle(module, isChecked);
         });
         
-        rightContainer.addView(moduleSwitch);
+        topArea.addView(iconView);
+        topArea.addView(moduleNameText);
+        topArea.addView(moduleSwitch);
         
-        mainLayout.addView(iconView);
-        mainLayout.addView(textLayout);
-        mainLayout.addView(rightContainer);
+        TextView moduleDescriptionText = new TextView(getContext());
+        moduleDescriptionText.setText(module.getDescription());
+        moduleDescriptionText.setTextSize(14);
+        moduleDescriptionText.setBackground(null);
+        moduleDescriptionText.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        moduleDescriptionText.setSingleLine(false);
+        moduleDescriptionText.setMaxLines(3);
+        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = 0;
+        moduleDescriptionText.setLayoutParams(descParams);
         
+        mainLayout.addView(topArea);
+        mainLayout.addView(moduleDescriptionText);
         moduleCard.addView(mainLayout);
-        
-        // FINAL corner radius enforcement
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
         
         return moduleCard;
     }
@@ -1629,22 +1638,43 @@ public class DashboardFragment extends BaseThemedFragment {
      */
     private void refreshScrollViewBackground() {
         try {
-            if (modulesScrollView != null) {
-                // Make ScrollView background transparent
-                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            }
-            if (modulesContainer != null) {
-                // Make container background transparent
-                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            initializeModulesContainer();
+            View rootView = getView();
+            if (rootView != null) {
+                rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
             }
         } catch (Exception e) {
-            // Fallback to transparent background
             if (modulesScrollView != null) {
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesScrollView.setBackground(null);
             }
             if (modulesContainer != null) {
                 modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesContainer.setBackground(null);
             }
+        }
+    }
+
+    /**
+     * FIXED: Initialize modules container with proper background settings
+     */
+    private void initializeModulesContainer() {
+        if (modulesContainer != null) {
+            modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            modulesContainer.setBackground(null);
+            modulesContainer.setClipChildren(false);
+            modulesContainer.setClipToPadding(false);
+
+            int padding = (int) (8 * getResources().getDisplayMetrics().density);
+            modulesContainer.setPadding(0, padding, 0, padding);
+        }
+
+        if (modulesScrollView != null) {
+            modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            modulesScrollView.setBackground(null);
+            modulesScrollView.setClipChildren(false);
+            modulesScrollView.setClipToPadding(false);
+            modulesScrollView.setFillViewport(true);
         }
     }
 

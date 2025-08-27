@@ -32,16 +32,20 @@ public class MainActivity extends BaseThemedActivity {
         // Apply theme to bottom navigation
         ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
         
+        final int[] lastIndex = {0}; // 0: home, 1: dashboard, 2: settings
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String presenceActivity = "";
+            int targetIndex = 0;
             
             if (item.getItemId() == R.id.navigation_home) {
                 selectedFragment = new HomeFragment();
                 presenceActivity = "In Home";
+                targetIndex = 0;
             } else if (item.getItemId() == R.id.navigation_dashboard) {
                 selectedFragment = new DashboardFragment();
                 presenceActivity = "In Dashboard";
+                targetIndex = 1;
             } else if (item.getItemId() == R.id.navigation_settings) {
                 // Keep reference to settings fragment for activity results
                 if (settingsFragment == null) {
@@ -49,10 +53,19 @@ public class MainActivity extends BaseThemedActivity {
                 }
                 selectedFragment = settingsFragment;
                 presenceActivity = "In Settings";
+                targetIndex = 2;
             }
 
             if (selectedFragment != null) {
+                boolean forward = targetIndex > lastIndex[0];
+                lastIndex[0] = targetIndex;
                 getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(
+                        forward ? R.anim.slide_in_right : R.anim.slide_in_left,
+                        forward ? R.anim.slide_out_left : R.anim.slide_out_right,
+                        forward ? R.anim.slide_in_left : R.anim.slide_in_right,
+                        forward ? R.anim.slide_out_right : R.anim.slide_out_left
+                    )
                     .replace(R.id.fragment_container, selectedFragment)
                     .commit();
                 
@@ -67,6 +80,7 @@ public class MainActivity extends BaseThemedActivity {
         // Set default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
         }

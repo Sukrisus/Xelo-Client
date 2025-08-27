@@ -174,19 +174,6 @@ public class ThemeUtils {
             return "text";
         }
         
-        // Check button ID to determine type
-        String resourceName = "";
-        try {
-            resourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
-        } catch (Exception e) {
-            // Ignore, use default
-        }
-        
-        if (resourceName.contains("import") || resourceName.contains("export")) {
-            // Import/Export buttons are typically outlined
-            return "outlined";
-        }
-        
         return "filled";
     }
     
@@ -746,6 +733,15 @@ public class ThemeUtils {
      * Helper method to get the appropriate text color for export/import buttons
      */
     private static int getExportImportButtonTextColor(MaterialButton button, ThemeManager themeManager) {
+        // If the button has a filled background, use onPrimary for contrast
+        try {
+            ColorStateList bg = button.getBackgroundTintList();
+            if (bg != null && bg.getDefaultColor() != android.graphics.Color.TRANSPARENT) {
+                return themeManager.getColor("onPrimary");
+            }
+        } catch (Exception ignored) {}
+        
+        // Otherwise, for outlined/text buttons prefer primary for emphasis when import/export
         String resourceName = "";
         try {
             resourceName = button.getContext().getResources().getResourceEntryName(button.getId()).toLowerCase();
