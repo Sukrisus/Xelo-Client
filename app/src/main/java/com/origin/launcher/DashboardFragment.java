@@ -447,10 +447,9 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Match file card styling: subtle elevation and stroke, with 12dp radius
+                        // Keep subtle elevation, no border, and 12dp radius
                         card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        card.setStrokeWidth(0);
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
                         card.setPreventCornerOverlap(false);
                     }
@@ -532,8 +531,7 @@ public class DashboardFragment extends BaseThemedFragment {
         // FIXED: Set card properties in the correct order
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
         moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // Small elevation like file cards
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density)); // Add subtle stroke like file cards
-        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
+        moduleCard.setStrokeWidth(0); // No border
         
         // FIXED: Remove conflicting settings
         moduleCard.setClickable(true);
