@@ -442,15 +442,14 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Get current background color
                         int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int targetBackground = ThemeManager.getInstance().getColor("surface");
+                        int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
                         
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Match File Management Card styling
-                        card.setCardElevation(8 * getResources().getDisplayMetrics().density);
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        // Keep flat look without stroke; preserve radius and visible bg
+                        card.setCardElevation(0);
+                        card.setStrokeWidth(0);
                         
                         // Ensure corner radius is preserved
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
@@ -532,11 +531,10 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
-        // Match File Management Card: background, stroke, elevation, rounded corners
-        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surface"));
-        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-        moduleCard.setCardElevation(8 * getResources().getDisplayMetrics().density);
+        // Visible background with rounded corners, no stroke/elevation
+        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
+        moduleCard.setStrokeWidth(0);
+        moduleCard.setCardElevation(0);
         moduleCard.setRadius(16 * getResources().getDisplayMetrics().density);
         
         // FORCE corner radius again to ensure it's not overridden
