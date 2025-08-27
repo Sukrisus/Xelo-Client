@@ -447,8 +447,8 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Keep no elevation, no border, and 12dp radius
-                        card.setCardElevation(0);
+                        // Keep slight elevation, no border, and 12dp radius
+                        card.setCardElevation(1 * getResources().getDisplayMetrics().density);
                         card.setStrokeWidth(0);
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
                         card.setPreventCornerOverlap(false);
@@ -526,7 +526,7 @@ public class DashboardFragment extends BaseThemedFragment {
         float cornerRadius = 12 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setCardElevation(0);
+        moduleCard.setCardElevation(1 * getResources().getDisplayMetrics().density);
         moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
