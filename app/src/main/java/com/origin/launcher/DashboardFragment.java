@@ -442,12 +442,12 @@ public class DashboardFragment extends BaseThemedFragment {
                         
                         // Get current background color
                         int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int targetBackground = Color.TRANSPARENT;
+                        int targetBackground = ThemeManager.getInstance().getColor("surface");
                         
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Remove elevation and border to avoid rectangle background
+                        // Keep flat look and no stroke
                         card.setCardElevation(0);
                         card.setStrokeWidth(0);
                         
@@ -531,8 +531,8 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
-        // Remove default rectangle look: transparent background, no stroke, flat
-        moduleCard.setCardBackgroundColor(Color.TRANSPARENT);
+        // Flat card with visible background and rounded corners (no stroke)
+        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surface"));
         moduleCard.setStrokeWidth(0);
         
         // FORCE corner radius again to ensure it's not overridden
