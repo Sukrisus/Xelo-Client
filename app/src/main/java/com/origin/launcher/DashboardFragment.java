@@ -526,13 +526,14 @@ public class DashboardFragment extends BaseThemedFragment {
         );
         moduleCard.setLayoutParams(cardParams);
         
-        // Set corner radius directly - this was working in the old code
+        // Set corner radius FIRST before any other styling
         moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        moduleCard.setCardElevation(0); // Remove elevation for flat design
+        
+        // Set other basic properties
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
-        // Apply theme colors to card (matching themes card)
+        // Apply theme colors to card (but preserve corner radius)
         ThemeUtils.applyThemeToCard(moduleCard, requireContext());
         
         // Override the background to make it more visible and distinct from the main background
@@ -544,8 +545,12 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
         moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
         
-        // FORCE corner radius again to ensure it's not overridden
+        // FORCE corner radius again after all other styling to ensure it's not overridden
         moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        
+        // Ensure the card doesn't have any conflicting background
+        moduleCard.setUseCompatPadding(false); // Disable compat padding that might interfere
+        moduleCard.setPreventCornerOverlap(true); // Prevent corner overlap issues
         
         // Main container (horizontal layout like themes)
         LinearLayout mainLayout = new LinearLayout(getContext());
@@ -642,8 +647,11 @@ public class DashboardFragment extends BaseThemedFragment {
         
         moduleCard.addView(mainLayout);
         
-        // FINAL corner radius enforcement
+        // FINAL corner radius enforcement - force it one more time
         moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        
+        // Also ensure the inner layout doesn't interfere with the card's corners
+        mainLayout.setBackground(null); // Remove any background that might interfere
         
         return moduleCard;
     }
@@ -1630,20 +1638,28 @@ public class DashboardFragment extends BaseThemedFragment {
     private void refreshScrollViewBackground() {
         try {
             if (modulesScrollView != null) {
-                // Make ScrollView background transparent
+                // Make ScrollView background completely transparent
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesScrollView.setBackground(null); // Remove any drawable background
             }
             if (modulesContainer != null) {
-                // Make container background transparent
+                // Make container background completely transparent
                 modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesContainer.setBackground(null); // Remove any drawable background
             }
         } catch (Exception e) {
             // Fallback to transparent background
             if (modulesScrollView != null) {
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                try {
+                    modulesScrollView.setBackground(null);
+                } catch (Exception ignored) {}
             }
             if (modulesContainer != null) {
                 modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                try {
+                    modulesContainer.setBackground(null);
+                } catch (Exception ignored) {}
             }
         }
     }
