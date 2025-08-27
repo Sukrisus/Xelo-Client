@@ -447,8 +447,8 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Small elevation, no stroke, with 16dp radius
-                        card.setCardElevation(1 * getResources().getDisplayMetrics().density);
+                        // Slightly higher elevation, no stroke, preserve 16dp radius
+                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
                         card.setStrokeWidth(0);
                         card.setRadius(16 * getResources().getDisplayMetrics().density);
                         card.setPreventCornerOverlap(true);
@@ -527,16 +527,19 @@ public class DashboardFragment extends BaseThemedFragment {
         
         float cornerRadius = 16 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
-        try { moduleCard.setClipToOutline(true); } catch (Throwable ignored) {}
         moduleCard.setPreventCornerOverlap(true);
+        moduleCard.setUseCompatPadding(true);
+        moduleCard.setClipChildren(true);
+        moduleCard.setClipToPadding(true);
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setCardElevation(1 * getResources().getDisplayMetrics().density);
+        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density);
         moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
         
         LinearLayout mainLayout = new LinearLayout(getContext());
         mainLayout.setOrientation(LinearLayout.VERTICAL);
+        mainLayout.setBackground(null);
         mainLayout.setPadding(
             (int) (12 * getResources().getDisplayMetrics().density),
             (int) (10 * getResources().getDisplayMetrics().density),
@@ -547,6 +550,7 @@ public class DashboardFragment extends BaseThemedFragment {
         LinearLayout topArea = new LinearLayout(getContext());
         topArea.setOrientation(LinearLayout.HORIZONTAL);
         topArea.setGravity(Gravity.CENTER_VERTICAL);
+        topArea.setBackground(null);
         LinearLayout.LayoutParams topParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -556,6 +560,7 @@ public class DashboardFragment extends BaseThemedFragment {
         ImageView iconView = new ImageView(getContext());
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        iconView.setBackground(null);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
             (int) (24 * getResources().getDisplayMetrics().density),
             (int) (24 * getResources().getDisplayMetrics().density)
@@ -568,6 +573,7 @@ public class DashboardFragment extends BaseThemedFragment {
         moduleNameText.setText(module.getName());
         moduleNameText.setTextSize(16);
         moduleNameText.setTypeface(null, Typeface.BOLD);
+        moduleNameText.setBackground(null);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
             0,
@@ -597,6 +603,7 @@ public class DashboardFragment extends BaseThemedFragment {
         TextView moduleDescriptionText = new TextView(getContext());
         moduleDescriptionText.setText(module.getDescription());
         moduleDescriptionText.setTextSize(14);
+        moduleDescriptionText.setBackground(null);
         ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
         LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
