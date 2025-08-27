@@ -447,13 +447,12 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Keep flat look without stroke; preserve radius and visible bg
-                        card.setCardElevation(0);
-                        card.setStrokeWidth(0);
-                        // Ensure corner radius is preserved and clipping respects rounded shape
-                        card.setRadius(16 * getResources().getDisplayMetrics().density);
-                        try { card.setClipToOutline(true); } catch (Throwable ignored) {}
-                        card.setPreventCornerOverlap(true);
+                        // Match file card styling: subtle elevation and stroke, with 12dp radius
+                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
+                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        card.setRadius(12 * getResources().getDisplayMetrics().density);
+                        card.setPreventCornerOverlap(false);
                     }
                 }
             }
@@ -526,22 +525,20 @@ public class DashboardFragment extends BaseThemedFragment {
         );
         moduleCard.setLayoutParams(cardParams);
         
-        // Set corner radius directly
-        moduleCard.setRadius(16 * getResources().getDisplayMetrics().density);
-        try { moduleCard.setClipToOutline(true); } catch (Throwable ignored) {}
-        moduleCard.setPreventCornerOverlap(true);
-        moduleCard.setCardElevation(0); // Remove elevation for flat design
+        // FIXED: Set corner radius ONLY ONCE and at the correct value
+        float cornerRadius = 12 * getResources().getDisplayMetrics().density;
+        moduleCard.setRadius(cornerRadius);
+        
+        // FIXED: Set card properties in the correct order
+        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
+        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // Small elevation like file cards
+        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density)); // Add subtle stroke like file cards
+        moduleCard.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
+        
+        // FIXED: Remove conflicting settings
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
-        
-        // Visible background with rounded corners, no stroke/elevation
-        moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setStrokeWidth(0);
-        moduleCard.setCardElevation(0);
-        moduleCard.setRadius(16 * getResources().getDisplayMetrics().density);
-        
-        // FORCE corner radius again to ensure it's not overridden
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        moduleCard.setPreventCornerOverlap(false); // This can interfere with corner radius
         
         // Main container (horizontal layout like themes)
         LinearLayout mainLayout = new LinearLayout(getContext());
