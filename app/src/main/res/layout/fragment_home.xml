@@ -101,11 +101,12 @@
 					app:icon="@drawable/ic_share"
 					app:iconSize="16dp"
 					app:cornerRadius="20dp"
-					style="@style/Widget.Material3.Button.IconButton" />
+					style="@style/Widget.Material3.Button.TextButton" />
 
 			</LinearLayout>
 
 			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/logCard"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:minHeight="80dp"

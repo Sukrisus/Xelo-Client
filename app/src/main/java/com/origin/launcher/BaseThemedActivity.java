@@ -1,16 +1,21 @@
 package com.origin.launcher;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class BaseThemedActivity extends AppCompatActivity {
+    private static final String TAG = "BaseThemedActivity";
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Apply theme before setting content view
+        // Initialize ThemeManager first
+        initializeThemeManager();
+        
+        // Apply theme after initialization
         applyTheme();
     }
     
@@ -38,24 +43,43 @@ public abstract class BaseThemedActivity extends AppCompatActivity {
         applyThemeToViews();
     }
     
+    private void initializeThemeManager() {
+        try {
+            // Initialize ThemeManager if not already done
+            ThemeManager.getInstance(this);
+            Log.d(TAG, "ThemeManager initialized successfully");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to initialize ThemeManager", e);
+        }
+    }
+    
     private void applyTheme() {
         try {
-            // Ensure ThemeManager is initialized
-            ThemeManager.getInstance();
-        } catch (IllegalStateException e) {
-            // ThemeManager not initialized, initialize it
-            ThemeManager.getInstance(this);
+            // Ensure ThemeManager is initialized and ready
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null) {
+                Log.d(TAG, "Theme applied successfully");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to apply theme", e);
+            // Try to reinitialize
+            initializeThemeManager();
         }
     }
     
     private void applyThemeToViews() {
-        View rootView = findViewById(android.R.id.content);
-        if (rootView != null) {
-            ThemeUtils.applyThemeToRootView(rootView);
+        try {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                ThemeUtils.applyThemeToRootView(rootView);
+                Log.d(TAG, "Theme applied to views successfully");
+            }
+            
+            // Allow subclasses to apply additional theming
+            onApplyTheme();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to apply theme to views", e);
         }
-        
-        // Allow subclasses to apply additional theming
-        onApplyTheme();
     }
     
     /**

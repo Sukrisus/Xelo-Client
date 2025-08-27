@@ -44,6 +44,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import android.os.Looper;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.origin.launcher.ThemeManager;
+import com.origin.launcher.ThemeUtils;
 
 public class HomeFragment extends BaseThemedFragment {
 
@@ -59,6 +65,9 @@ public class HomeFragment extends BaseThemedFragment {
         mbl2_button = view.findViewById(R.id.mbl2_load);
         shareLogsButton = view.findViewById(R.id.share_logs_button);
         Handler handler = new Handler(Looper.getMainLooper());
+        
+        // Apply initial theme
+        applyInitialTheme(view);
         
         mbl2_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,6 +93,54 @@ public class HomeFragment extends BaseThemedFragment {
         });
         
         return view;
+    }
+    
+    /**
+     * Apply initial theme to all views
+     */
+    private void applyInitialTheme(View view) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            if (themeManager != null && themeManager.isThemeLoaded()) {
+                // Apply theme to main button
+                if (mbl2_button instanceof MaterialButton) {
+                    ThemeUtils.applyThemeToButton((MaterialButton) mbl2_button, requireContext());
+                }
+                
+                // Apply theme to share button (remove background, make it text button)
+                if (shareLogsButton != null) {
+                    ThemeUtils.applyThemeToButton(shareLogsButton, requireContext());
+                    // Remove background and make it transparent
+                    shareLogsButton.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                    shareLogsButton.setStrokeWidth(0);
+                }
+                
+                // Apply theme to log text area
+                if (listener != null) {
+                    listener.setTextColor(themeManager.getColor("onSurfaceVariant"));
+                    // Set background color for the log text area
+                    View logCard = view.findViewById(R.id.logCard);
+                    if (logCard instanceof MaterialCardView) {
+                        MaterialCardView card = (MaterialCardView) logCard;
+                        card.setCardBackgroundColor(themeManager.getColor("surfaceVariant"));
+                        card.setStrokeColor(themeManager.getColor("outline"));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Handle error gracefully
+        }
+    }
+    
+    @Override
+    protected void onApplyTheme() {
+        super.onApplyTheme();
+        
+        View view = getView();
+        if (view != null) {
+            // Refresh all theme elements
+            applyInitialTheme(view);
+        }
     }
 
     private String getPackageNameFromSettings() {

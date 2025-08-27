@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import android.graphics.Color;
 
 public class MainActivity extends BaseThemedActivity {
     private static final String TAG = "MainActivity";
@@ -27,6 +28,10 @@ public class MainActivity extends BaseThemedActivity {
         checkFirstLaunch();
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        
+        // Apply theme to bottom navigation
+        ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
+        
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String presenceActivity = "";
@@ -137,10 +142,33 @@ public class MainActivity extends BaseThemedActivity {
     
     @Override
     protected void onApplyTheme() {
-        // Apply theme to bottom navigation
-        View bottomNav = findViewById(R.id.bottom_navigation);
-        if (bottomNav != null) {
-            ThemeUtils.applyThemeToBottomNavigation(bottomNav);
+        super.onApplyTheme();
+        
+        // Refresh bottom navigation theme with animation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView != null) {
+            try {
+                // Get current background color safely
+                int currentBackground = Color.parseColor("#141414"); // Default fallback
+                if (bottomNavigationView.getBackground() != null) {
+                    try {
+                        currentBackground = ((android.graphics.drawable.ColorDrawable) bottomNavigationView.getBackground()).getColor();
+                    } catch (Exception e) {
+                        // Use default if we can't get current color
+                    }
+                }
+                
+                int targetBackground = ThemeManager.getInstance().getColor("surface");
+                
+                // Animate background color transition
+                ThemeUtils.animateBackgroundColorTransition(bottomNavigationView, currentBackground, targetBackground, 300);
+                
+                // Apply other theme properties
+                ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
+            } catch (Exception e) {
+                // Fallback to immediate theme application
+                ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
+            }
         }
     }
 
