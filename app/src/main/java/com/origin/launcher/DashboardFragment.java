@@ -447,8 +447,8 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Keep subtle elevation, no border, and 12dp radius
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+                        // Keep no elevation, no border, and 12dp radius
+                        card.setCardElevation(0);
                         card.setStrokeWidth(0);
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
                         card.setPreventCornerOverlap(false);
@@ -510,114 +510,75 @@ public class DashboardFragment extends BaseThemedFragment {
     }
     
     private View createModuleView(ModuleItem module) {
-        // Create card layout (matching theme card design)
         MaterialCardView moduleCard = new MaterialCardView(getContext());
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
         cardParams.setMargins(
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
             (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 8
+            (int) (8 * getResources().getDisplayMetrics().density),
+            (int) (8 * getResources().getDisplayMetrics().density),
             (int) (8 * getResources().getDisplayMetrics().density)
         );
         moduleCard.setLayoutParams(cardParams);
         
-        // FIXED: Set corner radius ONLY ONCE and at the correct value
         float cornerRadius = 12 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
-        
-        // FIXED: Set card properties in the correct order
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setCardElevation(2 * getResources().getDisplayMetrics().density); // Small elevation like file cards
-        moduleCard.setStrokeWidth(0); // No border
-        
-        // FIXED: Remove conflicting settings
+        moduleCard.setCardElevation(0);
+        moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
-        moduleCard.setPreventCornerOverlap(false); // This can interfere with corner radius
         
-        // Main container (horizontal layout like themes)
         LinearLayout mainLayout = new LinearLayout(getContext());
-        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
+        mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density),  // Reduced from 16 to 12
-            (int) (16 * getResources().getDisplayMetrics().density),  // Reduced from 20 to 16
-            (int) (12 * getResources().getDisplayMetrics().density)   // Reduced from 16 to 12
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density)
         );
-        mainLayout.setGravity(Gravity.CENTER_VERTICAL);
         
-        // Left side: Icon
+        LinearLayout topArea = new LinearLayout(getContext());
+        topArea.setOrientation(LinearLayout.HORIZONTAL);
+        topArea.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams topParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        topArea.setLayoutParams(topParams);
+        
         ImageView iconView = new ImageView(getContext());
         iconView.setImageResource(R.drawable.wrench);
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),  // Back to 24dp for better visibility
-            (int) (24 * getResources().getDisplayMetrics().density)   // Back to 24dp for better visibility
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
         );
-        iconParams.setMarginEnd((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
+        iconParams.setMarginEnd((int) (12 * getResources().getDisplayMetrics().density));
         iconView.setLayoutParams(iconParams);
         iconView.setColorFilter(ThemeManager.getInstance().getColor("onSurface"));
         
-        // Text container (matching themes layout)
-        LinearLayout textLayout = new LinearLayout(getContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-            0, 
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            1.0f
-        );
-        textParams.setMarginStart((int) (8 * getResources().getDisplayMetrics().density));  // Back to 8dp
-        textLayout.setLayoutParams(textParams);
-        
-        // Module name (matching theme name styling)
         TextView moduleNameText = new TextView(getContext());
         moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);  // Back to 16sp
+        moduleNameText.setTextSize(16);
         moduleNameText.setTypeface(null, Typeface.BOLD);
         ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-        
-        // Module description (matching theme description styling)
-        TextView moduleDescriptionText = new TextView(getContext());
-        moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);  // Back to 14sp
-        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (6 * getResources().getDisplayMetrics().density);  // Reduced from 8 to 6
-        moduleDescriptionText.setLayoutParams(descParams);
-        moduleDescriptionText.setMaxLines(2);
-        moduleDescriptionText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        
-        textLayout.addView(moduleNameText);
-        textLayout.addView(moduleDescriptionText);
-        
-        // Right side container for switch (matching theme card right container)
-        LinearLayout rightContainer = new LinearLayout(getContext());
-        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+            0,
             LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+            1.0f
         );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
-        rightContainer.setLayoutParams(rightParams);
+        moduleNameText.setLayoutParams(nameParams);
         
-        // Module switch (normal size - not scaled down)
         MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        // No scaling - use normal size
         moduleSwitch.setLayoutParams(switchParams);
         moduleSwitch.setChecked(module.isEnabled());
-        
-        // Apply theme to the switch
         ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
         
         moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -625,16 +586,24 @@ public class DashboardFragment extends BaseThemedFragment {
             onModuleToggle(module, isChecked);
         });
         
-        rightContainer.addView(moduleSwitch);
+        topArea.addView(iconView);
+        topArea.addView(moduleNameText);
+        topArea.addView(moduleSwitch);
         
-        mainLayout.addView(iconView);
-        mainLayout.addView(textLayout);
-        mainLayout.addView(rightContainer);
+        TextView moduleDescriptionText = new TextView(getContext());
+        moduleDescriptionText.setText(module.getDescription());
+        moduleDescriptionText.setTextSize(14);
+        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
+        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        descParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        moduleDescriptionText.setLayoutParams(descParams);
         
+        mainLayout.addView(topArea);
+        mainLayout.addView(moduleDescriptionText);
         moduleCard.addView(mainLayout);
-        
-        // FINAL corner radius enforcement
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
         
         return moduleCard;
     }
