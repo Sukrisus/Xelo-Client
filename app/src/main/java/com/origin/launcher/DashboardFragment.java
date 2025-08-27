@@ -499,6 +499,24 @@ public class DashboardFragment extends BaseThemedFragment {
         
         // Set up the existing XML config buttons
         setupConfigButtons(view);
+
+        // Open Modules screen button
+        View openModulesButton = view.findViewById(R.id.openModulesButton);
+        if (openModulesButton != null) {
+            openModulesButton.setOnClickListener(v -> {
+                try {
+                    requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .setCustomAnimations(
+                            R.anim.slide_in_right, R.anim.slide_out_left,
+                            R.anim.slide_in_left, R.anim.slide_out_right
+                        )
+                        .replace(R.id.fragment_container, new ModulesFragment())
+                        .addToBackStack(null)
+                        .commit();
+                } catch (Exception ignored) {}
+            });
+        }
     }
     
     // NEW METHOD: Populate modules in ScrollView

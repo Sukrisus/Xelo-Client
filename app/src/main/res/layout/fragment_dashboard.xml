@@ -202,14 +202,30 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Modules"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/onSurface"
-            android:layout_marginBottom="16dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Modules"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/onSurface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openModulesButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=">"
+                style="@style/Widget.Material3.Button.TextButton" />
+
+        </LinearLayout>
 
         <!-- ScrollView for modules - height set to show approximately 4 modules -->
         <ScrollView
