@@ -32,6 +32,7 @@ public class MainActivity extends BaseThemedActivity {
         // Apply theme to bottom navigation
         ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
         
+        final int[] lastItemId = {R.id.navigation_home};
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             String presenceActivity = "";
@@ -52,7 +53,15 @@ public class MainActivity extends BaseThemedActivity {
             }
 
             if (selectedFragment != null) {
+                boolean forward = item.getItemId() > lastItemId[0];
+                lastItemId[0] = item.getItemId();
                 getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(
+                        forward ? R.anim.slide_in_right : R.anim.slide_in_left,
+                        forward ? R.anim.slide_out_left : R.anim.slide_out_right,
+                        forward ? R.anim.slide_in_left : R.anim.slide_in_right,
+                        forward ? R.anim.slide_out_right : R.anim.slide_out_left
+                    )
                     .replace(R.id.fragment_container, selectedFragment)
                     .commit();
                 
@@ -67,6 +76,7 @@ public class MainActivity extends BaseThemedActivity {
         // Set default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
         }
