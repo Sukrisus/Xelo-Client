@@ -58,10 +58,29 @@ public class ModulesFragment extends BaseThemedFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_modules, container, false);
         
+        // Initialize back button
+        initializeBackButton(view);
+        
         // Initialize modules
         initializeModules(view);
         
         return view;
+    }
+    
+    private void initializeBackButton(View view) {
+        ImageView backButton = view.findViewById(R.id.back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                try {
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                } catch (Exception e) {
+                    // Handle error gracefully
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                }
+            });
+        }
     }
     
     private void initializeModules(View view) {
@@ -348,6 +367,12 @@ public class ModulesFragment extends BaseThemedFragment {
         View rootView = getView();
         if (rootView != null) {
             rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
+        }
+        
+        // Apply theme to back button
+        ImageView backButton = rootView != null ? rootView.findViewById(R.id.back_button) : null;
+        if (backButton != null) {
+            backButton.setColorFilter(ThemeManager.getInstance().getColor("onBackground"));
         }
         
         // Apply theme to ScrollView and modules container background
