@@ -450,9 +450,10 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Keep flat look without stroke; preserve radius and visible bg
                         card.setCardElevation(0);
                         card.setStrokeWidth(0);
-                        
-                        // Ensure corner radius is preserved
-                        card.setRadius(12 * getResources().getDisplayMetrics().density);
+                        // Ensure corner radius is preserved and clipping respects rounded shape
+                        card.setRadius(16 * getResources().getDisplayMetrics().density);
+                        try { card.setClipToOutline(true); } catch (Throwable ignored) {}
+                        card.setPreventCornerOverlap(true);
                     }
                 }
             }
@@ -525,8 +526,10 @@ public class DashboardFragment extends BaseThemedFragment {
         );
         moduleCard.setLayoutParams(cardParams);
         
-        // Set corner radius directly - this was working in the old code
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
+        // Set corner radius directly
+        moduleCard.setRadius(16 * getResources().getDisplayMetrics().density);
+        try { moduleCard.setClipToOutline(true); } catch (Throwable ignored) {}
+        moduleCard.setPreventCornerOverlap(true);
         moduleCard.setCardElevation(0); // Remove elevation for flat design
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
