@@ -64,8 +64,6 @@ public class DashboardFragment extends BaseThemedFragment {
     private File currentRootDir = null; // Store the found root directory
     private static final int IMPORT_REQUEST_CODE = 1002;
     private static final int EXPORT_REQUEST_CODE = 1003;
-    private static final int IMPORT_CONFIG_REQUEST_CODE = 1004;
-    private static final int EXPORT_CONFIG_REQUEST_CODE = 1005;
     
     // Options.txt editor variables
     private File optionsFile;
@@ -83,38 +81,8 @@ public class DashboardFragment extends BaseThemedFragment {
     private List<Integer> searchMatches = new ArrayList<>();
     private int currentMatchIndex = -1;
     
-    // Modules variables - UPDATED FOR SCROLLVIEW
-    private File configFile;
-    private ScrollView modulesScrollView;
-    private LinearLayout modulesContainer;
-    private List<ModuleItem> moduleItems;
-    
-    // Module data class
-    private static class ModuleItem {
-        private String name;
-        private String description;
-        private String configKey;
-        private boolean enabled;
-        
-        public ModuleItem(String name, String description, String configKey) {
-            this.name = name;
-            this.description = description;
-            this.configKey = configKey;
-            this.enabled = false; // Default to disabled
-        }
-        
-        // Getters and setters
-        public String getName() { return name; }
-        public String getDescription() { return description; }
-        public String getConfigKey() { return configKey; }
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    }
-    
-    // Module toggle listener interface
-    private interface ModuleToggleListener {
-        void onToggle(ModuleItem module, boolean isEnabled);
-    }
+    // Modules navigation button
+    private LinearLayout modulesButton;
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -196,13 +164,32 @@ public class DashboardFragment extends BaseThemedFragment {
             });
         }
 
-        // Initialize modules
-        initializeModules(view);
+        // Initialize modules navigation button
+        initializeModulesButton(view);
         
         // Initialize options.txt editor
         initializeOptionsEditor(view);
 
         return view;
+    }
+    
+    private void initializeModulesButton(View view) {
+        modulesButton = view.findViewById(R.id.modules_button);
+        
+        if (modulesButton != null) {
+            modulesButton.setOnClickListener(v -> {
+                try {
+                    requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(android.R.id.content, new ModulesFragment())
+                        .addToBackStack(null)
+                        .commit();
+                } catch (Exception e) {
+                    Toast.makeText(requireContext(), "Failed to open modules", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            });
+        }
     }
     
     /**
@@ -247,84 +234,6 @@ public class DashboardFragment extends BaseThemedFragment {
         }
     }
     
-    /**
-     * Refresh toggle themes when theme changes
-     */
-    private void refreshToggleThemes() {
-        try {
-            if (modulesContainer != null) {
-                for (int i = 0; i < modulesContainer.getChildCount(); i++) {
-                    View child = modulesContainer.getChildAt(i);
-                    if (child instanceof MaterialCardView) {
-                        // Find MaterialSwitch in the card and refresh its theme with animation
-                        refreshSwitchThemeInCardWithAnimation((MaterialCardView) child);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
-    }
-    
-    /**
-     * Refresh switch theme within a card with animation
-     */
-    private void refreshSwitchThemeInCardWithAnimation(MaterialCardView card) {
-        try {
-            // Find MaterialSwitch in the card
-            for (int i = 0; i < ((ViewGroup) card.getChildAt(0)).getChildCount(); i++) {
-                View child = ((ViewGroup) card.getChildAt(0)).getChildAt(i);
-                if (child instanceof LinearLayout) {
-                    LinearLayout layout = (LinearLayout) child;
-                    for (int j = 0; j < layout.getChildCount(); j++) {
-                        View layoutChild = layout.getChildAt(j);
-                        if (layoutChild instanceof LinearLayout) {
-                            LinearLayout rightContainer = (LinearLayout) layoutChild;
-                            for (int k = 0; k < rightContainer.getChildCount(); k++) {
-                                View rightChild = rightContainer.getChildAt(k);
-                                if (rightChild instanceof MaterialSwitch) {
-                                    MaterialSwitch materialSwitch = (MaterialSwitch) rightChild;
-                                    
-                                    // Get current colors
-                                    ColorStateList currentTrackColors = materialSwitch.getTrackTintList();
-                                    ColorStateList currentThumbColors = materialSwitch.getThumbTintList();
-                                    
-                                    // Apply new theme
-                                    ThemeUtils.applyThemeToSwitch(materialSwitch, requireContext());
-                                    
-                                    // Get new colors
-                                    ColorStateList newTrackColors = materialSwitch.getTrackTintList();
-                                    ColorStateList newThumbColors = materialSwitch.getThumbTintList();
-                                    
-                                                            // Animate color transitions if colors changed
-                        if (currentTrackColors != null && newTrackColors != null) {
-                            int currentTrack = currentTrackColors.getDefaultColor();
-                            int newTrack = newTrackColors.getDefaultColor();
-                            if (currentTrack != newTrack) {
-                                ThemeUtils.animateColorTransition(currentTrack, newTrack, 300, 
-                                    va -> materialSwitch.setTrackTintList(ColorStateList.valueOf((int) va.getAnimatedValue())));
-                            }
-                        }
-                        
-                        if (currentThumbColors != null && newThumbColors != null) {
-                            int currentThumb = currentThumbColors.getDefaultColor();
-                            int newThumb = newThumbColors.getDefaultColor();
-                            if (currentThumb != newThumb) {
-                                ThemeUtils.animateColorTransition(currentThumb, newThumb, 300, 
-                                    va -> materialSwitch.setThumbTintList(ColorStateList.valueOf((int) va.getAnimatedValue())));
-                            }
-                        }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
-    }
-    
     @Override
     protected void onApplyTheme() {
         // Apply theme to the root view background with animation
@@ -351,9 +260,6 @@ public class DashboardFragment extends BaseThemedFragment {
             }
         }
         
-        // Apply theme to ScrollView and modules container background
-        refreshScrollViewBackground();
-        
         // Refresh button themes with animation
         refreshButtonThemesWithAnimation();
         
@@ -362,14 +268,8 @@ public class DashboardFragment extends BaseThemedFragment {
             ThemeUtils.refreshRippleEffects(rootView);
         }
         
-        // Refresh module card backgrounds to ensure they remain visible
-        refreshModuleCardBackgroundsWithAnimation();
-        
         // Refresh folder themes
         refreshFolderThemes();
-        
-        // Refresh toggle themes
-        refreshToggleThemes();
     }
     
     /**
@@ -389,690 +289,14 @@ public class DashboardFragment extends BaseThemedFragment {
                 if (importButton != null) {
                     ThemeUtils.applyThemeToButtonWithAnimation(importButton, requireContext(), 300);
                 }
-                
-                // Refresh config buttons with animation
-                MaterialButton exportConfigButton = view.findViewById(R.id.exportConfigButton);
-                MaterialButton importConfigButton = view.findViewById(R.id.importConfigButton);
-                
-                if (exportConfigButton != null) {
-                    ThemeUtils.applyThemeToButtonWithAnimation(exportConfigButton, requireContext(), 300);
-                }
-                if (importConfigButton != null) {
-                    ThemeUtils.applyThemeToButtonWithAnimation(importConfigButton, requireContext(), 300);
-                }
-                
-                // Refresh module card ripple effects
-                refreshModuleCardRipples();
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
-    }
-    
-    /**
-     * Refresh ripple effects on module cards
-     */
-    private void refreshModuleCardRipples() {
-        try {
-            if (modulesContainer != null) {
-                // Use the new ThemeUtils method for consistent ripple refresh
-                ThemeUtils.refreshRippleEffects(modulesContainer);
-                
-                // Also refresh the card backgrounds to ensure they remain visible
-                refreshModuleCardBackgroundsWithAnimation();
-                
-                // Refresh toggle themes in the cards
-                refreshToggleThemes();
-            }
-        } catch (Exception e) {
-            // Handle error gracefully
-        }
-    }
-    
-    /**
-     * Refresh module card backgrounds with animation to ensure they remain visible
-     */
-    private void refreshModuleCardBackgroundsWithAnimation() {
-        try {
-            if (modulesContainer != null) {
-                for (int i = 0; i < modulesContainer.getChildCount(); i++) {
-                    View child = modulesContainer.getChildAt(i);
-                    if (child instanceof MaterialCardView) {
-                        MaterialCardView card = (MaterialCardView) child;
-                        
-                        // Get current background color
-                        int currentBackground = card.getCardBackgroundColor().getDefaultColor();
-                        int targetBackground = ThemeManager.getInstance().getColor("surfaceVariant");
-                        
-                        // Animate background color transition
-                        ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
-                        
-                        // Ensure elevation and border are maintained
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
-                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
-                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-                        
-                        // Ensure corner radius is preserved
-                        card.setRadius(12 * getResources().getDisplayMetrics().density);
-                    }
-                }
             }
         } catch (Exception e) {
             // Handle error gracefully
         }
     }
 
-    private void initializeModules(View view) {
-        // Initialize config file path
-        configFile = new File(getContext().getExternalFilesDir(null), "origin_mods/config.json");
-        
-        // Get ScrollView and container - UPDATED
-        modulesScrollView = view.findViewById(R.id.modulesScrollView);
-        modulesContainer = view.findViewById(R.id.modulesContainer);
-        
-        // Apply theme background to ScrollView and container
-        refreshScrollViewBackground();
-        
-        if (modulesContainer != null) {
-            // Initialize module items
-            moduleItems = new ArrayList<>();
-            moduleItems.add(new ModuleItem("no hurt cam", "allows you to toggle the in-game hurt cam", "Nohurtcam"));
-            moduleItems.add(new ModuleItem("Fullbright", "(Doesnt work with No fog) ofcouse lets u see in the dark moron", "night_vision"));
-            moduleItems.add(new ModuleItem("No Fog", "(Doesnt work with fullbright) allows you to toggle the in-game fog", "Nofog"));
-            moduleItems.add(new ModuleItem("Particles Disabler", "allows you to toggle the in-game particles", "particles_disabler"));
-            moduleItems.add(new ModuleItem("Java Fancy Clouds", "Changes the clouds to Java Fancy Clouds", "java_clouds"));
-            moduleItems.add(new ModuleItem("Java Cubemap", "improves the in-game cubemap bringing it abit lower", "java_cubemap"));
-            moduleItems.add(new ModuleItem("Classic Vanilla skins", "Disables the newly added skins by mojang", "classic_skins"));
-            moduleItems.add(new ModuleItem("No flipbook animation", "optimizes your fps by disabling block animation", "no_flipbook_animations"));
-            moduleItems.add(new ModuleItem("No Shadows", "optimizes your fps by disabling shadows", "no_shadows"));
-            moduleItems.add(new ModuleItem("Xelo Title", "Changes the Start screen title image", "xelo_title"));
-            moduleItems.add(new ModuleItem("White Block Outline", "changes the block selection outline to white", "white_block_outline"));
-            
-            // Load current config state and populate modules
-            loadModuleStates();
-            populateModules();
-        }
-        
-        // Set up the existing XML config buttons
-        setupConfigButtons(view);
-    }
-    
-    // NEW METHOD: Populate modules in ScrollView (EXACTLY matching ThemesFragment pattern)
-    private void populateModules() {
-        if (modulesContainer == null) return;
-        
-        // Clear existing modules
-        modulesContainer.removeAllViews();
-        
-        // Add each module as a card view with spacing (like ThemesFragment)
-        for (int i = 0; i < moduleItems.size(); i++) {
-            ModuleItem module = moduleItems.get(i);
-            View moduleView = createModuleView(module);
-            modulesContainer.addView(moduleView);
-            
-            // Add spacing between cards (exactly like ThemesFragment)
-            if (i < moduleItems.size() - 1) {
-                View spacer = new View(getContext());
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, 
-                    (int) (12 * getResources().getDisplayMetrics().density)
-                );
-                spacer.setLayoutParams(params);
-                modulesContainer.addView(spacer);
-            }
-        }
-    }
-    
-    private View createModuleView(ModuleItem module) {
-        // Create card layout (EXACTLY matching ThemesFragment pattern)
-        MaterialCardView moduleCard = new MaterialCardView(requireContext());
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        moduleCard.setLayoutParams(cardParams);
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        moduleCard.setCardElevation(0); // Remove elevation for flat design
-        moduleCard.setClickable(true);
-        moduleCard.setFocusable(true);
-        
-        // Apply theme colors to card (exactly like ThemesFragment)
-        ThemeUtils.applyThemeToCard(moduleCard, requireContext());
-        moduleCard.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
-        
-        // Main container (EXACTLY matching ThemesFragment)
-        LinearLayout mainLayout = new LinearLayout(requireContext());
-        mainLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mainLayout.setPadding(
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density),
-            (int) (16 * getResources().getDisplayMetrics().density)
-        );
-        mainLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        
-        // Text container (EXACTLY matching ThemesFragment - text comes first)
-        LinearLayout textLayout = new LinearLayout(requireContext());
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-            0, 
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            1.0f
-        );
-        textLayout.setLayoutParams(textParams);
-        
-        // Module name (EXACTLY matching ThemesFragment pattern)
-        TextView moduleNameText = new TextView(requireContext());
-        moduleNameText.setText(module.getName());
-        moduleNameText.setTextSize(16);
-        moduleNameText.setTypeface(null, android.graphics.Typeface.BOLD);
-        ThemeUtils.applyThemeToTextView(moduleNameText, "onSurface");
-        
-        // Module description (EXACTLY matching ThemesFragment pattern)
-        TextView moduleDescriptionText = new TextView(requireContext());
-        moduleDescriptionText.setText(module.getDescription());
-        moduleDescriptionText.setTextSize(14);
-        ThemeUtils.applyThemeToTextView(moduleDescriptionText, "onSurfaceVariant");
-        LinearLayout.LayoutParams descParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, 
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        descParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        moduleDescriptionText.setLayoutParams(descParams);
-        
-        textLayout.addView(moduleNameText);
-        textLayout.addView(moduleDescriptionText);
-        
-        // Right side container for switch (EXACTLY matching ThemesFragment pattern)
-        LinearLayout rightContainer = new LinearLayout(requireContext());
-        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-        rightContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
-        rightContainer.setLayoutParams(rightParams);
-        
-        // Module switch - PRESERVING CONFIG FUNCTIONALITY
-        MaterialSwitch moduleSwitch = new MaterialSwitch(requireContext());
-        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
-            (int) (24 * getResources().getDisplayMetrics().density),
-            (int) (24 * getResources().getDisplayMetrics().density)
-        );
-        moduleSwitch.setLayoutParams(switchParams);
-        moduleSwitch.setChecked(module.isEnabled());
-        moduleSwitch.setClickable(true);
-        moduleSwitch.setFocusable(true);
-        
-        // Apply theme to the switch - PRESERVING CONFIG FUNCTIONALITY
-        ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
-        
-        // PRESERVE the config editing functionality
-        moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            module.setEnabled(isChecked);
-            onModuleToggle(module, isChecked);
-        });
-        
-        rightContainer.addView(moduleSwitch);
-        
-        mainLayout.addView(textLayout);
-        mainLayout.addView(rightContainer);
-        
-        moduleCard.addView(mainLayout);
-        
-        return moduleCard;
-    }
-    
-    private void setupConfigButtons(View view) {
-        // Find the existing buttons from XML
-        MaterialButton exportConfigButton = view.findViewById(R.id.exportConfigButton);
-        MaterialButton importConfigButton = view.findViewById(R.id.importConfigButton);
-        
-        // Apply themes to both buttons
-        if (exportConfigButton != null) {
-            ThemeUtils.applyThemeToButton(exportConfigButton, requireContext());
-            exportConfigButton.setOnClickListener(v -> {
-                if (hasStoragePermission()) {
-                    exportConfig();
-                } else {
-                    requestStoragePermissions();
-                }
-            });
-        }
-        
-        if (importConfigButton != null) {
-            ThemeUtils.applyThemeToButton(importConfigButton, requireContext());
-            importConfigButton.setOnClickListener(v -> {
-                if (hasStoragePermission()) {
-                    openConfigFileChooser();
-                } else {
-                    requestStoragePermissions();
-                }
-            });
-        }
-    }
-    
-    private void exportConfig() {
-    try {
-        // Check if config file exists
-        if (!configFile.exists()) {
-            Toast.makeText(requireContext(), "Config file not found. Creating default config first.", Toast.LENGTH_LONG).show();
-            createDefaultConfig();
-            
-            if (!configFile.exists()) {
-                Toast.makeText(requireContext(), "Failed to create config file.", Toast.LENGTH_LONG).show();
-                return;
-            }
-        }
-        
-        // Always copy to cache directory for sharing
-        File cacheDir = requireContext().getCacheDir();
-        File tempConfigFile = new File(cacheDir, "config.json");
-        
-        // Delete existing temp file if it exists
-        if (tempConfigFile.exists()) {
-            tempConfigFile.delete();
-        }
-        
-        // Copy the actual config file to cache directory
-        try (FileInputStream fis = new FileInputStream(configFile);
-             FileOutputStream fos = new FileOutputStream(tempConfigFile)) {
-            
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer)) > 0) {
-                fos.write(buffer, 0, length);
-            }
-            fos.flush();
-        }
-        
-        // Verify the temp file was created and has content
-        if (!tempConfigFile.exists() || tempConfigFile.length() == 0) {
-            Toast.makeText(requireContext(), "Failed to prepare config file for sharing.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        
-        // Create file URI for the temp file (using cache path)
-        Uri fileUri = FileProvider.getUriForFile(
-            requireContext(), 
-            "com.origin.launcher.fileprovider", 
-            tempConfigFile
-        );
-        
-        // Create share intent
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("application/json");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Xelo Client Config");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, "Xelo Client configuration file");
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        
-        // Verify that there are apps that can handle this intent
-        if (shareIntent.resolveActivity(requireContext().getPackageManager()) != null) {
-            startActivity(Intent.createChooser(shareIntent, "Export Config File"));
-            Toast.makeText(requireContext(), "Config file ready to share!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(requireContext(), "No apps available to share the config file.", Toast.LENGTH_SHORT).show();
-        }
-        
-    } catch (IOException e) {
-        Toast.makeText(requireContext(), "Failed to export config: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        e.printStackTrace();
-    } catch (Exception e) {
-        Toast.makeText(requireContext(), "Unexpected error during config export: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        e.printStackTrace();
-    }
-}
-    
-    private void openConfigFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/json");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(Intent.createChooser(intent, "Select Config File"), IMPORT_CONFIG_REQUEST_CODE);
-    }
-    
-    private void importConfig(Uri configUri) {
-        try {
-            // Read the selected config file
-            InputStream inputStream = requireContext().getContentResolver().openInputStream(configUri);
-            if (inputStream == null) {
-                Toast.makeText(requireContext(), "Could not read the selected config file", Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            // Read content
-            StringBuilder content = new StringBuilder();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                content.append(new String(buffer, 0, length));
-            }
-            inputStream.close();
-            
-            // Validate JSON
-            try {
-                new JSONObject(content.toString());
-            } catch (JSONException e) {
-                Toast.makeText(requireContext(), "Invalid config file format", Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            // Ensure config directory exists
-            File parentDir = configFile.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                parentDir.mkdirs();
-            }
-            
-            // Write to config file
-            try (FileWriter writer = new FileWriter(configFile)) {
-                writer.write(content.toString());
-            }
-            
-            // Reload module states and refresh UI
-            loadModuleStates();
-            populateModules(); // Refresh the UI
-            
-            Toast.makeText(requireContext(), "Config imported successfully!", Toast.LENGTH_SHORT).show();
-            
-        } catch (IOException e) {
-            Toast.makeText(requireContext(), "Failed to import config: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-    }
-    
-    private void onModuleToggle(ModuleItem module, boolean isEnabled) {
-        updateConfigFile(module.getConfigKey(), isEnabled);
-        Toast.makeText(requireContext(), 
-            module.getName() + " " + (isEnabled ? "enabled" : "disabled"), 
-            Toast.LENGTH_SHORT).show();
-    }
-    
-    private void loadModuleStates() {
-        try {
-            if (!configFile.exists()) {
-                // Create directory if it doesn't exist
-                File parentDir = configFile.getParentFile();
-                if (parentDir != null && !parentDir.exists()) {
-                    parentDir.mkdirs();
-                }
-                // Create default config
-                createDefaultConfig();
-                return;
-            }
-            
-            // Read existing config
-            StringBuilder content = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line);
-                }
-            }
-            
-            JSONObject config = new JSONObject(content.toString());
-            
-            // Update module states
-            for (ModuleItem module : moduleItems) {
-                if (config.has(module.getConfigKey())) {
-                    module.setEnabled(config.getBoolean(module.getConfigKey()));
-                }
-            }
-            
-        } catch (IOException | JSONException e) {
-            Toast.makeText(requireContext(), "Failed to load module config: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
-    
-    private void createDefaultConfig() {
-        try {
-            // Create parent directory if it doesn't exist
-            File parentDir = configFile.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                boolean created = parentDir.mkdirs();
-                if (!created) {
-                    Toast.makeText(requireContext(), "Failed to create config directory", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-            
-            JSONObject defaultConfig = new JSONObject();
-            defaultConfig.put("Nohurtcam", false);
-            defaultConfig.put("Nofog", false);
-            defaultConfig.put("particles_disabler", false);
-            defaultConfig.put("java_clouds", false);
-            defaultConfig.put("java_cubemap", false);
-            defaultConfig.put("classic_skins", false);
-            defaultConfig.put("white_block_outline", false);
-            defaultConfig.put("no_flipbook_animations", false);
-            defaultConfig.put("no_shadows", false);
-            defaultConfig.put("night_vision", false);
-            defaultConfig.put("xelo_title", true);
-            
-            try (FileWriter writer = new FileWriter(configFile)) {
-                writer.write(defaultConfig.toString(2)); // Pretty print with indent
-            }
-            
-        } catch (IOException | JSONException e) {
-            Toast.makeText(requireContext(), "Failed to create default config: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
-    
-    private void updateConfigFile(String key, boolean value) {
-        try {
-            JSONObject config;
-            
-            if (configFile.exists()) {
-                // Read existing config
-                StringBuilder content = new StringBuilder();
-                try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        content.append(line);
-                    }
-                }
-                config = new JSONObject(content.toString());
-            } else {
-                // Create new config and ensure directory exists
-                config = new JSONObject();
-                File parentDir = configFile.getParentFile();
-                if (parentDir != null && !parentDir.exists()) {
-                    boolean created = parentDir.mkdirs();
-                    if (!created) {
-                        Toast.makeText(requireContext(), "Failed to create config directory", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            }
-            
-            // Update the specific key
-            config.put(key, value);
-            
-            // Write back to file
-            try (FileWriter writer = new FileWriter(configFile)) {
-                writer.write(config.toString(2)); // Pretty print with indent
-            }
-            
-        } catch (IOException | JSONException e) {
-            Toast.makeText(requireContext(), "Failed to update config: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
-
-    // REST OF THE CODE REMAINS THE SAME...
-    // (All the other methods like openFileChooser, openSaveLocationChooser, etc. remain unchanged)
-
-    private void openFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/zip");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(Intent.createChooser(intent, "Select Backup Zip File"), IMPORT_REQUEST_CODE);
-    }
-
-    private void openSaveLocationChooser() {
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/zip");
-        intent.putExtra(Intent.EXTRA_TITLE, "mojang_backup.zip");
-        startActivityForResult(Intent.createChooser(intent, "Choose where to save backup"), EXPORT_REQUEST_CODE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMPORT_REQUEST_CODE && resultCode == getActivity().RESULT_OK && data != null) {
-            Uri zipUri = data.getData();
-            if (zipUri != null) {
-                importBackup(zipUri);
-            }
-        } else if (requestCode == EXPORT_REQUEST_CODE && resultCode == getActivity().RESULT_OK && data != null) {
-            Uri saveUri = data.getData();
-            if (saveUri != null && currentRootDir != null) {
-                createBackupAtLocation(saveUri, currentRootDir);
-            }
-        } else if (requestCode == IMPORT_CONFIG_REQUEST_CODE && resultCode == getActivity().RESULT_OK && data != null) {
-            Uri configUri = data.getData();
-            if (configUri != null) {
-                importConfig(configUri);
-            }
-        }
-    }
-
-    private void importBackup(Uri zipUri) {
-        try {
-            // Use the specific target directory
-            File targetDir = new File("/storage/emulated/0/Android/data/com.origin.launcher/files/games/com.mojang/");
-            
-            // Create directory if it doesn't exist
-            if (!targetDir.exists()) {
-                boolean created = targetDir.mkdirs();
-                if (!created) {
-                    Toast.makeText(requireContext(), "Could not create target directory: " + targetDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-            
-            // Check if we can write to the directory
-            if (!targetDir.canWrite()) {
-                Toast.makeText(requireContext(), "Cannot write to target directory: " + targetDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            Toast.makeText(requireContext(), "Importing backup to: " + targetDir.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-            
-            InputStream inputStream = requireContext().getContentResolver().openInputStream(zipUri);
-            if (inputStream != null) {
-                extractZip(inputStream, targetDir);
-                
-                // Update currentRootDir to the new location
-                currentRootDir = targetDir;
-                
-                Toast.makeText(requireContext(), "Backup imported successfully!", Toast.LENGTH_LONG).show();
-                
-                // Refresh the folder list
-                refreshFolderList();
-            } else {
-                Toast.makeText(requireContext(), "Could not read the selected file", Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Import failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-    }
-
-    private void extractZip(InputStream zipInputStream, File targetDir) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(zipInputStream)) {
-            ZipEntry zipEntry;
-            byte[] buffer = new byte[4096]; // Increased buffer size
-            
-            while ((zipEntry = zis.getNextEntry()) != null) {
-                String fileName = zipEntry.getName();
-                
-                // Security check: prevent directory traversal
-                if (fileName.contains("..")) {
-                    continue;
-                }
-                
-                File newFile = new File(targetDir, fileName);
-                
-                if (zipEntry.isDirectory()) {
-                    // Create directory
-                    if (!newFile.exists()) {
-                        boolean created = newFile.mkdirs();
-                        if (!created) {
-                            System.err.println("Failed to create directory: " + newFile.getAbsolutePath());
-                        }
-                    }
-                } else {
-                    // Create parent directories if they don't exist
-                    File parentDir = newFile.getParentFile();
-                    if (parentDir != null && !parentDir.exists()) {
-                        boolean created = parentDir.mkdirs();
-                        if (!created) {
-                            System.err.println("Failed to create parent directory: " + parentDir.getAbsolutePath());
-                            continue;
-                        }
-                    }
-                    
-                    // Extract file
-                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
-                        int len;
-                        while ((len = zis.read(buffer)) > 0) {
-                            fos.write(buffer, 0, len);
-                        }
-                        fos.flush();
-                    } catch (IOException e) {
-                        System.err.println("Failed to extract file: " + newFile.getAbsolutePath() + " - " + e.getMessage());
-                    }
-                }
-                zis.closeEntry();
-            }
-        }
-    }
-
-    private void refreshFolderList() {
-        RecyclerView folderRecyclerView = getView().findViewById(R.id.folderRecyclerView);
-        if (folderRecyclerView != null) {
-            // Re-scan for folders
-            String[] possiblePaths = {
-                "/storage/emulated/0/Android/data/com.origin.launcher/files/games/com.mojang/",
-                "/storage/emulated/0/games/com.mojang/",
-                "/storage/emulated/0/Android/data/com.mojang.minecraftpe/files/games/com.mojang/",
-                getContext().getExternalFilesDir(null) + "/games/com.mojang/"
-            };
-            
-            File rootDir = null;
-            for (String path : possiblePaths) {
-                File testDir = new File(path);
-                if (testDir.exists() && testDir.isDirectory()) {
-                    File[] testFiles = testDir.listFiles();
-                    if (testFiles != null && testFiles.length > 0) {
-                        rootDir = testDir;
-                        currentRootDir = testDir;
-                        break;
-                    }
-                }
-            }
-            
-            List<String> folderNames = new ArrayList<>();
-            if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
-                File[] files = rootDir.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        if (file.isDirectory()) {
-                            folderNames.add(file.getName());
-                        }
-                    }
-                }
-            } else {
-                folderNames.add("No Minecraft data found");
-            }
-            FolderAdapter adapter = new FolderAdapter(folderNames, getContext());
-            folderRecyclerView.setAdapter(adapter);
-        }
-    }
+    // REST OF THE CODE FOR OPTIONS.TXT EDITOR AND FILE MANAGEMENT...
+    // (All the existing methods for options editor, file management, etc.)
 
     private void initializeOptionsEditor(View view) {
         // Initialize options.txt file path
@@ -1415,6 +639,171 @@ public class DashboardFragment extends BaseThemedFragment {
         }
     }
 
+    private void openFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/zip");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Select Backup Zip File"), IMPORT_REQUEST_CODE);
+    }
+
+    private void openSaveLocationChooser() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(Intent.EXTRA_TITLE, "mojang_backup.zip");
+        startActivityForResult(Intent.createChooser(intent, "Choose where to save backup"), EXPORT_REQUEST_CODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == IMPORT_REQUEST_CODE && resultCode == getActivity().RESULT_OK && data != null) {
+            Uri zipUri = data.getData();
+            if (zipUri != null) {
+                importBackup(zipUri);
+            }
+        } else if (requestCode == EXPORT_REQUEST_CODE && resultCode == getActivity().RESULT_OK && data != null) {
+            Uri saveUri = data.getData();
+            if (saveUri != null && currentRootDir != null) {
+                createBackupAtLocation(saveUri, currentRootDir);
+            }
+        }
+    }
+
+    private void importBackup(Uri zipUri) {
+        try {
+            // Use the specific target directory
+            File targetDir = new File("/storage/emulated/0/Android/data/com.origin.launcher/files/games/com.mojang/");
+            
+            // Create directory if it doesn't exist
+            if (!targetDir.exists()) {
+                boolean created = targetDir.mkdirs();
+                if (!created) {
+                    Toast.makeText(requireContext(), "Could not create target directory: " + targetDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+            
+            // Check if we can write to the directory
+            if (!targetDir.canWrite()) {
+                Toast.makeText(requireContext(), "Cannot write to target directory: " + targetDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                return;
+            }
+            
+            Toast.makeText(requireContext(), "Importing backup to: " + targetDir.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+            
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(zipUri);
+            if (inputStream != null) {
+                extractZip(inputStream, targetDir);
+                
+                // Update currentRootDir to the new location
+                currentRootDir = targetDir;
+                
+                Toast.makeText(requireContext(), "Backup imported successfully!", Toast.LENGTH_LONG).show();
+                
+                // Refresh the folder list
+                refreshFolderList();
+            } else {
+                Toast.makeText(requireContext(), "Could not read the selected file", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Import failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+    private void extractZip(InputStream zipInputStream, File targetDir) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(zipInputStream)) {
+            ZipEntry zipEntry;
+            byte[] buffer = new byte[4096]; // Increased buffer size
+            
+            while ((zipEntry = zis.getNextEntry()) != null) {
+                String fileName = zipEntry.getName();
+                
+                // Security check: prevent directory traversal
+                if (fileName.contains("..")) {
+                    continue;
+                }
+                
+                File newFile = new File(targetDir, fileName);
+                
+                if (zipEntry.isDirectory()) {
+                    // Create directory
+                    if (!newFile.exists()) {
+                        boolean created = newFile.mkdirs();
+                        if (!created) {
+                            System.err.println("Failed to create directory: " + newFile.getAbsolutePath());
+                        }
+                    }
+                } else {
+                    // Create parent directories if they don't exist
+                    File parentDir = newFile.getParentFile();
+                    if (parentDir != null && !parentDir.exists()) {
+                        boolean created = parentDir.mkdirs();
+                        if (!created) {
+                            System.err.println("Failed to create parent directory: " + parentDir.getAbsolutePath());
+                            continue;
+                        }
+                    }
+                    
+                    // Extract file
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                        fos.flush();
+                    } catch (IOException e) {
+                        System.err.println("Failed to extract file: " + newFile.getAbsolutePath() + " - " + e.getMessage());
+                    }
+                }
+                zis.closeEntry();
+            }
+        }
+    }
+
+    private void refreshFolderList() {
+        RecyclerView folderRecyclerView = getView().findViewById(R.id.folderRecyclerView);
+        if (folderRecyclerView != null) {
+            // Re-scan for folders
+            String[] possiblePaths = {
+                "/storage/emulated/0/Android/data/com.origin.launcher/files/games/com.mojang/",
+                "/storage/emulated/0/games/com.mojang/",
+                "/storage/emulated/0/Android/data/com.mojang.minecraftpe/files/games/com.mojang/",
+                getContext().getExternalFilesDir(null) + "/games/com.mojang/"
+            };
+            
+            File rootDir = null;
+            for (String path : possiblePaths) {
+                File testDir = new File(path);
+                if (testDir.exists() && testDir.isDirectory()) {
+                    File[] testFiles = testDir.listFiles();
+                    if (testFiles != null && testFiles.length > 0) {
+                        rootDir = testDir;
+                        currentRootDir = testDir;
+                        break;
+                    }
+                }
+            }
+            
+            List<String> folderNames = new ArrayList<>();
+            if (rootDir != null && rootDir.exists() && rootDir.isDirectory()) {
+                File[] files = rootDir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isDirectory()) {
+                            folderNames.add(file.getName());
+                        }
+                    }
+                }
+            } else {
+                folderNames.add("No Minecraft data found");
+            }
+            FolderAdapter adapter = new FolderAdapter(folderNames, getContext());
+            folderRecyclerView.setAdapter(adapter);
+        }
+    }
+
     private boolean hasStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ (API 33+) - Check media permissions
@@ -1486,55 +875,6 @@ public class DashboardFragment extends BaseThemedFragment {
         }
     }
 
-    private void backupAndShare(File rootDir) {
-        try {
-            // Check if source directory exists and has content
-            if (!rootDir.exists()) {
-                Toast.makeText(requireContext(), "Minecraft data directory not found: " + rootDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            File[] files = rootDir.listFiles();
-            if (files == null || files.length == 0) {
-                Toast.makeText(requireContext(), "No files found to backup in: " + rootDir.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            File cacheDir = requireContext().getCacheDir();
-            File zipFile = new File(cacheDir, "mojang_backup.zip");
-            
-            // Delete existing zip file if it exists
-            if (zipFile.exists()) {
-                zipFile.delete();
-            }
-            
-            Toast.makeText(requireContext(), "Creating backup...", Toast.LENGTH_SHORT).show();
-            zipDirectory(rootDir, zipFile);
-            
-            if (!zipFile.exists() || zipFile.length() == 0) {
-                Toast.makeText(requireContext(), "Failed to create backup file", Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            Uri fileUri = FileProvider.getUriForFile(requireContext(), "com.origin.launcher.fileprovider", zipFile);
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("application/zip");
-            shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(shareIntent, "Share Backup Zip"));
-            Toast.makeText(requireContext(), "Backup created successfully!", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Backup failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            e.printStackTrace(); // This will help with debugging
-        }
-    }
-
-    private void zipDirectory(File sourceDir, File zipFile) throws IOException {
-        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
-            zipFileRecursive(sourceDir, sourceDir.getAbsolutePath(), zos);
-        }
-    }
-
     private void zipDirectoryToStream(File sourceDir, String basePath, ZipOutputStream zos) throws IOException {
         zipFileRecursive(sourceDir, basePath, zos);
     }
@@ -1590,44 +930,12 @@ public class DashboardFragment extends BaseThemedFragment {
             
             if (granted) {
                 if (currentRootDir != null) {
-                    backupAndShare(currentRootDir);
+                    openSaveLocationChooser();
                 } else {
                     Toast.makeText(requireContext(), "No Minecraft data found to backup", Toast.LENGTH_LONG).show();
                 }
             } else {
                 Toast.makeText(requireContext(), "Storage permission is required to backup files", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    /**
-     * Refresh ScrollView and container background colors
-     */
-    private void refreshScrollViewBackground() {
-        try {
-            if (modulesScrollView != null) {
-                // Make ScrollView background completely transparent
-                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                modulesScrollView.setBackground(null); // Remove any drawable background
-            }
-            if (modulesContainer != null) {
-                // Make container background completely transparent
-                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                modulesContainer.setBackground(null); // Remove any drawable background
-            }
-        } catch (Exception e) {
-            // Fallback to transparent background
-            if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                try {
-                    modulesScrollView.setBackground(null);
-                } catch (Exception ignored) {}
-            }
-            if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                try {
-                    modulesContainer.setBackground(null);
-                } catch (Exception ignored) {}
             }
         }
     }
