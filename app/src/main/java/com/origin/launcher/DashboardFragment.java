@@ -451,7 +451,8 @@ public class DashboardFragment extends BaseThemedFragment {
                         card.setCardElevation(1 * getResources().getDisplayMetrics().density);
                         card.setStrokeWidth(0);
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
-                        card.setPreventCornerOverlap(false);
+                        try { card.setClipToOutline(true); } catch (Throwable ignored) {}
+                        card.setPreventCornerOverlap(true);
                     }
                 }
             }
@@ -525,6 +526,8 @@ public class DashboardFragment extends BaseThemedFragment {
         
         float cornerRadius = 12 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
+        try { moduleCard.setClipToOutline(true); } catch (Throwable ignored) {}
+        moduleCard.setPreventCornerOverlap(true);
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
         moduleCard.setCardElevation(1 * getResources().getDisplayMetrics().density);
         moduleCard.setStrokeWidth(0);
