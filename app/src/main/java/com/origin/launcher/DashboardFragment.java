@@ -447,12 +447,12 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Keep slight elevation, no border, and 12dp radius
-                        card.setCardElevation(1 * getResources().getDisplayMetrics().density);
-                        card.setStrokeWidth(0);
+                        // Small elevation and subtle stroke with 12dp radius
+                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+                        card.setStrokeWidth((int) (1 * getResources().getDisplayMetrics().density));
+                        card.setStrokeColor(ThemeManager.getInstance().getColor("outline"));
                         card.setRadius(12 * getResources().getDisplayMetrics().density);
-                        try { card.setClipToOutline(true); } catch (Throwable ignored) {}
-                        card.setPreventCornerOverlap(true);
+                        card.setPreventCornerOverlap(false);
                     }
                 }
             }
