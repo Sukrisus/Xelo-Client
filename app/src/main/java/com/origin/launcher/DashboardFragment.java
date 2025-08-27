@@ -497,17 +497,29 @@ public class DashboardFragment extends BaseThemedFragment {
         setupConfigButtons(view);
     }
     
-    // NEW METHOD: Populate modules in ScrollView
+    // NEW METHOD: Populate modules in ScrollView (EXACTLY matching ThemesFragment pattern)
     private void populateModules() {
         if (modulesContainer == null) return;
         
         // Clear existing modules
         modulesContainer.removeAllViews();
         
-        // Add each module as a card view
-        for (ModuleItem module : moduleItems) {
+        // Add each module as a card view with spacing (like ThemesFragment)
+        for (int i = 0; i < moduleItems.size(); i++) {
+            ModuleItem module = moduleItems.get(i);
             View moduleView = createModuleView(module);
             modulesContainer.addView(moduleView);
+            
+            // Add spacing between cards (exactly like ThemesFragment)
+            if (i < moduleItems.size() - 1) {
+                View spacer = new View(getContext());
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 
+                    (int) (12 * getResources().getDisplayMetrics().density)
+                );
+                spacer.setLayoutParams(params);
+                modulesContainer.addView(spacer);
+            }
         }
     }
     
@@ -571,30 +583,32 @@ public class DashboardFragment extends BaseThemedFragment {
         textLayout.addView(moduleNameText);
         textLayout.addView(moduleDescriptionText);
         
-        // Right side container for switch (matching theme card right container)
-        LinearLayout rightContainer = new LinearLayout(getContext());
+        // Right side container for switch (EXACTLY matching ThemesFragment pattern)
+        LinearLayout rightContainer = new LinearLayout(requireContext());
         rightContainer.setOrientation(LinearLayout.HORIZONTAL);
-        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+        rightContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));  // Back to 16dp
+        rightParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
         rightContainer.setLayoutParams(rightParams);
         
-        // Module switch (normal size - not scaled down)
-        MaterialSwitch moduleSwitch = new MaterialSwitch(getContext());
+        // Module switch - PRESERVING CONFIG FUNCTIONALITY
+        MaterialSwitch moduleSwitch = new MaterialSwitch(requireContext());
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+            (int) (24 * getResources().getDisplayMetrics().density),
+            (int) (24 * getResources().getDisplayMetrics().density)
         );
-        // No scaling - use normal size
         moduleSwitch.setLayoutParams(switchParams);
         moduleSwitch.setChecked(module.isEnabled());
+        moduleSwitch.setClickable(true);
+        moduleSwitch.setFocusable(true);
         
-        // Apply theme to the switch
+        // Apply theme to the switch - PRESERVING CONFIG FUNCTIONALITY
         ThemeUtils.applyThemeToSwitch(moduleSwitch, requireContext());
         
+        // PRESERVE the config editing functionality
         moduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             module.setEnabled(isChecked);
             onModuleToggle(module, isChecked);
@@ -602,17 +616,10 @@ public class DashboardFragment extends BaseThemedFragment {
         
         rightContainer.addView(moduleSwitch);
         
-        mainLayout.addView(iconView);
         mainLayout.addView(textLayout);
         mainLayout.addView(rightContainer);
         
         moduleCard.addView(mainLayout);
-        
-        // FINAL corner radius enforcement - force it one more time
-        moduleCard.setRadius(12 * getResources().getDisplayMetrics().density);
-        
-        // Also ensure the inner layout doesn't interfere with the card's corners
-        mainLayout.setBackground(null); // Remove any background that might interfere
         
         return moduleCard;
     }
