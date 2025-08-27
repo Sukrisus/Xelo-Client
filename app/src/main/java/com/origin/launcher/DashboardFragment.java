@@ -1637,6 +1637,29 @@ public class DashboardFragment extends BaseThemedFragment {
         }
     }
 
+    /**
+     * FIXED: Initialize modules container with proper background settings
+     */
+    private void initializeModulesContainer() {
+        if (modulesContainer != null) {
+            modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            modulesContainer.setBackground(null);
+            modulesContainer.setClipChildren(false);
+            modulesContainer.setClipToPadding(false);
+
+            int padding = (int) (8 * getResources().getDisplayMetrics().density);
+            modulesContainer.setPadding(0, padding, 0, padding);
+        }
+
+        if (modulesScrollView != null) {
+            modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            modulesScrollView.setBackground(null);
+            modulesScrollView.setClipChildren(false);
+            modulesScrollView.setClipToPadding(false);
+            modulesScrollView.setFillViewport(true);
+        }
+    }
+
     // Improved adapter for folder names with custom styling
     private static class FolderAdapter extends RecyclerView.Adapter<FolderViewHolder> {
         private final List<String> folders;
