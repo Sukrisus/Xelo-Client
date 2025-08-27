@@ -447,11 +447,17 @@ public class DashboardFragment extends BaseThemedFragment {
                         // Animate background color transition
                         ThemeUtils.animateBackgroundColorTransition(card, currentBackground, targetBackground, 300);
                         
-                        // Slightly higher elevation, no stroke, preserve 16dp radius
-                        card.setCardElevation(2 * getResources().getDisplayMetrics().density);
+                        // FIX: Properly maintain corner radius and style (match createModuleView)
+                        float cornerRadius = 16 * getResources().getDisplayMetrics().density;
+                        card.setRadius(cornerRadius);
+                        card.setCardElevation(6 * getResources().getDisplayMetrics().density);
+                        card.setMaxCardElevation(8 * getResources().getDisplayMetrics().density);
                         card.setStrokeWidth(0);
-                        card.setRadius(16 * getResources().getDisplayMetrics().density);
-                        card.setPreventCornerOverlap(true);
+                        card.setPreventCornerOverlap(false);
+                        card.setUseCompatPadding(false);
+                        card.setClipChildren(true);
+                        card.setClipToPadding(false);
+                        card.setBackground(null);
                     }
                 }
             }
@@ -516,10 +522,10 @@ public class DashboardFragment extends BaseThemedFragment {
             LinearLayout.LayoutParams.WRAP_CONTENT
         );
         cardParams.setMargins(
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density),
-            (int) (8 * getResources().getDisplayMetrics().density)
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (12 * getResources().getDisplayMetrics().density),
+            (int) (16 * getResources().getDisplayMetrics().density),
+            (int) (12 * getResources().getDisplayMetrics().density)
         );
         // Fixed height for consistent card size (110dp)
         cardParams.height = (int) (110 * getResources().getDisplayMetrics().density);
@@ -527,15 +533,19 @@ public class DashboardFragment extends BaseThemedFragment {
         
         float cornerRadius = 16 * getResources().getDisplayMetrics().density;
         moduleCard.setRadius(cornerRadius);
-        moduleCard.setPreventCornerOverlap(true);
-        moduleCard.setUseCompatPadding(true);
+        // Critical settings for proper corner clipping
+        moduleCard.setPreventCornerOverlap(false);
+        moduleCard.setUseCompatPadding(false);
         moduleCard.setClipChildren(true);
-        moduleCard.setClipToPadding(true);
+        moduleCard.setClipToPadding(false);
         moduleCard.setCardBackgroundColor(ThemeManager.getInstance().getColor("surfaceVariant"));
-        moduleCard.setCardElevation(4 * getResources().getDisplayMetrics().density);
+        moduleCard.setCardElevation(6 * getResources().getDisplayMetrics().density);
+        moduleCard.setMaxCardElevation(8 * getResources().getDisplayMetrics().density);
         moduleCard.setStrokeWidth(0);
         moduleCard.setClickable(true);
         moduleCard.setFocusable(true);
+        // Ensure the card itself has no conflicting background
+        moduleCard.setBackground(null);
         
         LinearLayout mainLayout = new LinearLayout(getContext());
         mainLayout.setOrientation(LinearLayout.VERTICAL);
@@ -1610,14 +1620,7 @@ public class DashboardFragment extends BaseThemedFragment {
      */
     private void refreshScrollViewBackground() {
         try {
-            if (modulesScrollView != null) {
-                modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                modulesScrollView.setBackground(null);
-            }
-            if (modulesContainer != null) {
-                modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                modulesContainer.setBackground(null);
-            }
+            initializeModulesContainer();
             View rootView = getView();
             if (rootView != null) {
                 rootView.setBackgroundColor(ThemeManager.getInstance().getColor("background"));
@@ -1625,9 +1628,11 @@ public class DashboardFragment extends BaseThemedFragment {
         } catch (Exception e) {
             if (modulesScrollView != null) {
                 modulesScrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesScrollView.setBackground(null);
             }
             if (modulesContainer != null) {
                 modulesContainer.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                modulesContainer.setBackground(null);
             }
         }
     }
