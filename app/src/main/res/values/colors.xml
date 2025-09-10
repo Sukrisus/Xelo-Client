@@ -3,43 +3,75 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Material Design 3 Dark Theme Colors -->
-<color name="background">#FF0A0A0A</color> <!-- Darker -->
-<color name="onBackground">#FFFFFFFF</color> <!-- Max contrast -->
+    <!-- Material Expressive Dark Theme Colors -->
+    <!-- Rich, deep backgrounds with subtle gradients -->
+    <color name="background">#FF0B0B0F</color> <!-- Deep navy-black -->
+    <color name="onBackground">#FFFEFEFE</color> <!-- Crisp white -->
 
-<color name="surface">#FF141414</color> <!-- Slightly darker -->
-<color name="onSurface">#FFFFFFFF</color>
+    <!-- Elevated surfaces with warmer tones -->
+    <color name="surface">#FF1A1A22</color> <!-- Warm dark surface -->
+    <color name="onSurface">#FFFEFEFE</color>
 
-<color name="surfaceVariant">#FF1F1F1F</color> <!-- Darker -->
-<color name="onSurfaceVariant">#FFCCCCCC</color> <!-- Lighter -->
+    <color name="surfaceVariant">#FF252530</color> <!-- Richer variant -->
+    <color name="onSurfaceVariant">#FFD4D4DC</color> <!-- Softer contrast -->
 
-<color name="outline">#FF505050</color> <!-- More visible -->
+    <color name="outline">#FF6B6B78</color> <!-- More expressive outline -->
+    <color name="outlineVariant">#FF3D3D48</color> <!-- Subtle variant -->
 
-<color name="primary">#FFFFFFFF</color>
-<color name="onPrimary">#FF000000</color>
+    <!-- Vibrant primary colors -->
+    <color name="primary">#FF7C4DFF</color> <!-- Deep purple primary -->
+    <color name="onPrimary">#FFFFFFFF</color>
 
-<color name="primaryContainer">#FF1F1F1F</color> <!-- Darker -->
-<color name="onPrimaryContainer">#FFFFFFFF</color>
+    <color name="primaryContainer">#FF5E35B1</color> <!-- Rich purple container -->
+    <color name="onPrimaryContainer">#FFFFFFFF</color>
 
-<color name="secondary">#FFFFFFFF</color> <!-- More contrast -->
-<color name="onSecondary">#FF000000</color>
+    <!-- Expressive secondary colors -->
+    <color name="secondary">#FF00E5FF</color> <!-- Cyan accent -->
+    <color name="onSecondary">#FF000000</color>
 
-<color name="secondaryContainer">#FF2A2A2A</color> <!-- Slightly darker -->
-<color name="onSecondaryContainer">#FFFFFFFF</color>
+    <color name="secondaryContainer">#FF00ACC1</color> <!-- Darker cyan -->
+    <color name="onSecondaryContainer">#FFFFFFFF</color>
 
-<color name="tertiary">#FFF5F5F5</color> <!-- Brighter -->
-<color name="onTertiary">#FF000000</color>
+    <!-- Bold tertiary colors -->
+    <color name="tertiary">#FFFF6F00</color> <!-- Vibrant orange -->
+    <color name="onTertiary">#FFFFFFFF</color>
 
-<color name="tertiaryContainer">#FF3A3A3A</color>
-<color name="onTertiaryContainer">#FFFFFFFF</color>
+    <color name="tertiaryContainer">#FFE65100</color> <!-- Deep orange -->
+    <color name="onTertiaryContainer">#FFFFFFFF</color>
 
-<color name="error">#FFFF6659</color> <!-- More vivid red -->
-<color name="onError">#FFFFFFFF</color> <!-- Better contrast -->
+    <!-- Enhanced semantic colors -->
+    <color name="error">#FFFF5252</color> <!-- Bright red -->
+    <color name="onError">#FFFFFFFF</color>
 
-<color name="errorContainer">#FFB00020</color> <!-- Richer red -->
-<color name="onErrorContainer">#FFFFFFFF</color>
+    <color name="errorContainer">#FFD32F2F</color> <!-- Rich red -->
+    <color name="onErrorContainer">#FFFFFFFF</color>
 
-<color name="success">#FF00E676</color> <!-- Bright green -->
-<color name="info">#FF64B5F6</color> <!-- Brighter blue -->
-<color name="warning">#FFFFC107</color> <!-- Brighter orange -->
+    <color name="success">#FF4CAF50</color> <!-- Vibrant green -->
+    <color name="onSuccess">#FFFFFFFF</color>
+
+    <color name="successContainer">#FF2E7D32</color> <!-- Deep green -->
+    <color name="onSuccessContainer">#FFFFFFFF</color>
+
+    <color name="warning">#FFFF9800</color> <!-- Bold orange -->
+    <color name="onWarning">#FF000000</color>
+
+    <color name="warningContainer">#FFF57C00</color> <!-- Rich amber -->
+    <color name="onWarningContainer">#FFFFFFFF</color>
+
+    <color name="info">#FF2196F3</color> <!-- Bright blue -->
+    <color name="onInfo">#FFFFFFFF</color>
+
+    <color name="infoContainer">#FF1976D2</color> <!-- Deep blue -->
+    <color name="onInfoContainer">#FFFFFFFF</color>
+
+    <!-- Expressive accent colors -->
+    <color name="accent1">#FFFF4081</color> <!-- Pink accent -->
+    <color name="accent2">#FF00BCD4</color> <!-- Teal accent -->
+    <color name="accent3">#FF8BC34A</color> <!-- Light green accent -->
+    
+    <!-- Surface tints for depth -->
+    <color name="surfaceTint">#FF7C4DFF</color>
+    <color name="inverseSurface">#FFE6E6E6</color>
+    <color name="inverseOnSurface">#FF1A1A22</color>
+    <color name="inversePrimary">#FF3700B3</color>
 </resources>

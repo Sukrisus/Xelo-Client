@@ -1,36 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<style name="AppFullScreenTheme" parent="Theme.AppCompat.NoActionBar">
-    <item name="android:windowNoTitle">true</item>
-    <item name="android:windowActionBar">false</item>
-    <item name="android:windowFullscreen">true</item>
-    <item name="android:windowContentOverlay">@null</item>
-      <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-</style>
+    <style name="AppFullScreenTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
 
-<style name="Theme.Material3.Dark.NoActionBar.Custom" parent="Theme.Material3.Dark.NoActionBar">
-    <item name="android:statusBarColor">@color/black</item>
-    <item name="android:navigationBarColor">@color/black</item>
-    <item name="colorPrimary">@color/primary</item>
-    <item name="colorOnPrimary">@color/onPrimary</item>
-    <item name="colorPrimaryContainer">@color/primaryContainer</item>
-    <item name="colorOnPrimaryContainer">@color/onPrimaryContainer</item>
-    <item name="colorSecondary">@color/secondary</item>
-    <item name="colorOnSecondary">@color/onSecondary</item>
-    <item name="colorSecondaryContainer">@color/secondaryContainer</item>
-    <item name="colorOnSecondaryContainer">@color/onSecondaryContainer</item>
-    <item name="colorTertiary">@color/tertiary</item>
-    <item name="colorOnTertiary">@color/onTertiary</item>
-    <item name="colorTertiaryContainer">@color/tertiaryContainer</item>
-    <item name="colorOnTertiaryContainer">@color/onTertiaryContainer</item>
-</style>
+    <!-- Material Expressive Theme -->
+    <style name="Theme.Material3.Dark.NoActionBar.Custom" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Window colors -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        
+        <!-- Core color scheme -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/onPrimary</item>
+        <item name="colorPrimaryContainer">@color/primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/onSecondary</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="colorOnTertiary">@color/onTertiary</item>
+        <item name="colorTertiaryContainer">@color/tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainer</item>
+        
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/onSurface</item>
+        <item name="colorSurfaceVariant">@color/surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/onBackground</item>
+        
+        <!-- Outline colors -->
+        <item name="colorOutline">@color/outline</item>
+        <item name="colorOutlineVariant">@color/outlineVariant</item>
+        
+        <!-- Error colors -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/onError</item>
+        <item name="colorErrorContainer">@color/errorContainer</item>
+        <item name="colorOnErrorContainer">@color/onErrorContainer</item>
+        
+        <!-- Surface tint -->
+        <item name="colorSurfaceTint">@color/surfaceTint</item>
+        
+        <!-- Inverse colors -->
+        <item name="colorSurfaceInverse">@color/inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/inversePrimary</item>
+        
+        <!-- Material Expressive enhancements -->
+        <item name="elevationOverlayEnabled">true</item>
+        <item name="elevationOverlayAccentColor">@color/primary</item>
+    </style>
 
-<style name="AppTitleStyle">
-    <item name="android:textSize">32sp</item>
-    <item name="android:textStyle">bold</item>
-    <item name="android:textColor">@color/onBackground</item>
-    <item name="android:gravity">center_horizontal</item>
-    <item name="android:fontFamily">sans-serif</item>
-</style>
+    <!-- Expressive Typography Styles -->
+    <style name="AppTitleStyle">
+        <item name="android:textSize">36sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/onBackground</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- Expressive Card Styles -->
+    <style name="ExpressiveCardStyle" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">12dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="rippleColor">@color/primary</item>
+    </style>
+
+    <style name="ExpressiveCardStyle.Interactive" parent="ExpressiveCardStyle">
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="cardElevation">16dp</item>
+        <item name="strokeColor">@color/outline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Expressive Button Styles -->
+    <style name="ExpressiveButtonStyle" parent="Widget.Material3.Button">
+        <item name="cornerRadius">32dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textStyle">bold</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">12dp</item>
+    </style>
+
+    <style name="ExpressiveButtonStyle.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">32dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textStyle">bold</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="strokeColor">@color/outline</item>
+    </style>
+
+    <style name="ExpressiveButtonStyle.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">@color/primary</item>
+    </style>
+
+    <!-- Expressive Text Input Styles -->
+    <style name="ExpressiveTextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="boxStrokeWidthFocused">3dp</item>
+        <item name="boxStrokeColor">@color/outline</item>
+        <item name="hintTextColor">@color/onSurfaceVariant</item>
+    </style>
+
+    <!-- Expressive Typography -->
+    <style name="ExpressiveHeadlineStyle">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/onSurface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <style name="ExpressiveSubheadStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/onSurface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="ExpressiveBodyStyle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/onSurface</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+    </style>
+
+    <style name="ExpressiveCaptionStyle">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/onSurfaceVariant</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <!-- Expressive Bottom Navigation -->
+    <style name="ExpressiveBottomNavigationStyle" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/surface</item>
+        <item name="itemIconTint">@color/bottom_nav_color</item>
+        <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="elevation">16dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
   
 </resources>
