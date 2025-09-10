@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -57,6 +58,9 @@ public class AboutFragment extends BaseThemedFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_about, container, false);
         
+        // Initialize back button
+        initializeBackButton(view);
+        
         // Initialize version TextView
         versionText = view.findViewById(R.id.version_text);
         
@@ -93,6 +97,22 @@ public class AboutFragment extends BaseThemedFragment {
         loadCommits();
         
         return view;
+    }
+    
+    private void initializeBackButton(View view) {
+        ImageView backButton = view.findViewById(R.id.back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                try {
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                } catch (Exception e) {
+                    // Handle error gracefully
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                }
+            });
+        }
     }
     
     private void setupButtonListeners() {
@@ -345,6 +365,18 @@ public class AboutFragment extends BaseThemedFragment {
         super.onDestroy();
         if (executor != null) {
             executor.shutdown();
+        }
+    }
+    
+    @Override
+    protected void onApplyTheme() {
+        // Apply theme to the back button
+        View rootView = getView();
+        if (rootView != null) {
+            ImageView backButton = rootView.findViewById(R.id.back_button);
+            if (backButton != null) {
+                backButton.setColorFilter(ThemeManager.getInstance().getColor("onBackground"));
+            }
         }
     }
 }
