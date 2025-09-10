@@ -58,9 +58,9 @@ public class ThemeUtils {
                 );
                 card.setForeground(ripple);
             } else {
-                // Fallback to default colors if theme not ready
-                card.setCardBackgroundColor(Color.parseColor("#141414"));
-                card.setStrokeColor(Color.parseColor("#505050"));
+                // Fallback to Material Expressive colors if theme not ready
+                card.setCardBackgroundColor(Color.parseColor("#1A1A22"));
+                card.setStrokeColor(Color.parseColor("#6B6B78"));
                 card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
                 card.setCardElevation(0f);
                 
@@ -68,9 +68,9 @@ public class ThemeUtils {
                 // card.setRadius(12 * context.getResources().getDisplayMetrics().density);
             }
         } catch (Exception e) {
-            // Fallback to default colors on error
-            card.setCardBackgroundColor(Color.parseColor("#141414"));
-            card.setStrokeColor(Color.parseColor("#505050"));
+            // Fallback to Material Expressive colors on error
+            card.setCardBackgroundColor(Color.parseColor("#1A1A22"));
+            card.setStrokeColor(Color.parseColor("#6B6B78"));
             card.setStrokeWidth((int) (1 * context.getResources().getDisplayMetrics().density));
             card.setCardElevation(0f);
             
@@ -199,22 +199,22 @@ public class ThemeUtils {
             if (themeManager != null && themeManager.isThemeLoaded()) {
                 textView.setTextColor(themeManager.getColor(colorType));
             } else {
-                // Fallback to default colors if theme not ready
+                // Fallback to Material Expressive colors if theme not ready
                 switch (colorType) {
                     case "onSurface":
-                        textView.setTextColor(Color.parseColor("#FFFFFF"));
+                        textView.setTextColor(Color.parseColor("#FEFEFE"));
                         break;
                     case "onSurfaceVariant":
-                        textView.setTextColor(Color.parseColor("#CCCCCC"));
+                        textView.setTextColor(Color.parseColor("#D4D4DC"));
                         break;
                     default:
-                        textView.setTextColor(Color.parseColor("#FFFFFF"));
+                        textView.setTextColor(Color.parseColor("#FEFEFE"));
                         break;
                 }
             }
         } catch (Exception e) {
-            // Fallback to default colors on error
-            textView.setTextColor(Color.parseColor("#FFFFFF"));
+            // Fallback to Material Expressive colors on error
+            textView.setTextColor(Color.parseColor("#FEFEFE"));
         }
     }
     
@@ -524,14 +524,14 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
                 // Note: MaterialSwitch doesn't support setRippleColor, so we skip that
                 // The ripple effect is handled internally by the MaterialSwitch component
             } else {
-                // Fallback to default colors if theme not ready
-                materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#2A2A2A")));
-                materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FFFFFF")));
+                // Fallback to Material Expressive colors if theme not ready
+                materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#3D3D48")));
+                materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FEFEFE")));
             }
         } catch (Exception e) {
-            // Fallback to default colors on error
-            materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#2A2A2A")));
-            materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FFFFFF")));
+            // Fallback to Material Expressive colors on error
+            materialSwitch.setTrackTintList(ColorStateList.valueOf(Color.parseColor("#3D3D48")));
+            materialSwitch.setThumbTintList(ColorStateList.valueOf(Color.parseColor("#FEFEFE")));
         }
     }
 

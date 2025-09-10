@@ -190,34 +190,51 @@ public class ThemeManager {
             return color;
         }
         
-        // Fallback to default colors if not found
+        // Fallback to Material Expressive colors if not found
         switch (colorName) {
-            case "background": return Color.parseColor("#0A0A0A");
-            case "onBackground": return Color.parseColor("#FFFFFF");
-            case "surface": return Color.parseColor("#141414");
-            case "onSurface": return Color.parseColor("#FFFFFF");
-            case "surfaceVariant": return Color.parseColor("#1F1F1F");
-            case "onSurfaceVariant": return Color.parseColor("#CCCCCC");
-            case "outline": return Color.parseColor("#505050");
-            case "primary": return Color.parseColor("#FFFFFF");
-            case "onPrimary": return Color.parseColor("#000000");
-            case "primaryContainer": return Color.parseColor("#1F1F1F");
+            case "background": return Color.parseColor("#0B0B0F");
+            case "onBackground": return Color.parseColor("#FEFEFE");
+            case "surface": return Color.parseColor("#1A1A22");
+            case "onSurface": return Color.parseColor("#FEFEFE");
+            case "surfaceVariant": return Color.parseColor("#252530");
+            case "onSurfaceVariant": return Color.parseColor("#D4D4DC");
+            case "outline": return Color.parseColor("#6B6B78");
+            case "outlineVariant": return Color.parseColor("#3D3D48");
+            case "primary": return Color.parseColor("#7C4DFF");
+            case "onPrimary": return Color.parseColor("#FFFFFF");
+            case "primaryContainer": return Color.parseColor("#5E35B1");
             case "onPrimaryContainer": return Color.parseColor("#FFFFFF");
-            case "secondary": return Color.parseColor("#FFFFFF");
+            case "secondary": return Color.parseColor("#00E5FF");
             case "onSecondary": return Color.parseColor("#000000");
-            case "secondaryContainer": return Color.parseColor("#2A2A2A");
+            case "secondaryContainer": return Color.parseColor("#00ACC1");
             case "onSecondaryContainer": return Color.parseColor("#FFFFFF");
-            case "tertiary": return Color.parseColor("#F5F5F5");
-            case "onTertiary": return Color.parseColor("#000000");
-            case "tertiaryContainer": return Color.parseColor("#3A3A3A");
+            case "tertiary": return Color.parseColor("#FF6F00");
+            case "onTertiary": return Color.parseColor("#FFFFFF");
+            case "tertiaryContainer": return Color.parseColor("#E65100");
             case "onTertiaryContainer": return Color.parseColor("#FFFFFF");
-            case "error": return Color.parseColor("#FF6659");
+            case "error": return Color.parseColor("#FF5252");
             case "onError": return Color.parseColor("#FFFFFF");
-            case "errorContainer": return Color.parseColor("#B00020");
+            case "errorContainer": return Color.parseColor("#D32F2F");
             case "onErrorContainer": return Color.parseColor("#FFFFFF");
-            case "success": return Color.parseColor("#00E676");
-            case "info": return Color.parseColor("#64B5F6");
-            case "warning": return Color.parseColor("#FFC107");
+            case "success": return Color.parseColor("#4CAF50");
+            case "onSuccess": return Color.parseColor("#FFFFFF");
+            case "successContainer": return Color.parseColor("#2E7D32");
+            case "onSuccessContainer": return Color.parseColor("#FFFFFF");
+            case "warning": return Color.parseColor("#FF9800");
+            case "onWarning": return Color.parseColor("#000000");
+            case "warningContainer": return Color.parseColor("#F57C00");
+            case "onWarningContainer": return Color.parseColor("#FFFFFF");
+            case "info": return Color.parseColor("#2196F3");
+            case "onInfo": return Color.parseColor("#FFFFFF");
+            case "infoContainer": return Color.parseColor("#1976D2");
+            case "onInfoContainer": return Color.parseColor("#FFFFFF");
+            case "accent1": return Color.parseColor("#FF4081");
+            case "accent2": return Color.parseColor("#00BCD4");
+            case "accent3": return Color.parseColor("#8BC34A");
+            case "surfaceTint": return Color.parseColor("#7C4DFF");
+            case "inverseSurface": return Color.parseColor("#E6E6E6");
+            case "inverseOnSurface": return Color.parseColor("#1A1A22");
+            case "inversePrimary": return Color.parseColor("#3700B3");
             default: 
                 Log.w(TAG, "Unknown color name: " + colorName + ", returning default");
                 return Color.parseColor("#FFFFFF");
@@ -352,35 +369,53 @@ public class ThemeManager {
      */
     private void loadHardcodedFallbackColors() {
         currentColors.clear();
-        currentColors.put("background", Color.parseColor("#0A0A0A"));
-        currentColors.put("onBackground", Color.parseColor("#FFFFFF"));
-        currentColors.put("surface", Color.parseColor("#141414"));
-        currentColors.put("onSurface", Color.parseColor("#FFFFFF"));
-        currentColors.put("surfaceVariant", Color.parseColor("#1F1F1F"));
-        currentColors.put("onSurfaceVariant", Color.parseColor("#CCCCCC"));
-        currentColors.put("outline", Color.parseColor("#505050"));
-        currentColors.put("primary", Color.parseColor("#FFFFFF"));
-        currentColors.put("onPrimary", Color.parseColor("#000000"));
-        currentColors.put("primaryContainer", Color.parseColor("#1F1F1F"));
+        // Material Expressive fallback colors
+        currentColors.put("background", Color.parseColor("#0B0B0F"));
+        currentColors.put("onBackground", Color.parseColor("#FEFEFE"));
+        currentColors.put("surface", Color.parseColor("#1A1A22"));
+        currentColors.put("onSurface", Color.parseColor("#FEFEFE"));
+        currentColors.put("surfaceVariant", Color.parseColor("#252530"));
+        currentColors.put("onSurfaceVariant", Color.parseColor("#D4D4DC"));
+        currentColors.put("outline", Color.parseColor("#6B6B78"));
+        currentColors.put("outlineVariant", Color.parseColor("#3D3D48"));
+        currentColors.put("primary", Color.parseColor("#7C4DFF"));
+        currentColors.put("onPrimary", Color.parseColor("#FFFFFF"));
+        currentColors.put("primaryContainer", Color.parseColor("#5E35B1"));
         currentColors.put("onPrimaryContainer", Color.parseColor("#FFFFFF"));
-        currentColors.put("secondary", Color.parseColor("#FFFFFF"));
+        currentColors.put("secondary", Color.parseColor("#00E5FF"));
         currentColors.put("onSecondary", Color.parseColor("#000000"));
-        currentColors.put("secondaryContainer", Color.parseColor("#2A2A2A"));
+        currentColors.put("secondaryContainer", Color.parseColor("#00ACC1"));
         currentColors.put("onSecondaryContainer", Color.parseColor("#FFFFFF"));
-        currentColors.put("tertiary", Color.parseColor("#F5F5F5"));
-        currentColors.put("onTertiary", Color.parseColor("#000000"));
-        currentColors.put("tertiaryContainer", Color.parseColor("#3A3A3A"));
+        currentColors.put("tertiary", Color.parseColor("#FF6F00"));
+        currentColors.put("onTertiary", Color.parseColor("#FFFFFF"));
+        currentColors.put("tertiaryContainer", Color.parseColor("#E65100"));
         currentColors.put("onTertiaryContainer", Color.parseColor("#FFFFFF"));
-        currentColors.put("error", Color.parseColor("#FF6659"));
+        currentColors.put("error", Color.parseColor("#FF5252"));
         currentColors.put("onError", Color.parseColor("#FFFFFF"));
-        currentColors.put("errorContainer", Color.parseColor("#B00020"));
+        currentColors.put("errorContainer", Color.parseColor("#D32F2F"));
         currentColors.put("onErrorContainer", Color.parseColor("#FFFFFF"));
-        currentColors.put("success", Color.parseColor("#00E676"));
-        currentColors.put("info", Color.parseColor("#64B5F6"));
-        currentColors.put("warning", Color.parseColor("#FFC107"));
+        currentColors.put("success", Color.parseColor("#4CAF50"));
+        currentColors.put("onSuccess", Color.parseColor("#FFFFFF"));
+        currentColors.put("successContainer", Color.parseColor("#2E7D32"));
+        currentColors.put("onSuccessContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("warning", Color.parseColor("#FF9800"));
+        currentColors.put("onWarning", Color.parseColor("#000000"));
+        currentColors.put("warningContainer", Color.parseColor("#F57C00"));
+        currentColors.put("onWarningContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("info", Color.parseColor("#2196F3"));
+        currentColors.put("onInfo", Color.parseColor("#FFFFFF"));
+        currentColors.put("infoContainer", Color.parseColor("#1976D2"));
+        currentColors.put("onInfoContainer", Color.parseColor("#FFFFFF"));
+        currentColors.put("accent1", Color.parseColor("#FF4081"));
+        currentColors.put("accent2", Color.parseColor("#00BCD4"));
+        currentColors.put("accent3", Color.parseColor("#8BC34A"));
+        currentColors.put("surfaceTint", Color.parseColor("#7C4DFF"));
+        currentColors.put("inverseSurface", Color.parseColor("#E6E6E6"));
+        currentColors.put("inverseOnSurface", Color.parseColor("#1A1A22"));
+        currentColors.put("inversePrimary", Color.parseColor("#3700B3"));
         
         currentThemeName = "fallback";
-        Log.d(TAG, "Hardcoded fallback colors loaded");
+        Log.d(TAG, "Material Expressive hardcoded fallback colors loaded");
     }
     
     private void saveCurrentTheme(String themeName) {
@@ -495,17 +530,17 @@ public class ThemeManager {
     private int getDefaultToggleColor(String colorType) {
         switch (colorType) {
             case "track":
-                return Color.parseColor("#2A2A2A");
+                return Color.parseColor("#3D3D48");
             case "trackChecked":
-                return Color.parseColor("#4CAF50");
+                return Color.parseColor("#7C4DFF");
             case "thumb":
-                return Color.parseColor("#FFFFFF");
+                return Color.parseColor("#FEFEFE");
             case "thumbChecked":
-                return Color.parseColor("#000000");
+                return Color.parseColor("#FFFFFF");
             case "ripple":
-                return Color.parseColor("#4CAF50");
+                return Color.parseColor("#7C4DFF");
             default:
-                return Color.parseColor("#2A2A2A");
+                return Color.parseColor("#3D3D48");
         }
     }
     
