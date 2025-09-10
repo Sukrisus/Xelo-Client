@@ -42,7 +42,6 @@
         
         <!-- Outline colors -->
         <item name="colorOutline">@color/outline</item>
-        <item name="colorOutlineVariant">@color/outlineVariant</item>
         
         <!-- Error colors -->
         <item name="colorError">@color/error</item>
@@ -50,17 +49,9 @@
         <item name="colorErrorContainer">@color/errorContainer</item>
         <item name="colorOnErrorContainer">@color/onErrorContainer</item>
         
-        <!-- Surface tint -->
-        <item name="colorSurfaceTint">@color/surfaceTint</item>
-        
-        <!-- Inverse colors -->
-        <item name="colorSurfaceInverse">@color/inverseSurface</item>
-        <item name="colorOnSurfaceInverse">@color/inverseOnSurface</item>
-        <item name="colorPrimaryInverse">@color/inversePrimary</item>
         
         <!-- Material Expressive enhancements -->
         <item name="elevationOverlayEnabled">true</item>
-        <item name="elevationOverlayAccentColor">@color/primary</item>
     </style>
 
     <!-- Expressive Typography Styles -->

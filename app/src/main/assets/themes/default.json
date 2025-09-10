@@ -43,10 +43,6 @@
     "accent1": "#FF4081",
     "accent2": "#00BCD4",
     "accent3": "#8BC34A",
-    "surfaceTint": "#7C4DFF",
-    "inverseSurface": "#E6E6E6",
-    "inverseOnSurface": "#1A1A22",
-    "inversePrimary": "#3700B3",
     "toggle": {
       "track": "#3D3D48",
       "trackChecked": "#7C4DFF",

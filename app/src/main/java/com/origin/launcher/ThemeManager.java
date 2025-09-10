@@ -231,10 +231,6 @@ public class ThemeManager {
             case "accent1": return Color.parseColor("#FF4081");
             case "accent2": return Color.parseColor("#00BCD4");
             case "accent3": return Color.parseColor("#8BC34A");
-            case "surfaceTint": return Color.parseColor("#7C4DFF");
-            case "inverseSurface": return Color.parseColor("#E6E6E6");
-            case "inverseOnSurface": return Color.parseColor("#1A1A22");
-            case "inversePrimary": return Color.parseColor("#3700B3");
             default: 
                 Log.w(TAG, "Unknown color name: " + colorName + ", returning default");
                 return Color.parseColor("#FFFFFF");
@@ -409,10 +405,6 @@ public class ThemeManager {
         currentColors.put("accent1", Color.parseColor("#FF4081"));
         currentColors.put("accent2", Color.parseColor("#00BCD4"));
         currentColors.put("accent3", Color.parseColor("#8BC34A"));
-        currentColors.put("surfaceTint", Color.parseColor("#7C4DFF"));
-        currentColors.put("inverseSurface", Color.parseColor("#E6E6E6"));
-        currentColors.put("inverseOnSurface", Color.parseColor("#1A1A22"));
-        currentColors.put("inversePrimary", Color.parseColor("#3700B3"));
         
         currentThemeName = "fallback";
         Log.d(TAG, "Material Expressive hardcoded fallback colors loaded");

@@ -69,9 +69,4 @@
     <color name="accent2">#FF00BCD4</color> <!-- Teal accent -->
     <color name="accent3">#FF8BC34A</color> <!-- Light green accent -->
     
-    <!-- Surface tints for depth -->
-    <color name="surfaceTint">#FF7C4DFF</color>
-    <color name="inverseSurface">#FFE6E6E6</color>
-    <color name="inverseOnSurface">#FF1A1A22</color>
-    <color name="inversePrimary">#FF3700B3</color>
 </resources>
