@@ -435,6 +435,7 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
             // Ignore ripple errors, some Android versions might not support this
         }
     }
+}
 
     /**
      * Apply theme colors to TabLayout (top navigation)
@@ -471,7 +472,6 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
             tabLayout.setTabIconTint(textColors);
         } catch (Exception ignored) {}
     }
-}
     
     /**
      * Apply theme colors to TextInputLayout
