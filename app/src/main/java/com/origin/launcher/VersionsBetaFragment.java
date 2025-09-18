@@ -253,22 +253,30 @@ public class VersionsBetaFragment extends BaseThemedFragment {
             }
             File parent = outFile.getParentFile();
             if (parent != null && !parent.exists()) parent.mkdirs();
-            try (java.io.InputStream in = conn.getInputStream();
-                 java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
-                byte[] buf = new byte[8192];
+            try (java.io.BufferedInputStream in = new java.io.BufferedInputStream(conn.getInputStream(), 262144);
+                 java.io.BufferedOutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(outFile), 262144)) {
+                byte[] buf = new byte[262144];
                 int r;
                 long read = 0;
+                int lastPct = -1;
+                long lastTs = 0;
                 while ((r = in.read(buf)) != -1) {
                     out.write(buf, 0, r);
                     read += r;
                     if (total > 0) {
                         int pct = (int) Math.min(100, (read * 100) / total);
-                        if (getActivity() instanceof MainActivity) {
-                            int finalPct = pct;
-                            requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalPct));
+                        long now = System.currentTimeMillis();
+                        if (pct != lastPct && (now - lastTs) > 150) {
+                            lastPct = pct;
+                            lastTs = now;
+                            if (getActivity() instanceof MainActivity) {
+                                int finalPct = pct;
+                                requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalPct));
+                            }
                         }
                     }
                 }
+                out.flush();
             }
         } finally {
             if (conn != null) conn.disconnect();
