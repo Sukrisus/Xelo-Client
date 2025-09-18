@@ -166,10 +166,17 @@ public class VersionsRepository {
         // Determine isBeta by counting dots in version pattern inside title
         String version = extractVersion(title);
         int dotCount = version != null ? count(version, '.') : count(title, '.');
-        boolean isBeta = dotCount >= 4; // four dots -> beta, three -> stable
+        // Classification rule:
+        // - 2 dots (e.g., 1.21.100) => stable
+        // - 3 dots (e.g., 1.21.100.10) => beta
+        // Fallback: >=3 => beta, otherwise stable
+        boolean isBeta = (dotCount == 3) || (dotCount > 3);
+
+        // Clean up title: remove any ':' characters
+        String cleanTitle = title.replace(":", "").trim();
 
         Parsed p = new Parsed();
-        p.title = title;
+        p.title = cleanTitle;
         p.url = url;
         p.isBeta = isBeta;
         return p;
