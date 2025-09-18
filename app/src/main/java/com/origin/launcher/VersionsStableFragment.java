@@ -124,7 +124,7 @@ public class VersionsStableFragment extends BaseThemedFragment {
         MaterialButton downloadBtn = new MaterialButton(buttonCtx, null, 0);
         downloadBtn.setText("Download");
         // Match Home fragment button sizing/shape
-        downloadBtn.setTextSize(16);
+        downloadBtn.setTextSize(14);
         downloadBtn.setTypeface(null, android.graphics.Typeface.BOLD);
         int pad = (int) (16 * getResources().getDisplayMetrics().density);
         downloadBtn.setPadding(pad, pad, pad, pad);
