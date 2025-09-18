@@ -1,0 +1,193 @@
+package com.origin.launcher;
+
+import android.content.Context;
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class VersionsRepository {
+    private static final String TAG = "VersionsRepository";
+    private static final String REMOTE_URL = "https://cdn.discordapp.com/attachments/1173308256140152842/1418134136706564178/results.txt?ex=68cd03d5&is=68cbb255&hm=0ff4337f3f361a40a84476a7501e6b5dfa34d96ddc24304ed3fdcf1a06759689&";
+    private static final String CACHE_FILE_NAME = "mcpe_versions.txt";
+
+    public static class VersionEntry {
+        public final String title;
+        public final String url;
+        public final boolean isBeta; // true: 4 dots, false: 3 dots
+
+        public VersionEntry(String title, String url, boolean isBeta) {
+            this.title = title;
+            this.url = url;
+            this.isBeta = isBeta;
+        }
+    }
+
+    public List<VersionEntry> getVersions(Context context) {
+        // Try refresh cache; if fails, fall back to cached file
+        File cacheFile = new File(context.getCacheDir(), CACHE_FILE_NAME);
+        try {
+            List<String> lines = downloadLines();
+            if (!lines.isEmpty()) {
+                writeCache(cacheFile, lines);
+                return parse(lines);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to fetch remote versions, using cache if available", e);
+        }
+
+        // Fallback to cache
+        try {
+            if (cacheFile.exists()) {
+                return parse(readCache(cacheFile));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to read cached versions", e);
+        }
+
+        return new ArrayList<>();
+    }
+
+    private List<String> downloadLines() throws Exception {
+        HttpURLConnection connection = null;
+        List<String> result = new ArrayList<>();
+        try {
+            URL url = new URL(REMOTE_URL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.connect();
+            int code = connection.getResponseCode();
+            if (code != 200) throw new Exception("HTTP " + code);
+            try (InputStream in = connection.getInputStream();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (!line.isEmpty()) result.add(line);
+                }
+            }
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+        return result;
+    }
+
+    private void writeCache(File file, List<String> lines) throws Exception {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String l : lines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        }
+    }
+
+    private List<String> readCache(File file) throws Exception {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty()) lines.add(line);
+            }
+        }
+        return lines;
+    }
+
+    private List<VersionEntry> parse(List<String> lines) {
+        List<VersionEntry> list = new ArrayList<>();
+        for (String raw : lines) {
+            Parsed p = parseLine(raw);
+            if (p != null) {
+                list.add(new VersionEntry(p.title, p.url, p.isBeta));
+            }
+        }
+        return list;
+    }
+
+    private static class Parsed {
+        String title;
+        String url;
+        boolean isBeta;
+    }
+
+    private Parsed parseLine(String raw) {
+        // Try common separators: |, tab, comma, or last-whitespace URL
+        String title = null;
+        String url = null;
+
+        if (raw.contains("|") ) {
+            String[] parts = raw.split("\\|", 2);
+            if (parts.length == 2) {
+                title = parts[0].trim();
+                url = parts[1].trim();
+            }
+        }
+        if (title == null || url == null) {
+            String[] parts = raw.split("\t", 2);
+            if (parts.length == 2 && parts[1].startsWith("http")) {
+                title = parts[0].trim();
+                url = parts[1].trim();
+            }
+        }
+        if (title == null || url == null) {
+            int idx = raw.lastIndexOf(" http");
+            if (idx == -1) idx = raw.lastIndexOf("\thttp");
+            if (idx == -1) {
+                // fallback: find first http
+                int h = raw.indexOf("http");
+                if (h > 0) {
+                    title = raw.substring(0, h).trim();
+                    url = raw.substring(h).trim();
+                }
+            } else {
+                title = raw.substring(0, idx).trim();
+                url = raw.substring(idx + 1).trim();
+            }
+        }
+
+        if (title == null || url == null || !url.startsWith("http")) {
+            Log.w(TAG, "Skipping unparseable line: " + raw);
+            return null;
+        }
+
+        // Determine isBeta by counting dots in version pattern inside title
+        String version = extractVersion(title);
+        int dotCount = version != null ? count(version, '.') : count(title, '.');
+        boolean isBeta = dotCount >= 4; // four dots -> beta, three -> stable
+
+        Parsed p = new Parsed();
+        p.title = title;
+        p.url = url;
+        p.isBeta = isBeta;
+        return p;
+    }
+
+    private String extractVersion(String title) {
+        try {
+            Pattern pattern = Pattern.compile("(\\d+\\.\\d+\\.\\d+(?:\\.\\d+)*)");
+            Matcher m = pattern.matcher(title);
+            if (m.find()) return m.group(1);
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private int count(String s, char c) {
+        int n = 0;
+        for (int i = 0; i < s.length(); i++) if (s.charAt(i) == c) n++;
+        return n;
+    }
+}
+

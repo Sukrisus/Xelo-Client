@@ -24,19 +24,7 @@ public class VersionsStableFragment extends BaseThemedFragment {
         try {
             LinearLayout versionsContainer = view.findViewById(R.id.versionsContainerStable);
             if (versionsContainer != null) {
-                // Populate a few stable MCPE version cards
-                addVersionCard(versionsContainer,
-                    "MCPE 1.21.30",
-                    "Latest stable release of Minecraft Bedrock (MCPE)",
-                    "https://www.minecraft.net/en-us/article/minecraft-update-1-21-30");
-                addVersionCard(versionsContainer,
-                    "MCPE 1.21.20",
-                    "Stability fixes and minor improvements",
-                    "https://www.minecraft.net/en-us/article/minecraft-update-1-21-20");
-                addVersionCard(versionsContainer,
-                    "MCPE 1.21.10",
-                    "Feature polish and bug fixes",
-                    "https://www.minecraft.net/en-us/article/minecraft-update-1-21-10");
+                populateFromRepo(versionsContainer);
             }
         } catch (Exception e) {
             Log.e("VersionsStable", "Failed to initialize version cards", e);
@@ -48,6 +36,28 @@ public class VersionsStableFragment extends BaseThemedFragment {
     public void onResume() {
         super.onResume();
         DiscordRPCHelper.getInstance().updateMenuPresence("version switcher - stable");
+    }
+
+    private void populateFromRepo(LinearLayout container) {
+        new Thread(() -> {
+            try {
+                VersionsRepository repo = new VersionsRepository();
+                java.util.List<VersionsRepository.VersionEntry> entries = repo.getVersions(requireContext());
+                java.util.List<VersionsRepository.VersionEntry> stable = new java.util.ArrayList<>();
+                for (VersionsRepository.VersionEntry ve : entries) {
+                    if (!ve.isBeta) stable.add(ve);
+                }
+                requireActivity().runOnUiThread(() -> {
+                    container.removeAllViews();
+                    for (int i = 0; i < stable.size(); i++) {
+                        VersionsRepository.VersionEntry e = stable.get(i);
+                        addVersionCard(container, e.title, "", e.url);
+                    }
+                });
+            } catch (Exception ex) {
+                Log.e("VersionsStable", "Failed to load versions", ex);
+            }
+        }).start();
     }
     
     @Override

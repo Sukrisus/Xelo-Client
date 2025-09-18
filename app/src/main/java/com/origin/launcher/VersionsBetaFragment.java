@@ -24,15 +24,7 @@ public class VersionsBetaFragment extends BaseThemedFragment {
         try {
             LinearLayout versionsContainer = view.findViewById(R.id.versionsContainerBeta);
             if (versionsContainer != null) {
-                // Populate a few beta MCPE version cards
-                addVersionCard(versionsContainer,
-                    "MCPE 1.21.40.23 Beta",
-                    "Latest preview build with experimental features",
-                    "https://www.minecraft.net/en-us/article/minecraft-beta--preview--1-21-40-23");
-                addVersionCard(versionsContainer,
-                    "MCPE 1.21.40.20 Beta",
-                    "Bug fixes and experiments",
-                    "https://www.minecraft.net/en-us/article/minecraft-beta--preview--1-21-40-20");
+                populateFromRepo(versionsContainer);
             }
         } catch (Exception e) {
             Log.e("VersionsBeta", "Failed to initialize version cards", e);
@@ -44,6 +36,28 @@ public class VersionsBetaFragment extends BaseThemedFragment {
     public void onResume() {
         super.onResume();
         DiscordRPCHelper.getInstance().updateMenuPresence("version switcher - beta");
+    }
+
+    private void populateFromRepo(LinearLayout container) {
+        new Thread(() -> {
+            try {
+                VersionsRepository repo = new VersionsRepository();
+                java.util.List<VersionsRepository.VersionEntry> entries = repo.getVersions(requireContext());
+                java.util.List<VersionsRepository.VersionEntry> beta = new java.util.ArrayList<>();
+                for (VersionsRepository.VersionEntry ve : entries) {
+                    if (ve.isBeta) beta.add(ve);
+                }
+                requireActivity().runOnUiThread(() -> {
+                    container.removeAllViews();
+                    for (int i = 0; i < beta.size(); i++) {
+                        VersionsRepository.VersionEntry e = beta.get(i);
+                        addVersionCard(container, e.title, "", e.url);
+                    }
+                });
+            } catch (Exception ex) {
+                Log.e("VersionsBeta", "Failed to load versions", ex);
+            }
+        }).start();
     }
     
     @Override
