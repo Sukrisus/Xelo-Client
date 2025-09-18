@@ -140,6 +140,17 @@ public class HomeFragment extends BaseThemedFragment {
                     shareLogsButton.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
                     shareLogsButton.setStrokeWidth(0);
                 }
+
+                // Ensure versions nav button is transparent like share button
+                if (versions_button instanceof MaterialButton) {
+                    MaterialButton vb = (MaterialButton) versions_button;
+                    ThemeUtils.applyThemeToButton(vb, requireContext());
+                    vb.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+                    vb.setStrokeWidth(0);
+                    try {
+                        vb.setIconTint(ColorStateList.valueOf(themeManager.getColor("onSurfaceVariant")));
+                    } catch (Exception ignored) {}
+                }
                 
                 // Apply theme to log text area
                 if (listener != null) {
