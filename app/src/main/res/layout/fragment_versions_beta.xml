@@ -21,6 +21,12 @@
             android:textColor="@color/onBackground"
             android:layout_marginBottom="32dp"
             android:fontFamily="sans-serif-light" />
+
+        <LinearLayout
+            android:id="@+id/versionsContainerBeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
     </LinearLayout>
 
 </ScrollView>
