@@ -118,10 +118,16 @@ public class VersionsStableFragment extends BaseThemedFragment {
         actionsParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
         actions.setLayoutParams(actionsParams);
 
-        MaterialButton downloadBtn = new MaterialButton(requireContext(), null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+        MaterialButton downloadBtn = new MaterialButton(requireContext());
         downloadBtn.setText("Download");
-        downloadBtn.setTag("outlined");
-        ThemeUtils.applyThemeToButton(downloadBtn, requireContext());
+        // Force white background + black text like Home fragment main button
+        downloadBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE));
+        downloadBtn.setTextColor(android.graphics.Color.BLACK);
+        // Apply a subtle ripple suitable for light buttons
+        try {
+            int ripple = ThemeUtils.createOptimizedRippleColor("onSurfaceVariant", "button");
+            downloadBtn.setRippleColor(android.content.res.ColorStateList.valueOf(ripple));
+        } catch (Exception ignored) {}
         downloadBtn.setOnClickListener(v -> openUrl(url));
 
         actions.addView(downloadBtn);
