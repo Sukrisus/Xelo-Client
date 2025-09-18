@@ -176,10 +176,6 @@ public class VersionsBetaFragment extends BaseThemedFragment {
         View root = getView();
         if (root == null) return;
         LinearProgressIndicator progress = root.findViewById(R.id.download_progress_beta);
-        if (progress != null) {
-            progress.setIndeterminate(true);
-            progress.setVisibility(View.VISIBLE);
-        }
         new Thread(() -> {
             boolean ok = false;
             try {
@@ -187,17 +183,34 @@ public class VersionsBetaFragment extends BaseThemedFragment {
                 File versionsDir = new File(requireContext().getExternalFilesDir(null), "versions");
                 if (!versionsDir.exists()) versionsDir.mkdirs();
                 File outFile = new File(versionsDir, fileName);
-                downloadToFile(url, outFile);
+                long total = fetchContentLength(url);
+                int max = 100;
+                if (getActivity() instanceof MainActivity) {
+                    requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(max));
+                }
+                downloadToFileWithProgress(url, outFile, total, progress);
                 ok = true;
             } catch (Exception ex) {
                 Log.e("VersionsBeta", "Download failed", ex);
             }
             boolean finalOk = ok;
             requireActivity().runOnUiThread(() -> {
-                if (progress != null) progress.setVisibility(View.GONE);
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).hideGlobalProgress();
+                }
                 Toast.makeText(requireContext(), finalOk ? "Downloaded" : "Download failed", Toast.LENGTH_SHORT).show();
             });
         }).start();
+    }
+
+    private long fetchContentLength(String urlStr) {
+        try {
+            java.net.HttpURLConnection conn = openConnectionFollowingRedirects(urlStr, 5);
+            long len = conn.getContentLengthLong();
+            conn.disconnect();
+            return len;
+        } catch (Exception ignored) {}
+        return -1;
     }
 
     private String buildApkFileNameFromTitle(String title) {
@@ -223,6 +236,38 @@ public class VersionsBetaFragment extends BaseThemedFragment {
                 int r;
                 while ((r = in.read(buf)) != -1) {
                     out.write(buf, 0, r);
+                }
+            }
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+    }
+
+    private void downloadToFileWithProgress(String urlStr, File outFile, long total, LinearProgressIndicator localProgress) throws Exception {
+        java.net.HttpURLConnection conn = null;
+        try {
+            conn = openConnectionFollowingRedirects(urlStr, 5);
+            int code = conn.getResponseCode();
+            if (code != java.net.HttpURLConnection.HTTP_OK && code != java.net.HttpURLConnection.HTTP_PARTIAL) {
+                throw new Exception("HTTP " + code);
+            }
+            File parent = outFile.getParentFile();
+            if (parent != null && !parent.exists()) parent.mkdirs();
+            try (java.io.InputStream in = conn.getInputStream();
+                 java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
+                byte[] buf = new byte[8192];
+                int r;
+                long read = 0;
+                while ((r = in.read(buf)) != -1) {
+                    out.write(buf, 0, r);
+                    read += r;
+                    if (total > 0) {
+                        int pct = (int) Math.min(100, (read * 100) / total);
+                        if (getActivity() instanceof MainActivity) {
+                            int finalPct = pct;
+                            requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalPct));
+                        }
+                    }
                 }
             }
         } finally {
