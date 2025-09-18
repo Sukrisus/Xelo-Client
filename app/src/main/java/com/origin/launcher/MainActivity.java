@@ -239,6 +239,8 @@ public class MainActivity extends BaseThemedActivity {
                 // Fallback to immediate theme application
                 ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
             }
+        }
+    }
 
     public void showGlobalProgress(int max) {
         if (globalProgress == null) {
@@ -262,8 +264,6 @@ public class MainActivity extends BaseThemedActivity {
     public void hideGlobalProgress() {
         if (globalProgress != null) {
             globalProgress.setVisibility(View.GONE);
-        }
-    }
         }
     }
 
