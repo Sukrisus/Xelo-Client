@@ -443,14 +443,8 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
     public static void applyThemeToTabLayout(TabLayout tabLayout) {
         try {
             ThemeManager themeManager = ThemeManager.getInstance();
-            // Background
-            int bg;
-            try {
-                bg = themeManager.getColor("surface");
-            } catch (Exception e) {
-                bg = themeManager.getColor("background");
-            }
-            tabLayout.setBackgroundColor(bg);
+            // Background should match fragment background
+            tabLayout.setBackgroundColor(themeManager.getColor("background"));
 
             // Text colors for selected/unselected
             ColorStateList textColors = new ColorStateList(
