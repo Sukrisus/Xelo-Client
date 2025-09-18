@@ -14,6 +14,7 @@ import android.util.Log;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import java.io.File;
 
 public class VersionsStableFragment extends BaseThemedFragment {
 
