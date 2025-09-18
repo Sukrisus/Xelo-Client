@@ -176,7 +176,6 @@ public class VersionsStableFragment extends BaseThemedFragment {
         View root = getView();
         if (root == null) return;
         LinearProgressIndicator progress = root.findViewById(R.id.download_progress_stable);
-        long contentLength = -1;
         new Thread(() -> {
             boolean ok = false;
             try {
@@ -184,12 +183,12 @@ public class VersionsStableFragment extends BaseThemedFragment {
                 File versionsDir = new File(requireContext().getExternalFilesDir(null), "versions");
                 if (!versionsDir.exists()) versionsDir.mkdirs();
                 File outFile = new File(versionsDir, fileName);
-                contentLength = fetchContentLength(url);
+                long total = fetchContentLength(url);
                 int max = 100;
                 if (getActivity() instanceof MainActivity) {
                     requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(max));
                 }
-                downloadToFileWithProgress(url, outFile, contentLength, progress);
+                downloadToFileWithProgress(url, outFile, total, progress);
                 ok = true;
             } catch (Exception ex) {
                 Log.e("VersionsStable", "Download failed", ex);
