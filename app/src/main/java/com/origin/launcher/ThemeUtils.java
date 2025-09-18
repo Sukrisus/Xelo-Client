@@ -19,6 +19,7 @@ import android.graphics.Color;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import android.animation.ValueAnimator;
 import android.animation.ArgbEvaluator;
+import com.google.android.material.tabs.TabLayout;
 
 public class ThemeUtils {
     
@@ -322,6 +323,8 @@ public class ThemeUtils {
             applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
         } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
             applyThemeToBottomNavigation(view);
+        } else if (view instanceof TabLayout) {
+            applyThemeToTabLayout((TabLayout) view);
         } else if (view instanceof TextInputLayout) {
             applyThemeToTextInputLayout((TextInputLayout) view);
         } else if (view instanceof EditText && !(view instanceof TextInputEditText)) {
@@ -431,6 +434,42 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
         } catch (Exception e) {
             // Ignore ripple errors, some Android versions might not support this
         }
+    }
+
+    /**
+     * Apply theme colors to TabLayout (top navigation)
+     */
+    public static void applyThemeToTabLayout(TabLayout tabLayout) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            // Background
+            int bg;
+            try {
+                bg = themeManager.getColor("surface");
+            } catch (Exception e) {
+                bg = themeManager.getColor("background");
+            }
+            tabLayout.setBackgroundColor(bg);
+
+            // Text colors for selected/unselected
+            ColorStateList textColors = new ColorStateList(
+                new int[][]{
+                    new int[]{android.R.attr.state_selected},
+                    new int[]{-android.R.attr.state_selected}
+                },
+                new int[]{
+                    themeManager.getColor("primary"),
+                    themeManager.getColor("onSurfaceVariant")
+                }
+            );
+            tabLayout.setTabTextColors(textColors);
+
+            // Indicator color
+            tabLayout.setSelectedTabIndicatorColor(themeManager.getColor("primary"));
+
+            // Also color icons in tabs if any
+            tabLayout.setTabIconTint(textColors);
+        } catch (Exception ignored) {}
     }
 }
     
