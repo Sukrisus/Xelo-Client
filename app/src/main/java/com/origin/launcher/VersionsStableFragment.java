@@ -118,16 +118,19 @@ public class VersionsStableFragment extends BaseThemedFragment {
         actionsParams.setMarginStart((int) (16 * getResources().getDisplayMetrics().density));
         actions.setLayoutParams(actionsParams);
 
-        MaterialButton downloadBtn = new MaterialButton(requireContext());
+        android.view.ContextThemeWrapper buttonCtx = new android.view.ContextThemeWrapper(
+            requireContext(), com.google.android.material.R.style.Widget_Material3_Button
+        );
+        MaterialButton downloadBtn = new MaterialButton(buttonCtx, null, 0);
         downloadBtn.setText("Download");
-        // Force white background + black text like Home fragment main button
-        downloadBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE));
-        downloadBtn.setTextColor(android.graphics.Color.BLACK);
-        // Apply a subtle ripple suitable for light buttons
-        try {
-            int ripple = ThemeUtils.createOptimizedRippleColor("onSurfaceVariant", "button");
-            downloadBtn.setRippleColor(android.content.res.ColorStateList.valueOf(ripple));
-        } catch (Exception ignored) {}
+        // Match Home fragment button sizing/shape
+        downloadBtn.setTextSize(16);
+        downloadBtn.setTypeface(null, android.graphics.Typeface.BOLD);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        downloadBtn.setPadding(pad, pad, pad, pad);
+        downloadBtn.setCornerRadius((int) (28 * getResources().getDisplayMetrics().density));
+        // Apply theme like Home fragment does
+        ThemeUtils.applyThemeToButton(downloadBtn, requireContext());
         downloadBtn.setOnClickListener(v -> openUrl(url));
 
         actions.addView(downloadBtn);
