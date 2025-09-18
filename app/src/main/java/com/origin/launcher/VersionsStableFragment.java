@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import android.util.Log;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 public class VersionsStableFragment extends BaseThemedFragment {
 
@@ -23,6 +24,7 @@ public class VersionsStableFragment extends BaseThemedFragment {
         
         try {
             LinearLayout versionsContainer = view.findViewById(R.id.versionsContainerStable);
+            LinearProgressIndicator progressBar = view.findViewById(R.id.download_progress_stable);
             if (versionsContainer != null) {
                 populateFromRepo(versionsContainer);
             }
@@ -141,7 +143,7 @@ public class VersionsStableFragment extends BaseThemedFragment {
         downloadBtn.setCornerRadius((int) (28 * getResources().getDisplayMetrics().density));
         // Apply theme like Home fragment does
         ThemeUtils.applyThemeToButton(downloadBtn, requireContext());
-        downloadBtn.setOnClickListener(v -> openUrl(url));
+        downloadBtn.setOnClickListener(v -> startDownload(url, title));
 
         actions.addView(downloadBtn);
 
@@ -166,6 +168,64 @@ public class VersionsStableFragment extends BaseThemedFragment {
             startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Unable to open link", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startDownload(String url, String title) {
+        View root = getView();
+        if (root == null) return;
+        LinearProgressIndicator progress = root.findViewById(R.id.download_progress_stable);
+        if (progress != null) {
+            progress.setIndeterminate(true);
+            progress.setVisibility(View.VISIBLE);
+        }
+        new Thread(() -> {
+            boolean ok = false;
+            try {
+                String fileName = buildApkFileNameFromTitle(title);
+                File versionsDir = new File(requireContext().getExternalFilesDir(null), "versions");
+                if (!versionsDir.exists()) versionsDir.mkdirs();
+                File outFile = new File(versionsDir, fileName);
+                downloadToFile(url, outFile);
+                ok = true;
+            } catch (Exception ex) {
+                Log.e("VersionsStable", "Download failed", ex);
+            }
+            boolean finalOk = ok;
+            requireActivity().runOnUiThread(() -> {
+                if (progress != null) progress.setVisibility(View.GONE);
+                Toast.makeText(requireContext(), finalOk ? "Downloaded" : "Download failed", Toast.LENGTH_SHORT).show();
+            });
+        }).start();
+    }
+
+    private String buildApkFileNameFromTitle(String title) {
+        // Extract version numbers and remove dots to form filename like 121100.apk
+        String version = title.replaceAll("[^0-9\\.]", "");
+        version = version.replace(".", "");
+        if (version.isEmpty()) version = String.valueOf(System.currentTimeMillis());
+        return version + ".apk";
+    }
+
+    private void downloadToFile(String urlStr, File outFile) throws Exception {
+        java.net.HttpURLConnection conn = null;
+        try {
+            java.net.URL url = new java.net.URL(urlStr);
+            conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(30000);
+            conn.connect();
+            if (conn.getResponseCode() != 200) throw new Exception("HTTP " + conn.getResponseCode());
+            try (java.io.InputStream in = conn.getInputStream();
+                 java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
+                byte[] buf = new byte[8192];
+                int r;
+                while ((r = in.read(buf)) != -1) {
+                    out.write(buf, 0, r);
+                }
+            }
+        } finally {
+            if (conn != null) conn.disconnect();
         }
     }
 }
