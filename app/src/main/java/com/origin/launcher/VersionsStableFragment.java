@@ -211,12 +211,14 @@ public class VersionsStableFragment extends BaseThemedFragment {
     private void downloadToFile(String urlStr, File outFile) throws Exception {
         java.net.HttpURLConnection conn = null;
         try {
-            java.net.URL url = new java.net.URL(urlStr);
-            conn = (java.net.HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(30000);
-            conn.connect();
-            if (conn.getResponseCode() != 200) throw new Exception("HTTP " + conn.getResponseCode());
+            conn = openConnectionFollowingRedirects(urlStr, 5);
+            int code = conn.getResponseCode();
+            if (code != java.net.HttpURLConnection.HTTP_OK && code != java.net.HttpURLConnection.HTTP_PARTIAL) {
+                throw new Exception("HTTP " + code);
+            }
+            // Ensure parent dir exists
+            File parent = outFile.getParentFile();
+            if (parent != null && !parent.exists()) parent.mkdirs();
             try (java.io.InputStream in = conn.getInputStream();
                  java.io.FileOutputStream out = new java.io.FileOutputStream(outFile)) {
                 byte[] buf = new byte[8192];
@@ -228,5 +230,36 @@ public class VersionsStableFragment extends BaseThemedFragment {
         } finally {
             if (conn != null) conn.disconnect();
         }
+    }
+
+    private java.net.HttpURLConnection openConnectionFollowingRedirects(String urlStr, int maxRedirects) throws Exception {
+        String current = urlStr;
+        for (int i = 0; i < maxRedirects; i++) {
+            java.net.URL url = new java.net.URL(current);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(false); // we handle manually to copy headers
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(45000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Mobile Safari/537.36");
+            conn.setRequestProperty("Accept", "*/*");
+            conn.setRequestProperty("Accept-Encoding", "identity");
+            conn.connect();
+            int code = conn.getResponseCode();
+            if (code == java.net.HttpURLConnection.HTTP_MOVED_PERM || code == java.net.HttpURLConnection.HTTP_MOVED_TEMP || code == java.net.HttpURLConnection.HTTP_SEE_OTHER || code == 307 || code == 308) {
+                String loc = conn.getHeaderField("Location");
+                conn.disconnect();
+                if (loc == null) throw new Exception("Redirect without Location");
+                if (!loc.startsWith("http")) {
+                    java.net.URL base = url;
+                    java.net.URL newUrl = new java.net.URL(base, loc);
+                    current = newUrl.toString();
+                } else {
+                    current = loc;
+                }
+                continue;
+            }
+            return conn;
+        }
+        throw new Exception("Too many redirects");
     }
 }
