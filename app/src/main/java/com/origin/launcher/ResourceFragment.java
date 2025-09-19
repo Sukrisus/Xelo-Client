@@ -56,6 +56,8 @@ public class ResourceFragment extends BaseThemedFragment {
                         tab.setText("Tab " + (position + 1));
                 }
             }).attach();
+        // Apply theme to TabLayout after attaching
+        ThemeUtils.applyThemeToTabLayout(tabLayout);
     }
     
     @Override

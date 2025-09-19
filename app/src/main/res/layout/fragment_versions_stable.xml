@@ -21,6 +21,21 @@
             android:textColor="@color/onBackground"
             android:layout_marginBottom="32dp"
             android:fontFamily="sans-serif-light" />
+
+        <LinearLayout
+            android:id="@+id/versionsContainerStable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/download_progress_stable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            style="@style/Widget.Material3.LinearProgressIndicator"
+            android:indeterminate="true" />
     </LinearLayout>
 
 </ScrollView>
