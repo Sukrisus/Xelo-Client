@@ -144,7 +144,18 @@ public class VersionsStableFragment extends BaseThemedFragment {
         downloadBtn.setCornerRadius((int) (28 * getResources().getDisplayMetrics().density));
         // Apply theme like Home fragment does
         ThemeUtils.applyThemeToButton(downloadBtn, requireContext());
-        downloadBtn.setOnClickListener(v -> startDownload(url, title));
+        // Check if APK already exists and show appropriate button
+        String fileName = buildApkFileNameFromTitle(title);
+        File versionsDir = new File(requireContext().getExternalFilesDir(null), "versions");
+        File apkFile = new File(versionsDir, fileName);
+        
+        if (apkFile.exists()) {
+            downloadBtn.setText("Select");
+            downloadBtn.setOnClickListener(v -> selectApk(apkFile, title));
+        } else {
+            downloadBtn.setText("Download");
+            downloadBtn.setOnClickListener(v -> startDownload(url, title));
+        }
 
         actions.addView(downloadBtn);
 
@@ -314,5 +325,17 @@ public class VersionsStableFragment extends BaseThemedFragment {
             return conn;
         }
         throw new Exception("Too many redirects");
+    }
+
+    private void selectApk(File apkFile, String title) {
+        try {
+            // Store the selected APK path in SharedPreferences for the launcher to use
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences("selected_apk", android.content.Context.MODE_PRIVATE);
+            prefs.edit().putString("apk_path", apkFile.getAbsolutePath()).apply();
+            
+            Toast.makeText(requireContext(), "Selected: " + title, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Failed to select APK", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -86,6 +86,15 @@ public class HomeFragment extends BaseThemedFragment {
             }
         });
         
+        // Long press to clear APK selection
+        mbl2_button.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                clearSelectedApk();
+                return true;
+            }
+        });
+        
         versions_button.setOnClickListener(v -> {
             try {
                 requireActivity().getSupportFragmentManager()
@@ -109,6 +118,9 @@ public class HomeFragment extends BaseThemedFragment {
         
         // Set initial log text
         listener.setText("Ready to launch Minecraft");
+        
+        // Show current selection status
+        updateSelectionStatus();
         
         // Set up share button
         shareLogsButton.setOnClickListener(new View.OnClickListener() {
@@ -185,6 +197,28 @@ public class HomeFragment extends BaseThemedFragment {
         return prefs.getString("mc_package_name", "com.mojang.minecraftpe");
     }
 
+    private String getSelectedApkPath() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("selected_apk", 0);
+        return prefs.getString("apk_path", null);
+    }
+
+    private void updateSelectionStatus() {
+        String selectedApkPath = getSelectedApkPath();
+        if (selectedApkPath != null && new File(selectedApkPath).exists()) {
+            String fileName = new File(selectedApkPath).getName();
+            listener.setText("Ready to launch Minecraft\nSelected APK: " + fileName);
+        } else {
+            listener.setText("Ready to launch Minecraft");
+        }
+    }
+
+    private void clearSelectedApk() {
+        SharedPreferences prefs = requireContext().getSharedPreferences("selected_apk", 0);
+        prefs.edit().remove("apk_path").apply();
+        updateSelectionStatus();
+        Toast.makeText(requireContext(), "Cleared APK selection", Toast.LENGTH_SHORT).show();
+    }
+
     private void shareLogs() {
         try {
             // Get the current log text
@@ -233,14 +267,30 @@ public class HomeFragment extends BaseThemedFragment {
                 handleCacheCleaning(cacheDexDir, handler, listener);
                 
                 ApplicationInfo mcInfo = null;
-                try {
-                    mcInfo = requireActivity().getPackageManager().getApplicationInfo(mcPackageName, PackageManager.GET_META_DATA);
-                    final ApplicationInfo finalMcInfo = mcInfo;
-                    handler.post(() -> listener.append("\n-> Found Minecraft at: " + finalMcInfo.sourceDir));
-                } catch(Exception e) {
-                    handler.post(() -> alertAndExit("Minecraft cant be found", "Perhaps you dont have it installed?"));
-                    return;
-                };
+                String selectedApkPath = getSelectedApkPath();
+                
+                if (selectedApkPath != null && new File(selectedApkPath).exists()) {
+                    // Use selected APK instead of installed one
+                    try {
+                        mcInfo = requireActivity().getPackageManager().getApplicationInfo(mcPackageName, PackageManager.GET_META_DATA);
+                        // Override the sourceDir with our selected APK
+                        mcInfo.sourceDir = selectedApkPath;
+                        handler.post(() -> listener.append("\n-> Using selected APK: " + selectedApkPath));
+                    } catch(Exception e) {
+                        handler.post(() -> alertAndExit("Selected APK not found", "The selected APK file is missing or corrupted"));
+                        return;
+                    }
+                } else {
+                    // Use installed APK as fallback
+                    try {
+                        mcInfo = requireActivity().getPackageManager().getApplicationInfo(mcPackageName, PackageManager.GET_META_DATA);
+                        final ApplicationInfo finalMcInfo = mcInfo;
+                        handler.post(() -> listener.append("\n-> Found Minecraft at: " + finalMcInfo.sourceDir));
+                    } catch(Exception e) {
+                        handler.post(() -> alertAndExit("Minecraft cant be found", "Perhaps you dont have it installed?"));
+                        return;
+                    }
+                }
                 
                 Object pathList = getPathList(requireActivity().getClassLoader());
                 processDexFiles(mcInfo, cacheDexDir, pathList, handler, listener, launcherDexName);
