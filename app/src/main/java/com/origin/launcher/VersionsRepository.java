@@ -35,17 +35,13 @@ public class VersionsRepository {
     }
 
     public List<VersionEntry> getVersions(Context context) {
-        Log.d(TAG, "Getting versions from: " + REMOTE_URL);
         // Try refresh cache; if fails, fall back to cached file
         File cacheFile = new File(context.getCacheDir(), CACHE_FILE_NAME);
         try {
             List<String> lines = downloadLines();
-            Log.d(TAG, "Downloaded " + lines.size() + " lines");
             if (!lines.isEmpty()) {
                 writeCache(cacheFile, lines);
-                List<VersionEntry> entries = parse(lines);
-                Log.d(TAG, "Parsed " + entries.size() + " version entries");
-                return entries;
+                return parse(lines);
             }
         } catch (Exception e) {
             Log.w(TAG, "Failed to fetch remote versions, using cache if available", e);
@@ -54,17 +50,12 @@ public class VersionsRepository {
         // Fallback to cache
         try {
             if (cacheFile.exists()) {
-                Log.d(TAG, "Using cached versions");
-                List<String> cachedLines = readCache(cacheFile);
-                List<VersionEntry> entries = parse(cachedLines);
-                Log.d(TAG, "Parsed " + entries.size() + " cached version entries");
-                return entries;
+                return parse(readCache(cacheFile));
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to read cached versions", e);
         }
 
-        Log.w(TAG, "No versions found, returning empty list");
         return new ArrayList<>();
     }
 
@@ -88,7 +79,6 @@ public class VersionsRepository {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36");
             connection.connect();
             int code = connection.getResponseCode();
-            Log.d(TAG, "HTTP response code: " + code);
             if (code != 200) throw new Exception("HTTP " + code);
             try (InputStream in = connection.getInputStream();
                  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
@@ -97,29 +87,15 @@ public class VersionsRepository {
                     line = line.trim();
                     if (!line.isEmpty()) {
                         result.add(line);
-                        Log.d(TAG, "Downloaded line: " + line);
                     }
                 }
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to download from URL, using fallback data", e);
-            // Fallback to sample data if download fails
-            return getFallbackData();
         } finally {
             if (connection != null) connection.disconnect();
         }
         return result;
     }
 
-    private List<String> getFallbackData() {
-        List<String> fallback = new ArrayList<>();
-        fallback.add("1.21.100 https://example.com/mcpe-1.21.100.apk");
-        fallback.add("1.21.100.10 https://example.com/mcpe-1.21.100.10.apk");
-        fallback.add("1.21.0 https://example.com/mcpe-1.21.0.apk");
-        fallback.add("1.21.0.5 https://example.com/mcpe-1.21.0.5.apk");
-        Log.d(TAG, "Using fallback data with " + fallback.size() + " entries");
-        return fallback;
-    }
 
     private void writeCache(File file, List<String> lines) throws Exception {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -144,18 +120,12 @@ public class VersionsRepository {
 
     private List<VersionEntry> parse(List<String> lines) {
         List<VersionEntry> list = new ArrayList<>();
-        Log.d(TAG, "Parsing " + lines.size() + " lines");
         for (String raw : lines) {
-            Log.d(TAG, "Parsing line: " + raw);
             Parsed p = parseLine(raw);
             if (p != null) {
-                Log.d(TAG, "Parsed: " + p.title + " -> " + p.url + " (beta: " + p.isBeta + ")");
                 list.add(new VersionEntry(p.title, p.url, p.isBeta));
-            } else {
-                Log.w(TAG, "Failed to parse line: " + raw);
             }
         }
-        Log.d(TAG, "Parsed " + list.size() + " version entries");
         return list;
     }
 
