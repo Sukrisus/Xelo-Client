@@ -28,6 +28,7 @@ public class VersionsStableFragment extends BaseThemedFragment {
             LinearProgressIndicator progressBar = view.findViewById(R.id.download_progress_stable);
             if (versionsContainer != null) {
                 populateFromRepo(versionsContainer);
+                addRefreshButton(versionsContainer);
             }
         } catch (Exception e) {
             Log.e("VersionsStable", "Failed to initialize version cards", e);
@@ -44,21 +45,31 @@ public class VersionsStableFragment extends BaseThemedFragment {
     private void populateFromRepo(LinearLayout container) {
         new Thread(() -> {
             try {
+                Log.d("VersionsStable", "Starting to fetch versions...");
                 VersionsRepository repo = new VersionsRepository();
                 java.util.List<VersionsRepository.VersionEntry> entries = repo.getVersions(requireContext());
+                Log.d("VersionsStable", "Got " + entries.size() + " total entries");
                 java.util.List<VersionsRepository.VersionEntry> stable = new java.util.ArrayList<>();
                 for (VersionsRepository.VersionEntry ve : entries) {
-                    if (!ve.isBeta) stable.add(ve);
+                    if (!ve.isBeta) {
+                        stable.add(ve);
+                        Log.d("VersionsStable", "Added stable version: " + ve.title);
+                    }
                 }
+                Log.d("VersionsStable", "Found " + stable.size() + " stable versions");
                 requireActivity().runOnUiThread(() -> {
                     container.removeAllViews();
                     for (int i = 0; i < stable.size(); i++) {
                         VersionsRepository.VersionEntry e = stable.get(i);
                         addVersionCard(container, e.title, "", e.url);
                     }
+                    Log.d("VersionsStable", "Added " + stable.size() + " version cards to UI");
                 });
             } catch (Exception ex) {
                 Log.e("VersionsStable", "Failed to load versions", ex);
+                requireActivity().runOnUiThread(() -> {
+                    android.widget.Toast.makeText(requireContext(), "Failed to load versions: " + ex.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                });
             }
         }).start();
     }
@@ -337,5 +348,33 @@ public class VersionsStableFragment extends BaseThemedFragment {
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Failed to select APK", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void addRefreshButton(LinearLayout container) {
+        // Create refresh button
+        com.google.android.material.button.MaterialButton refreshBtn = new com.google.android.material.button.MaterialButton(requireContext());
+        refreshBtn.setText("🔄 Refresh Versions");
+        refreshBtn.setTextSize(14);
+        
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) (16 * getResources().getDisplayMetrics().density);
+        btnParams.setMargins(margin, margin, margin, margin);
+        refreshBtn.setLayoutParams(btnParams);
+        
+        // Apply theme
+        ThemeUtils.applyThemeToButton(refreshBtn, requireContext());
+        
+        refreshBtn.setOnClickListener(v -> {
+            // Clear cache and refresh
+            VersionsRepository repo = new VersionsRepository();
+            repo.clearCache(requireContext());
+            populateFromRepo(container);
+            Toast.makeText(requireContext(), "Refreshing versions...", Toast.LENGTH_SHORT).show();
+        });
+        
+        container.addView(refreshBtn, 0); // Add at the top
     }
 }
