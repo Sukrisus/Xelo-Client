@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class VersionsRepository {
     private static final String TAG = "VersionsRepository";
-    private static final String REMOTE_URL = "https://cdn.discordapp.com/attachments/1173308256140152842/1418134136706564178/results.txt?ex=68cd03d5&is=68cbb255&hm=0ff4337f3f361a40a84476a7501e6b5dfa34d96ddc24304ed3fdcf1a06759689&";
+    private static final String REMOTE_URL = "https://raw.githubusercontent.com/Xelo-Client/cdn/refs/heads/main/results.txt?token=GHSAT0AAAAAADARZHJNZWKQVPWZNW5NQZBM2GNVUFA";
     private static final String CACHE_FILE_NAME = "mcpe_versions.txt";
 
     public static class VersionEntry {
@@ -35,13 +35,17 @@ public class VersionsRepository {
     }
 
     public List<VersionEntry> getVersions(Context context) {
+        Log.d(TAG, "Fetching versions from: " + REMOTE_URL);
         // Try refresh cache; if fails, fall back to cached file
         File cacheFile = new File(context.getCacheDir(), CACHE_FILE_NAME);
         try {
             List<String> lines = downloadLines();
+            Log.d(TAG, "Downloaded " + lines.size() + " lines");
             if (!lines.isEmpty()) {
                 writeCache(cacheFile, lines);
-                return parse(lines);
+                List<VersionEntry> entries = parse(lines);
+                Log.d(TAG, "Parsed " + entries.size() + " version entries");
+                return entries;
             }
         } catch (Exception e) {
             Log.w(TAG, "Failed to fetch remote versions, using cache if available", e);
@@ -50,12 +54,17 @@ public class VersionsRepository {
         // Fallback to cache
         try {
             if (cacheFile.exists()) {
-                return parse(readCache(cacheFile));
+                Log.d(TAG, "Using cached versions");
+                List<String> cachedLines = readCache(cacheFile);
+                List<VersionEntry> entries = parse(cachedLines);
+                Log.d(TAG, "Parsed " + entries.size() + " cached version entries");
+                return entries;
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to read cached versions", e);
         }
 
+        Log.w(TAG, "No versions found, returning empty list");
         return new ArrayList<>();
     }
 
@@ -72,6 +81,7 @@ public class VersionsRepository {
         List<String> result = new ArrayList<>();
         try {
             URL url = new URL(REMOTE_URL);
+            Log.d(TAG, "Connecting to: " + url);
             connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(15000);
@@ -79,7 +89,22 @@ public class VersionsRepository {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36");
             connection.connect();
             int code = connection.getResponseCode();
-            if (code != 200) throw new Exception("HTTP " + code);
+            Log.d(TAG, "HTTP response code: " + code);
+            if (code != 200) {
+                // Try to read error response
+                try (InputStream errorStream = connection.getErrorStream();
+                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream))) {
+                    StringBuilder errorResponse = new StringBuilder();
+                    String errorLine;
+                    while ((errorLine = errorReader.readLine()) != null) {
+                        errorResponse.append(errorLine).append("\n");
+                    }
+                    Log.e(TAG, "Error response: " + errorResponse.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not read error response", e);
+                }
+                throw new Exception("HTTP " + code);
+            }
             try (InputStream in = connection.getInputStream();
                  BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
                 String line;
@@ -87,6 +112,7 @@ public class VersionsRepository {
                     line = line.trim();
                     if (!line.isEmpty()) {
                         result.add(line);
+                        Log.d(TAG, "Downloaded line: " + line);
                     }
                 }
             }
@@ -120,12 +146,18 @@ public class VersionsRepository {
 
     private List<VersionEntry> parse(List<String> lines) {
         List<VersionEntry> list = new ArrayList<>();
+        Log.d(TAG, "Parsing " + lines.size() + " lines");
         for (String raw : lines) {
+            Log.d(TAG, "Parsing line: " + raw);
             Parsed p = parseLine(raw);
             if (p != null) {
+                Log.d(TAG, "Parsed: " + p.title + " -> " + p.url + " (beta: " + p.isBeta + ")");
                 list.add(new VersionEntry(p.title, p.url, p.isBeta));
+            } else {
+                Log.w(TAG, "Failed to parse line: " + raw);
             }
         }
+        Log.d(TAG, "Parsed " + list.size() + " version entries");
         return list;
     }
 

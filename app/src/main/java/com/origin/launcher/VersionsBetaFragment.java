@@ -44,18 +44,25 @@ public class VersionsBetaFragment extends BaseThemedFragment {
     private void populateFromRepo(LinearLayout container) {
         new Thread(() -> {
             try {
+                Log.d("VersionsBeta", "Starting to fetch versions...");
                 VersionsRepository repo = new VersionsRepository();
                 java.util.List<VersionsRepository.VersionEntry> entries = repo.getVersions(requireContext());
+                Log.d("VersionsBeta", "Got " + entries.size() + " total entries");
                 java.util.List<VersionsRepository.VersionEntry> beta = new java.util.ArrayList<>();
                 for (VersionsRepository.VersionEntry ve : entries) {
-                    if (ve.isBeta) beta.add(ve);
+                    if (ve.isBeta) {
+                        beta.add(ve);
+                        Log.d("VersionsBeta", "Added beta version: " + ve.title);
+                    }
                 }
+                Log.d("VersionsBeta", "Found " + beta.size() + " beta versions");
                 requireActivity().runOnUiThread(() -> {
                     container.removeAllViews();
                     for (int i = 0; i < beta.size(); i++) {
                         VersionsRepository.VersionEntry e = beta.get(i);
                         addVersionCard(container, e.title, "", e.url);
                     }
+                    Log.d("VersionsBeta", "Added " + beta.size() + " version cards to UI");
                 });
             } catch (Exception ex) {
                 Log.e("VersionsBeta", "Failed to load versions", ex);

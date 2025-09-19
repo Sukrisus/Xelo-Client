@@ -44,18 +44,25 @@ public class VersionsStableFragment extends BaseThemedFragment {
     private void populateFromRepo(LinearLayout container) {
         new Thread(() -> {
             try {
+                Log.d("VersionsStable", "Starting to fetch versions...");
                 VersionsRepository repo = new VersionsRepository();
                 java.util.List<VersionsRepository.VersionEntry> entries = repo.getVersions(requireContext());
+                Log.d("VersionsStable", "Got " + entries.size() + " total entries");
                 java.util.List<VersionsRepository.VersionEntry> stable = new java.util.ArrayList<>();
                 for (VersionsRepository.VersionEntry ve : entries) {
-                    if (!ve.isBeta) stable.add(ve);
+                    if (!ve.isBeta) {
+                        stable.add(ve);
+                        Log.d("VersionsStable", "Added stable version: " + ve.title);
+                    }
                 }
+                Log.d("VersionsStable", "Found " + stable.size() + " stable versions");
                 requireActivity().runOnUiThread(() -> {
                     container.removeAllViews();
                     for (int i = 0; i < stable.size(); i++) {
                         VersionsRepository.VersionEntry e = stable.get(i);
                         addVersionCard(container, e.title, "", e.url);
                     }
+                    Log.d("VersionsStable", "Added " + stable.size() + " version cards to UI");
                 });
             } catch (Exception ex) {
                 Log.e("VersionsStable", "Failed to load versions", ex);
