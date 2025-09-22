@@ -247,23 +247,29 @@ public class MainActivity extends BaseThemedActivity {
             globalProgress = findViewById(R.id.global_download_progress);
         }
         if (globalProgress != null) {
-            globalProgress.setIndeterminate(false);
-            globalProgress.setMax(max);
-            globalProgress.setProgress(0);
+            if (max > 0) {
+                globalProgress.setIndeterminate(false);
+                globalProgress.setMax(max);
+                globalProgress.setProgress(0);
+            } else {
+                globalProgress.setIndeterminate(true);
+            }
             globalProgress.setVisibility(View.VISIBLE);
+            globalProgress.bringToFront();
         }
     }
 
     public void updateGlobalProgress(int value) {
         if (globalProgress != null) {
             globalProgress.setIndeterminate(false);
-            globalProgress.setProgress(value);
+            globalProgress.setProgressCompat(value, true);
         }
     }
 
     public void hideGlobalProgress() {
         if (globalProgress != null) {
             globalProgress.setVisibility(View.GONE);
+            globalProgress.setIndeterminate(false);
         }
     }
 

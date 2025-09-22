@@ -205,9 +205,10 @@ public class VersionsStableFragment extends BaseThemedFragment {
                 if (!versionsDir.exists()) versionsDir.mkdirs();
                 File outFile = new File(versionsDir, fileName);
                 long total = fetchContentLength(url);
-                int max = 100;
+                int max = (total > 0 && total <= Integer.MAX_VALUE) ? (int) total : -1;
                 if (getActivity() instanceof MainActivity) {
-                    requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(max));
+                    final int finalMax = max;
+                    requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(finalMax));
                 }
                 downloadToFileWithProgress(url, outFile, total, progress);
                 ok = true;
@@ -287,14 +288,14 @@ public class VersionsStableFragment extends BaseThemedFragment {
                     out.write(buf, 0, r);
                     read += r;
                     if (total > 0) {
-                        int pct = (int) Math.min(100, (read * 100) / total);
+                        int value = (int) Math.min(Integer.MAX_VALUE, read);
                         long now = System.currentTimeMillis();
-                        if (pct != lastPct && (now - lastTs) > 150) {
-                            lastPct = pct;
+                        if (value != lastPct && (now - lastTs) > 150) {
+                            lastPct = value;
                             lastTs = now;
                             if (getActivity() instanceof MainActivity) {
-                                int finalPct = pct;
-                                requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalPct));
+                                int finalValue = value;
+                                requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalValue));
                             }
                         }
                     }
