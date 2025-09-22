@@ -210,7 +210,7 @@ public class VersionsBetaFragment extends BaseThemedFragment {
                     final int finalMax = max;
                     requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(finalMax));
                 }
-                downloadToFileWithProgress(url, outFile, total, progress);
+                downloadToFileWithProgressResumable(url, outFile, total);
                 ok = true;
             } catch (Exception ex) {
                 Log.e("VersionsBeta", "Download failed", ex);
@@ -303,6 +303,108 @@ public class VersionsBetaFragment extends BaseThemedFragment {
         } finally {
             if (conn != null) conn.disconnect();
         }
+    }
+
+    private void downloadToFileWithProgressResumable(String urlStr, File outFile, long total) throws Exception {
+        File parent = outFile.getParentFile();
+        if (parent != null && !parent.exists()) parent.mkdirs();
+        File tmp = new File(outFile.getAbsolutePath() + ".part");
+        int maxRetries = 3;
+        int attempt = 0;
+        long downloaded = tmp.exists() ? tmp.length() : 0;
+        long contentLength = total;
+
+        while (attempt < maxRetries) {
+            attempt++;
+            java.net.HttpURLConnection conn = null;
+            try {
+                conn = openConnectionFollowingRedirects(urlStr, 5);
+                java.net.URL finalUrl = new java.net.URL(conn.getURL().toString());
+                conn.disconnect();
+                conn = (java.net.HttpURLConnection) finalUrl.openConnection();
+                conn.setInstanceFollowRedirects(true);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(45000);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Mobile Safari/537.36");
+                conn.setRequestProperty("Accept", "*/*");
+                conn.setRequestProperty("Accept-Encoding", "identity");
+                conn.setRequestProperty("Connection", "close");
+
+                if (downloaded > 0) {
+                    conn.setRequestProperty("Range", "bytes=" + downloaded + "-");
+                }
+                conn.connect();
+
+                int code = conn.getResponseCode();
+                if (code != java.net.HttpURLConnection.HTTP_OK && code != java.net.HttpURLConnection.HTTP_PARTIAL) {
+                    throw new Exception("HTTP " + code);
+                }
+
+                if (code == java.net.HttpURLConnection.HTTP_OK && downloaded > 0) {
+                    downloaded = 0;
+                    if (tmp.exists()) tmp.delete();
+                }
+
+                if (contentLength <= 0) {
+                    long lenHeader = conn.getHeaderFieldLong("Content-Length", -1);
+                    if (lenHeader > 0 && downloaded > 0) {
+                        contentLength = downloaded + lenHeader;
+                    } else if (lenHeader > 0) {
+                        contentLength = lenHeader;
+                    }
+                    if (getActivity() instanceof MainActivity) {
+                        final int max = (contentLength > 0 && contentLength <= Integer.MAX_VALUE) ? (int) contentLength : -1;
+                        requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).showGlobalProgress(max));
+                    }
+                }
+
+                try (java.io.BufferedInputStream in = new java.io.BufferedInputStream(conn.getInputStream(), 131072);
+                     java.io.BufferedOutputStream out = new java.io.BufferedOutputStream(new java.io.FileOutputStream(tmp, true), 131072)) {
+                    byte[] buf = new byte[131072];
+                    int r;
+                    long lastReportBytes = downloaded;
+                    long lastTs = System.currentTimeMillis();
+                    while ((r = in.read(buf)) != -1) {
+                        out.write(buf, 0, r);
+                        downloaded += r;
+                        if (contentLength > 0 && getActivity() instanceof MainActivity) {
+                            long now = System.currentTimeMillis();
+                            if (downloaded - lastReportBytes >= 256 * 1024 || (now - lastTs) > 200) {
+                                lastReportBytes = downloaded;
+                                lastTs = now;
+                                int value = (int) Math.min(Integer.MAX_VALUE, downloaded);
+                                int finalValue = value;
+                                requireActivity().runOnUiThread(() -> ((MainActivity) getActivity()).updateGlobalProgress(finalValue));
+                            }
+                        }
+                    }
+                    out.flush();
+                }
+
+                if (tmp.renameTo(outFile)) {
+                    return;
+                } else {
+                    try (java.io.FileInputStream fis = new java.io.FileInputStream(tmp);
+                         java.io.FileOutputStream fos = new java.io.FileOutputStream(outFile)) {
+                        byte[] cbuf = new byte[131072];
+                        int cr;
+                        while ((cr = fis.read(cbuf)) != -1) {
+                            fos.write(cbuf, 0, cr);
+                        }
+                    }
+                    tmp.delete();
+                    return;
+                }
+            } catch (Exception ex) {
+                if (attempt >= maxRetries) {
+                    throw ex;
+                }
+                try { Thread.sleep(1000L * attempt); } catch (InterruptedException ignored) {}
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }
+        throw new Exception("Failed to download after retries");
     }
 
     private java.net.HttpURLConnection openConnectionFollowingRedirects(String urlStr, int maxRedirects) throws Exception {
