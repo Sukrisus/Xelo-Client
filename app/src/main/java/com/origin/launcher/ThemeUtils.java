@@ -19,6 +19,7 @@ import android.graphics.Color;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import android.animation.ValueAnimator;
 import android.animation.ArgbEvaluator;
+import com.google.android.material.tabs.TabLayout;
 
 public class ThemeUtils {
     
@@ -322,6 +323,8 @@ public class ThemeUtils {
             applyThemeToRadioButton((MaterialRadioButton) view, view.getContext());
         } else if (view instanceof com.google.android.material.bottomnavigation.BottomNavigationView) {
             applyThemeToBottomNavigation(view);
+        } else if (view instanceof TabLayout) {
+            applyThemeToTabLayout((TabLayout) view);
         } else if (view instanceof TextInputLayout) {
             applyThemeToTextInputLayout((TextInputLayout) view);
         } else if (view instanceof EditText && !(view instanceof TextInputEditText)) {
@@ -330,8 +333,59 @@ public class ThemeUtils {
             if (editText.getBackground() == null || editText.getCurrentTextColor() == android.graphics.Color.BLACK) {
                 applyThemeToEditText(editText);
             }
+        } else if (view instanceof TextView) {
+            // Apply theme to TextViews when they still have default colors
+            TextView textView = (TextView) view;
+            applyThemeToTextViewIfDefault(textView);
         }
-        // Removed automatic TextView and ImageView theming to preserve custom styling
+        // Removed automatic ImageView theming to preserve custom styling
+    }
+
+    /**
+     * Apply theme to TextView only if it appears to still be using default system colors,
+     * to avoid overriding explicitly styled texts. Honors an opt-out via tag containing "preserveColor".
+     */
+    private static void applyThemeToTextViewIfDefault(TextView textView) {
+        try {
+            // Opt-out: if tag asks to preserve color
+            Object tag = textView.getTag();
+            if (tag != null) {
+                String t = tag.toString().toLowerCase();
+                if (t.contains("preservecolor") || t.contains("no-theme") || t.contains("notheme")) {
+                    return;
+                }
+            }
+
+            int color = textView.getCurrentTextColor();
+            if (looksLikeDefaultTextColor(color)) {
+                // Heuristic: large/bold -> primary text; otherwise secondary
+                boolean isBold = textView.getTypeface() != null && textView.getTypeface().isBold();
+                float sp = textView.getTextSize() / textView.getResources().getDisplayMetrics().scaledDensity;
+                if (isBold || sp >= 16f) {
+                    applyThemeToTextView(textView, "onSurface");
+                } else {
+                    applyThemeToTextView(textView, "onSurfaceVariant");
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Detects common default system text colors (black/white/near-black) that indicate no explicit theming.
+     */
+    private static boolean looksLikeDefaultTextColor(int color) {
+        // Fully opaque black or white
+        if (color == android.graphics.Color.BLACK || color == android.graphics.Color.WHITE) return true;
+        // Common near-black defaults (#FF212121, #FF000000, Material defaults)
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >>> 16) & 0xFF;
+        int g = (color >>> 8) & 0xFF;
+        int b = color & 0xFF;
+        // Consider as default if fully opaque and very dark (typical default)
+        if (a == 0xFF && r < 40 && g < 40 && b < 40) return true;
+        // Consider as default if high contrast white-ish
+        if (a == 0xFF && r > 240 && g > 240 && b > 240) return true;
+        return false;
     }
     
     /**
@@ -382,6 +436,36 @@ public static void applyThemeToBottomNavigation(View bottomNavView) {
         }
     }
 }
+
+    /**
+     * Apply theme colors to TabLayout (top navigation)
+     */
+    public static void applyThemeToTabLayout(TabLayout tabLayout) {
+        try {
+            ThemeManager themeManager = ThemeManager.getInstance();
+            // Background should match fragment background
+            tabLayout.setBackgroundColor(themeManager.getColor("background"));
+
+            // Text colors for selected/unselected
+            ColorStateList textColors = new ColorStateList(
+                new int[][]{
+                    new int[]{android.R.attr.state_selected},
+                    new int[]{-android.R.attr.state_selected}
+                },
+                new int[]{
+                    themeManager.getColor("primary"),
+                    themeManager.getColor("onSurfaceVariant")
+                }
+            );
+            tabLayout.setTabTextColors(textColors);
+
+            // Indicator color
+            tabLayout.setSelectedTabIndicatorColor(themeManager.getColor("primary"));
+
+            // Also color icons in tabs if any
+            tabLayout.setTabIconTint(textColors);
+        } catch (Exception ignored) {}
+    }
     
     /**
      * Apply theme colors to TextInputLayout

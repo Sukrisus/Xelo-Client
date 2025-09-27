@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction; // Add this import
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.graphics.Color;
@@ -20,6 +21,7 @@ public class MainActivity extends BaseThemedActivity {
     private static final String KEY_THEMES_DIALOG_SHOWN = "themes_dialog_shown";
     private SettingsFragment settingsFragment;
     private int currentFragmentIndex = 0; // Move this to class level
+    private LinearProgressIndicator globalProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,6 +239,37 @@ public class MainActivity extends BaseThemedActivity {
                 // Fallback to immediate theme application
                 ThemeUtils.applyThemeToBottomNavigation(bottomNavigationView);
             }
+        }
+    }
+
+    public void showGlobalProgress(int max) {
+        if (globalProgress == null) {
+            globalProgress = findViewById(R.id.global_download_progress);
+        }
+        if (globalProgress != null) {
+            if (max > 0) {
+                globalProgress.setIndeterminate(false);
+                globalProgress.setMax(max);
+                globalProgress.setProgress(0);
+            } else {
+                globalProgress.setIndeterminate(true);
+            }
+            globalProgress.setVisibility(View.VISIBLE);
+            globalProgress.bringToFront();
+        }
+    }
+
+    public void updateGlobalProgress(int value) {
+        if (globalProgress != null) {
+            globalProgress.setIndeterminate(false);
+            globalProgress.setProgressCompat(value, true);
+        }
+    }
+
+    public void hideGlobalProgress() {
+        if (globalProgress != null) {
+            globalProgress.setVisibility(View.GONE);
+            globalProgress.setIndeterminate(false);
         }
     }
 
