@@ -693,9 +693,10 @@ public class DashboardFragment extends BaseThemedFragment {
       File file = new File("/storage/emulated/0/games/xelo_client/xelo_mods/config.json");
 
       if (!file.exists()){
-        Toast.makeText(this, "Config not found", Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), "Config doesnt exist", Toast.LENGTH_SHORT).show();   
         return;
       }
+
       Uri fileUri = FileProvider.getUriForFile ( this, getApplicationContext().getPackageName() + ".FileProvider", file);
       Intent shareIntent = new Intent(Intent.ACTION_SEND);
           shareIntent.setType("application/json");
@@ -705,7 +706,6 @@ public class DashboardFragment extends BaseThemedFragment {
 
                       startActivity(Intent.createChooser(shareIntent));
     }
-
     private void openFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("application/zip");

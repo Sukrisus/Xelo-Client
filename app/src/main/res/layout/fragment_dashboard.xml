@@ -201,7 +201,7 @@
                         android:textColor="@color/onPrimary" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/importconfigButton"
+                        android:id="@+id/importconfigbutton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
