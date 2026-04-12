@@ -181,6 +181,36 @@
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:textColor="@color/primary" />
 
+                    </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/exportconfigbutton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Export Config"
+                        android:icon="@android:drawable/ic_menu_save"
+                        android:backgroundTint="@color/primary"
+                        android:textColor="@color/onPrimary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/importconfigButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Import Config"
+                        android:icon="@android:drawable/ic_menu_upload"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:textColor="@color/primary" />
+
                 </LinearLayout>
             </LinearLayout>
 

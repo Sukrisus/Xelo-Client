@@ -97,7 +97,11 @@ public class DashboardFragment extends BaseThemedFragment {
         RecyclerView folderRecyclerView = view.findViewById(R.id.folderRecyclerView);
         MaterialButton backupButton = view.findViewById(R.id.backupButton);
         MaterialButton importButton = view.findViewById(R.id.importButton);
-        
+       
+
+        MaterialButton exportconfigButton = view.findViewById(R.id.exportconfigbutton);
+        MaterialButton importconfigButton = view.findViewById(R.id.importconfigbutton);
+
         if (folderRecyclerView != null) {
             folderRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -168,6 +172,13 @@ public class DashboardFragment extends BaseThemedFragment {
                     requestStoragePermissions();
                 }
             });
+        }
+
+        if (exportconfigButton != null) {
+          ThemeUtils.applyThemeToButton       (portconfigButton requireContext());
+          exportconfigButton.setOnClickListener(v -> {
+            shareConfigFile();
+          })
         }
 
         // Initialize modules navigation button
@@ -675,6 +686,24 @@ public class DashboardFragment extends BaseThemedFragment {
             // Scroll to the calculated position
             optionsTextEditor.scrollTo(0, scrollY);
         }
+    }
+
+
+    private void shareConfigFile() {
+      File file = new File("/storage/emulated/0/games/xelo_client/xelo_mods/config.json");
+
+      if (!file.exists()){
+        Toast.makeText(this, "Config not found", Toast.LENGTH_SHORT).show();
+        return;
+      }
+      Uri fileUri = FileProvider.getUriForFile ( this, getApplicationContext().getPackageName() + ".FileProvider", file);
+      Intent shareIntent = new Intent(Intent.ACTION_SEND);
+          shareIntent.setType("application/json");
+              shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+                  shareIntent.putExtra(Intent.EXTRA_SUBJECT, "config.json");
+                      shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                      startActivity(Intent.createChooser(shareIntent));
     }
 
     private void openFileChooser() {
