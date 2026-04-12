@@ -175,10 +175,10 @@ public class DashboardFragment extends BaseThemedFragment {
         }
 
         if (exportconfigButton != null) {
-          ThemeUtils.applyThemeToButton       (portconfigButton requireContext());
+          ThemeUtils.applyThemeToButton       (exportconfigButton, requireContext());
           exportconfigButton.setOnClickListener(v -> {
             shareConfigFile();
-          })
+          });
         }
 
         // Initialize modules navigation button
